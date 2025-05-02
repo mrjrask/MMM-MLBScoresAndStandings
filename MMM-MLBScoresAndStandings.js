@@ -36,17 +36,18 @@ if (typeof Module !== "undefined" && Module.register) {
       return ["MMM-MLBScoresAndStandings.css"];
     },
 
-    start() {
-      this.games        = [];
-      this.recordGroups = [];
-      this.divisions    = [];
-      this.gamePage     = 0;
-      this.divisionPage = 0;
-      this.rotationMode = "games";
-      this.sendSocketNotification("INIT");
-      setInterval(() => this.rotateView(), this.config.rotateInterval);
-    },
-
+start() {
+  this.games        = [];
+  this.recordGroups = [];
+  this.divisions    = [];
+  this.gamePage     = 0;
+  this.divisionPage = 0;
+  this.rotationMode = "games";
+  // send the module’s config along with the INIT message:
+  this.sendSocketNotification("INIT", this.config);
+  setInterval(() => this.rotateView(), this.config.rotateInterval);
+},
+    
     socketNotificationReceived(notification, payload) {
       if (notification === "GAMES") {
         this.games        = payload;
