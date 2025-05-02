@@ -1,5 +1,3 @@
-console.log("[MMM-MLBScoresAndStandings] front-end loaded");
-
 const moment = require("moment");
 
 Module.register("MMM-MLBScoresAndStandings", {
