@@ -15,9 +15,9 @@ Module.register("MMM-MLBScoresAndStandings", {
   defaults: {
     updateIntervalScores: 2 * 60 * 1000,
     updateIntervalStandings: 15 * 60 * 1000,
-    pageInterval: 20 * 1000,
+    pageInterval: 5 * 1000,        // rotate every 5s
     gamesPerPage: 8,
-    logoType: 'color', // 'color' or 'bw'
+    logoType: 'color',             // 'color' or 'bw'
     position: "top_right"
   },
 
@@ -36,7 +36,6 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.divisionPage = 0;
     this.rotationMode = 'games';
     this.sendSocketNotification("INIT");
-
     setInterval(() => this.rotateView(), this.config.pageInterval);
   },
 
@@ -68,39 +67,47 @@ Module.register("MMM-MLBScoresAndStandings", {
 
   getDom() {
     const wrapper = document.createElement("div");
+
+    // Module header
+    const header = document.createElement("h2");
+    header.innerText = this.rotationMode === 'games' ? "MLB Scores" : "MLB Standings";
+    wrapper.appendChild(header);
+
     if (this.rotationMode === 'games') {
-      return this.createGamesTable();
+      wrapper.appendChild(this.createGamesTable());
     } else {
-      return this.createStandingsTable();
+      wrapper.appendChild(this.createStandingsTable());
     }
+
+    return wrapper;
   },
 
   createGamesTable() {
     const table = document.createElement("table");
     table.className = "mlb-games";
-    const startIndex = this.gamePage * this.config.gamesPerPage;
-    const pageGames = this.games.slice(startIndex, startIndex + this.config.gamesPerPage);
+    const startIdx = this.gamePage * this.config.gamesPerPage;
+    const pageGames = this.games.slice(startIdx, startIdx + this.config.gamesPerPage);
 
     pageGames.forEach(game => {
-      const status = game.status;
-      const state = status.abstractGameState;
-      const hasStarted = state === 'In Progress' || state === 'Final';
-      const startTimeCT = moment(game.gameDate).tz('America/Chicago').format("h:mm A");
+      const { status } = game;
+      const { abstractGameState: state, detailedState, currentInningOrdinal } = status;
+      const hasStarted = (state === 'In Progress' || state === 'Final');
+      const startTimeCT = moment(game.gameDate).local().format("h:mm A");
       let displayStatus = '';
 
       if (!hasStarted) {
         displayStatus = startTimeCT;
       } else if (state === 'Final') {
-        const parts = status.detailedState.split("/");
+        const parts = detailedState.split("/");
         displayStatus = parts[1] ? `F/${parts[1]}` : "F";
       } else {
-        displayStatus = status.currentInningOrdinal;
+        displayStatus = currentInningOrdinal;
       }
 
-      const home = game.teams.home;
-      const away = game.teams.away;
-      const homeAbbr = ABBREVIATIONS[home.team.name];
-      const awayAbbr = ABBREVIATIONS[away.team.name];
+      const { team: homeTeam, score: homeScore } = game.teams.home;
+      const { team: awayTeam, score: awayScore } = game.teams.away;
+      const homeAbbr = ABBREVIATIONS[homeTeam.name] || '';
+      const awayAbbr = ABBREVIATIONS[awayTeam.name] || '';
 
       const row = document.createElement("tr");
       row.innerHTML = `
@@ -108,9 +115,9 @@ Module.register("MMM-MLBScoresAndStandings", {
           <img src="${this.getLogoUrl(homeAbbr)}" alt="${homeAbbr}" />
           <span class="abbr">${homeAbbr}</span>
         </td>
-        <td class="score-cell">${hasStarted ? home.score : ''}</td>
+        <td class="score-cell">${hasStarted ? homeScore : ''}</td>
         <td class="dash-cell">${hasStarted ? '–' : ''}</td>
-        <td class="score-cell">${hasStarted ? away.score : ''}</td>
+        <td class="score-cell">${hasStarted ? awayScore : ''}</td>
         <td class="team-cell">
           <img src="${this.getLogoUrl(awayAbbr)}" alt="${awayAbbr}" />
           <span class="abbr">${awayAbbr}</span>
@@ -126,9 +133,9 @@ Module.register("MMM-MLBScoresAndStandings", {
   createStandingsTable() {
     const divisionName = this.divisions[this.divisionPage];
     const container = document.createElement("div");
-    const header = document.createElement("h3");
-    header.innerText = divisionName;
-    container.appendChild(header);
+    const divHeader = document.createElement("h3");
+    divHeader.innerText = divisionName;
+    container.appendChild(divHeader);
 
     const table = document.createElement("table");
     table.className = "mlb-standings";
@@ -136,8 +143,9 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.standings
       .filter(rec => rec.division.name === divisionName)
       .forEach(rec => {
-        const abbr = ABBREVIATIONS[rec.team.name];
+        const abbr = ABBREVIATIONS[rec.team.name] || '';
         const l10 = (rec.records.find(r => r.type === 'lastTen') || {}).summary || '–';
+
         const row = document.createElement("tr");
         row.innerHTML = `
           <td class="team-cell">
@@ -157,7 +165,6 @@ Module.register("MMM-MLBScoresAndStandings", {
     return container;
   },
 
-  // Build URL to local logo file
   getLogoUrl(abbr) {
     return this.file(`logos/${this.config.logoType}/${abbr}.png`);
   },
