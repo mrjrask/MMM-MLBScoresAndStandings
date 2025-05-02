@@ -1,7 +1,7 @@
 console.log("[MMM-MLBScoresAndStandings] node_helper started");
 
 const NodeHelper = require("node_helper");
-const fetch = require("node-fetch");
+const fetch = require("node-fetch").default;
 const moment = require("moment");
 
 module.exports = NodeHelper.create({
