@@ -4,7 +4,7 @@
 const fs   = require("fs");
 const path = require("path");
 
-// Division definitions
+// Define your six divisions
 const DIVISIONS = [
   { name: "NL East",    leagueId: 104, divisionId: 204 },
   { name: "NL Central", leagueId: 104, divisionId: 205 },
@@ -29,31 +29,35 @@ const DIVISIONS = [
       const json = await res.json();
       const recs = json.records || [];
 
-      // **DEBUG**: show what division IDs came back
+      // Show exactly what the API returned
       console.log(
-        `[fetch-standings] ${d.name} API records divisions:`,
-        recs.map(r => r.division?.id)
+        `[fetch-standings] ${d.name} API returned divisions:`,
+        recs.map(r => `${r.division.id}(${r.division.name})`)
       );
 
-      // pick the matching division (coerce to Number in case of string IDs)
-      const divRec =
-        recs.find(r => Number(r.division?.id) === d.divisionId) 
-        || recs[0] 
-        || { teamRecords: [] };
+      // Find the exact match
+      const match = recs.find(r => Number(r.division.id) === d.divisionId);
+      if (match) {
+        console.log(
+          `[fetch-standings] Matched ${d.name} → division ${match.division.id} (${match.division.name})`
+        );
+      } else {
+        console.warn(
+          `[fetch-standings] ⚠️ No exact match for ${d.name} (id=${d.divisionId}), defaulting to first record ${recs[0]?.division.id}`
+        );
+      }
 
       results.push({
         division:    { name: d.name },
-        teamRecords: divRec.teamRecords || []
+        teamRecords: (match || recs[0] || { teamRecords: [] }).teamRecords || []
       });
 
     } catch (err) {
-      console.error(`[fetch-standings] error for ${d.name}:`, err);
+      console.error(`[fetch-standings] Error fetching ${d.name}:`, err);
       results.push({ division: { name: d.name }, teamRecords: [] });
     }
   }
 
   fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
-  console.log(
-    `[fetch-standings] wrote standings for ${results.length} divisions to ${outPath}`
-  );
+  console.log(`[fetch-standings] Wrote ${results.length} divisions to ${outPath}`);
 })();
