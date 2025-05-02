@@ -1,4 +1,5 @@
 // MagicMirror Module: MMM-MLBScoresAndStandings
+
 const ABBREVIATIONS = {
   "Chicago Cubs": "CUBS",      "Atlanta Braves": "ATL",
   "Miami Marlins": "MIA",       "New York Mets": "NYM",
@@ -22,7 +23,7 @@ if (typeof Module !== "undefined" && Module.register) {
     defaults: {
       updateIntervalScores:    2 * 60 * 1000,
       updateIntervalStandings: 15 * 60 * 1000,
-      rotateInterval:          5 * 1000,  // advance every 5s
+      rotateInterval:          5 * 1000,
       gamesPerPage:            8,
       logoType:                "color",
       position:                "top_right"
@@ -36,31 +37,42 @@ if (typeof Module !== "undefined" && Module.register) {
       return ["MMM-MLBScoresAndStandings.css"];
     },
 
-start() {
-  this.games        = [];
-  this.recordGroups = [];
-  this.divisions    = [];
-  this.gamePage     = 0;
-  this.divisionPage = 0;
-  this.rotationMode = "games";
-  // send the module’s config along with the INIT message:
-  this.sendSocketNotification("INIT", this.config);
-  setInterval(() => this.rotateView(), this.config.rotateInterval);
-},
-    
+    start() {
+      this.games        = [];
+      this.recordGroups = [];
+      this.divisions    = [];
+      this.gamePage     = 0;
+      this.divisionPage = 0;
+      this.rotationMode = "games";
+
+      // Send config so the helper can schedule immediately
+      this.sendSocketNotification("INIT", this.config);
+
+      // Rotate view every rotateInterval
+      setInterval(() => this.rotateView(), this.config.rotateInterval);
+    },
+
     socketNotificationReceived(notification, payload) {
+      console.log(
+        "[MMM-MLBScoresAndStandings] received",
+        notification,
+        "payload length:",
+        Array.isArray(payload) ? payload.length : payload
+      );
+
       if (notification === "GAMES") {
         this.games        = payload;
         this.gamePage     = 0;
-        this.rotationMode = "games";
+        this.rotationMode = this.games.length ? "games" : "standings";
         this.updateDom();
       }
+
       if (notification === "STANDINGS") {
         this.recordGroups = payload;
-        this.divisions    = payload.map(r => r.division.name);
+        this.divisions    = payload.map(g => g.division.name);
         this.divisionPage = 0;
-        // If there are no upcoming games, start directly with standings
-        if (this.games.length === 0) {
+        // If no games or we've exhausted game pages:
+        if (!this.games.length) {
           this.rotationMode = "standings";
         }
         this.updateDom();
@@ -69,15 +81,16 @@ start() {
 
     rotateView() {
       const totalGamePages = Math.ceil(this.games.length / this.config.gamesPerPage) || 1;
+
       if (this.rotationMode === "games") {
         if (this.gamePage < totalGamePages - 1) {
           this.gamePage++;
         } else {
-          this.rotationMode  = "standings";
-          this.divisionPage  = 0;
+          this.rotationMode = "standings";
+          this.divisionPage = 0;
         }
         this.updateDom(1000);
-      } else if (this.rotationMode === "standings") {
+      } else {
         if (this.divisionPage < this.divisions.length - 1) {
           this.divisionPage++;
         } else {
@@ -89,8 +102,16 @@ start() {
     },
 
     getDom() {
-      const wrapper = document.createElement("div");
+      console.log(
+        "[MMM-MLBScoresAndStandings] getDom – mode:",
+        this.rotationMode,
+        "games:",
+        this.games.length,
+        "divs:",
+        this.divisions.length
+      );
 
+      const wrapper = document.createElement("div");
       // Header + separator
       const header = document.createElement("h2");
       header.className = "module-header";
@@ -98,14 +119,14 @@ start() {
       wrapper.appendChild(header);
       wrapper.appendChild(document.createElement("hr"));
 
-      // No-data fallback
-      if (this.rotationMode === "games" && this.games.length === 0) {
+      // Fallbacks
+      if (this.rotationMode === "games" && !this.games.length) {
         const msg = document.createElement("div");
         msg.innerText = "No games to display.";
         wrapper.appendChild(msg);
         return wrapper;
       }
-      if (this.rotationMode === "standings" && this.divisions.length === 0) {
+      if (this.rotationMode === "standings" && !this.divisions.length) {
         const msg = document.createElement("div");
         msg.innerText = "Standings unavailable.";
         wrapper.appendChild(msg);
@@ -113,24 +134,25 @@ start() {
       }
 
       if (this.rotationMode === "games") {
-        // Two columns, 4 box scores each
-        const start     = this.gamePage * this.config.gamesPerPage;
-        const slice     = this.games.slice(start, start + this.config.gamesPerPage);
-        const colWrapper = document.createElement("div");
-        colWrapper.className = "games-columns";
-        const perCol    = this.config.gamesPerPage / 2;
+        // Two columns, four box scores each
+        const start  = this.gamePage * this.config.gamesPerPage;
+        const slice  = this.games.slice(start, start + this.config.gamesPerPage);
+        const cols   = document.createElement("div");
+        cols.className = "games-columns";
+        const perCol = this.config.gamesPerPage / 2;
+
         for (let i = 0; i < 2; i++) {
           const col = document.createElement("div");
           col.className = "game-col";
           slice
             .slice(i * perCol, (i + 1) * perCol)
-            .forEach(gm => col.appendChild(this.createGameBox(gm)));
-          colWrapper.appendChild(col);
+            .forEach(game => col.appendChild(this.createGameBox(game)));
+          cols.appendChild(col);
         }
-        wrapper.appendChild(colWrapper);
+        wrapper.appendChild(cols);
 
       } else {
-        // Standings for a single division
+        // Show one division's standings
         const group = this.recordGroups[this.divisionPage];
         wrapper.appendChild(this.createStandingsTable(group));
       }
@@ -141,11 +163,11 @@ start() {
     createGameBox(game) {
       const table = document.createElement("table");
       table.className   = "game-boxscore";
-      table.border      = "1";
+      table.border      = "0";
       table.cellSpacing = "0";
-      table.cellPadding = "2";
+      table.cellPadding = "0";
 
-      // Determine the status text (start time / inning / final)
+      // Determine status text
       const state = game.status.abstractGameState;
       let timeText = "";
       if (state === "Preview") {
@@ -157,12 +179,13 @@ start() {
         timeText = game.status.currentInningOrdinal;
       }
 
-      // Row 1: header with time / R / H / E
+      // Row 1: Time/Inning/Final + R/H/E headers
       const trHdr = document.createElement("tr");
       const thTime = document.createElement("th");
       thTime.className = "status-cell";
       thTime.innerText = timeText;
       trHdr.appendChild(thTime);
+
       ["R","H","E"].forEach(lbl => {
         const th = document.createElement("th");
         th.className = "rhe-header";
@@ -171,31 +194,32 @@ start() {
       });
       table.appendChild(trHdr);
 
-      // Data rows for Away and Home
+      // Data: Away and Home
       const lines = game.linescore?.teams || {};
       [game.teams.away, game.teams.home].forEach((teamData, idx) => {
         const tr = document.createElement("tr");
 
-        // Column 1: logo + abbreviation
+        // Col 1: logo + abbr centered
         const tdTeam = document.createElement("td");
         tdTeam.className = "team-cell";
         const abbr = ABBREVIATIONS[teamData.team.name] || "";
-        const img = document.createElement("img");
+        const img  = document.createElement("img");
         img.src       = this.getLogoUrl(abbr);
         img.alt       = abbr;
         img.className = "logo-cell";
-        const span    = document.createElement("span");
-        span.className = "abbr";
-        span.innerText = abbr;
+        const sp = document.createElement("span");
+        sp.className  = "abbr";
+        sp.innerText  = abbr;
         tdTeam.appendChild(img);
-        tdTeam.appendChild(span);
+        tdTeam.appendChild(sp);
         tr.appendChild(tdTeam);
 
-        // Columns 2–4: R, H, E values
+        // Cols 2–4: R/H/E data
         const isAway = idx === 0;
         const score  = state !== "Preview" ? teamData.score : "";
-        const hits   = isAway ? lines.away?.hits || "" : lines.home?.hits || "";
+        const hits   = isAway ? lines.away?.hits   || "" : lines.home?.hits   || "";
         const errs   = isAway ? lines.away?.errors || "" : lines.home?.errors || "";
+
         [score, hits, errs].forEach(val => {
           const td = document.createElement("td");
           td.className = "rhe-cell";
