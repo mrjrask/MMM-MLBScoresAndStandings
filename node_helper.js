@@ -3,6 +3,16 @@ const moment     = require("moment");
 
 console.log("[MMM-MLBScoresAndStandings] helper started");
 
+// Division configs for separate standings fetches
+const DIVISIONS = [
+  { name: "NL East", leagueId: 104, divisionId: 204 },
+  { name: "NL Central", leagueId: 104, divisionId: 205 },
+  { name: "NL West", leagueId: 104, divisionId: 203 },
+  { name: "AL East", leagueId: 103, divisionId: 201 },
+  { name: "AL Central", leagueId: 103, divisionId: 202 },
+  { name: "AL West", leagueId: 103, divisionId: 200 }
+];
+
 module.exports = NodeHelper.create({
   start() {
     this.games        = [];
@@ -49,19 +59,30 @@ module.exports = NodeHelper.create({
 
   async fetchStandings() {
     const season = moment().year();
-    // Fetch only regular season standings by sport
-    const url    = `https://statsapi.mlb.com/api/v1/standings?sportId=1&season=${season}&standingsTypes=regularSeason`;
-    try {
-      const res    = await fetch(url);
-      const json   = await res.json();
-      this.recordGroups = json.records || [];
-      console.log(
-        "[MMM-MLBScoresAndStandings] fetched standings groups:",
-        this.recordGroups.length
-      );
-      this.sendSocketNotification("STANDINGS", this.recordGroups);
-    } catch (e) {
-      console.error("[MMM-MLBScoresAndStandings] fetchStandings error", e);
+    const groups = [];
+    for (const d of DIVISIONS) {
+      const url = `https://statsapi.mlb.com/api/v1/standings?season=${season}&leagueId=${d.leagueId}&divisionId=${d.divisionId}`;
+      try {
+        const res  = await fetch(url);
+        const json = await res.json();
+        const recs = json.records || [];
+        let teamRecords = [];
+        if (recs.length > 0) {
+          // find the matching division record
+          const rec = recs.find(r => r.division.id === d.divisionId) || recs[0];
+          teamRecords = rec.teamRecords || [];
+        }
+        groups.push({ division: { name: d.name }, teamRecords });
+      } catch (e) {
+        console.error(`Failed to fetch ${d.name}`, e);
+        groups.push({ division: { name: d.name }, teamRecords: [] });
+      }
     }
+    this.recordGroups = groups;
+    console.log(
+      "[MMM-MLBScoresAndStandings] fetched standings divisions:",
+      groups.map(g => g.division.name)
+    );
+    this.sendSocketNotification("STANDINGS", this.recordGroups);
   }
 });
