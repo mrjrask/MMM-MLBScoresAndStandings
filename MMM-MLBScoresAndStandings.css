@@ -32,39 +32,41 @@
 }
 .game-boxscore th,
 .game-boxscore td {
-  border: 0.5px solid #fff;
   padding: 2px;
   vertical-align: middle;
   height: 1.5em;
+  border: none; /* remove default borders */
 }
 
-/* Team Cell: logo + abbreviation */
-.team-cell {
+/* Team Cell: fixed width for longest abbr+logo */
+.game-boxscore .team-cell {
   display: flex;
   align-items: center;
+  width: 5em; /* room for CUBS + logo + padding */
 }
-.team-cell .logo-cell {
+.game-boxscore .team-cell .logo-cell {
   height: 1em;
   width: auto;
   margin-right: 4px;
 }
 
-/* Status Cell (time/inning/final) */
-.status-cell {
+/* Status Cell (time/inning/final) remains borderless */
+.game-boxscore .status-cell {
   width: 1.5em;
   text-align: center;
   font-size: 0.8em;
+  border: none;
 }
 
-/* R/H/E Header and Data Cells */
-.rhe-header,
-.rhe-cell {
+/* R/H/E Data Cells: dark gray borders in data rows */
+.game-boxscore .rhe-cell {
   width: 1.5em;
   text-align: center;
   font-size: 0.8em;
+  border: 1px solid #444;
 }
 
-/* Standings Table */
+/* Standings Table remains full width */
 .mlb-standings {
   width: 100%;
   border-collapse: collapse;
@@ -72,9 +74,9 @@
 }
 .mlb-standings td,
 .mlb-standings th {
-  border: 0.5px solid #fff;
   padding: 4px;
   vertical-align: middle;
+  border: 0.5px solid #444;
 }
 
 /* Standings Team Cell */
