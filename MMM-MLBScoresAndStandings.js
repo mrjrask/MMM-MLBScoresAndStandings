@@ -3,7 +3,7 @@ const ABBREVIATIONS = {
   "New York Mets": "NYM",   "Philadelphia Phillies": "PHI", "Washington Nationals": "WAS",
   "Cincinnati Reds": "CIN","Milwaukee Brewers": "MIL",  "Pittsburgh Pirates": "PIT",
   "St. Louis Cardinals": "STL","Arizona Diamondbacks": "ARI","Colorado Rockies": "COL",
-  "Los Angeles Dodgers": "LAD","San Diego Padres": "SDG",  "San Francisco Giants": "SF",
+  "Los Angeles Dodgers": "LAD","San Diego Padres": "SD",  "San Francisco Giants": "SF",
   "Baltimore Orioles": "BAL","Boston Red Sox": "BOS",     "New York Yankees": "NYY",
   "Tampa Bay Rays": "TB",  "Toronto Blue Jays": "TOR",    "Chicago White Sox": "SOX",
   "Cleveland Guardians": "CLE","Detroit Tigers": "DET",  "Kansas City Royals": "KC",
