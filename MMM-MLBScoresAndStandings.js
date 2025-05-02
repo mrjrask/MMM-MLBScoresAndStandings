@@ -1,3 +1,5 @@
+console.log("[MMM-MLBScoresAndStandings] front-end loaded");
+
 Module.register("MMM-MLBScoresAndStandings", {
   defaults: {
     updateIntervalScores: 2 * 60 * 1000,
