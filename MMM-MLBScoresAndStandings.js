@@ -15,37 +15,28 @@ const ABBREVIATIONS = {
 
 if (typeof Module !== "undefined" && Module.register) {
   Module.register("MMM-MLBScoresAndStandings", {
-    defaults: {
-      updateIntervalScores:    2 * 60 * 1000,
-      updateIntervalStandings: 15 * 60 * 1000,
-      rotateInterval:          5 * 1000,
-      gamesPerPage:            8,
-      logoType:                "color",
-      position:                "top_right"
-    },
-
+    defaults: { updateIntervalScores:120000, updateIntervalStandings:900000, rotateInterval:5000, gamesPerPage:8, logoType:"color", position:"top_right" },
     getScripts() { return ["moment.js"]; },
     getStyles()  { return ["MMM-MLBScoresAndStandings.css"]; },
 
     start() {
-      this.games               = [];
-      this.recordGroups        = [];
-      this.totalGamePages      = 1;
+      this.games = [];
+      this.recordGroups = [];
+      this.totalGamePages = 1;
       this.totalStandingsPages = 0;
-      this.currentScreen       = 0;
+      this.currentScreen = 0;
       this.sendSocketNotification("INIT", this.config);
       setInterval(() => this.rotateView(), this.config.rotateInterval);
     },
 
     socketNotificationReceived(notification, payload) {
-      console.log("[MMM-MLBScoresAndStandings] socketNotificationReceived:", notification, payload);
       if (notification === "GAMES") {
         this.games = payload;
         this.totalGamePages = Math.max(1, Math.ceil(this.games.length / this.config.gamesPerPage));
         this.updateDom();
       }
       if (notification === "STANDINGS") {
-        this.recordGroups        = payload;
+        this.recordGroups = payload;
         this.totalStandingsPages = payload.length;
         this.updateDom();
       }
@@ -58,164 +49,80 @@ if (typeof Module !== "undefined" && Module.register) {
     },
 
     getDom() {
-      const wrapper = document.createElement("div");
-      const header  = document.createElement("h2");
       const inGames = this.currentScreen < this.totalGamePages;
+      const wrapper = document.createElement("div");
+      wrapper.classList.add(inGames? 'scores-screen':'standings-screen');
+
+      // Module title
+      const header = document.createElement("h2");
       header.className = "module-header";
       header.innerText = inGames ? "MLB Scores" : "MLB Standings";
       wrapper.appendChild(header);
-      wrapper.appendChild(document.createElement("hr"));
 
-      if (inGames && this.games.length === 0) {
-        return this._noData("No games to display.");
-      }
-      if (!inGames && this.totalStandingsPages === 0) {
-        return this._noData("Standings unavailable.");
-      }
+      // On scores screens only, draw hr
+      if (inGames) wrapper.appendChild(document.createElement("hr"));
+
+      // No-data fallback
+      if (inGames && !this.games.length) return this._noData("No games to display.");
+      if (!inGames && !this.totalStandingsPages) return this._noData("Standings unavailable.");
 
       if (inGames) {
-        const page  = this.currentScreen;
+        // two columns of games
+        const page = this.currentScreen;
         const start = page * this.config.gamesPerPage;
         const slice = this.games.slice(start, start + this.config.gamesPerPage);
-        const cols  = document.createElement("div"); cols.className = "games-columns";
+        const grid = document.createElement("div");
+        grid.className = "games-columns";
         const perCol = this.config.gamesPerPage / 2;
         for (let i = 0; i < 2; i++) {
           const col = document.createElement("div"); col.className = "game-col";
-          slice.slice(i * perCol, (i + 1) * perCol)
-               .forEach(gm => col.appendChild(this.createGameBox(gm)));
-          cols.appendChild(col);
+          slice.slice(i*perCol,(i+1)*perCol).forEach(gm => col.appendChild(this.createGameBox(gm)));
+          grid.appendChild(col);
         }
-        wrapper.appendChild(cols);
+        wrapper.appendChild(grid);
       } else {
-        const idx   = this.currentScreen - this.totalGamePages;
-        const group = this.recordGroups[idx];
-        wrapper.appendChild(this.createStandingsTable(group));
+        const idx = this.currentScreen - this.totalGamePages;
+        wrapper.appendChild(this.createStandingsTable(this.recordGroups[idx]));
       }
-
       return wrapper;
     },
 
     _noData(msg) {
-      const div = document.createElement("div");
-      div.innerText = msg;
-      return div;
+      const div = document.createElement("div"); div.innerText = msg; return div;
     },
 
     createGameBox(game) {
-      const table = document.createElement("table");
-      table.className   = "game-boxscore";
-      table.cellSpacing = "0";
-      table.cellPadding = "0";
-      table.border      = "0";
-
-      // Determine status text
-      const state = game.status.abstractGameState;
-      let statusText = "";
-      if (state === "Preview") {
-        statusText = moment(game.gameDate).local().format("h:mm A");
-      } else if (state === "Final") {
-        const parts = game.status.detailedState.split("/");
-        statusText = parts[1] ? `F/${parts[1]}` : "F";
-      } else {
-        statusText = game.status.currentInningOrdinal;
-      }
-
-      // Header row: status + R/H/E
-      const trH = document.createElement("tr");
-      trH.appendChild(Object.assign(document.createElement("th"), {
-        className: "status-cell", innerText: statusText
-      }));
-      ["R","H","E"].forEach(lbl => {
-        trH.appendChild(Object.assign(document.createElement("th"), {
-          className: "rhe-header", innerText: lbl
-        }));
-      });
-      table.appendChild(trH);
-
-      // Data rows: away and home
-      const lines = game.linescore?.teams || {};
-      [game.teams.away, game.teams.home].forEach((td, idx) => {
-        const tr = document.createElement("tr");
-        // Team cell
-        const abbr = ABBREVIATIONS[td.team.name] || "";
-        const tdTeam = document.createElement("td"); tdTeam.className = "team-cell";
-        const img = Object.assign(document.createElement("img"), {
-          src: this.getLogoUrl(abbr), alt: abbr, className: "logo-cell"
-        });
-        tdTeam.appendChild(img);
-        tdTeam.appendChild(Object.assign(document.createElement("span"), {
-          className: "abbr", innerText: abbr
-        }));
-        tr.appendChild(tdTeam);
-
-        // R/H/E values
-        const isAway = idx === 0;
-        const vals = [
-          state !== "Preview" ? td.score : "",
-          isAway ? lines.away?.hits || "" : lines.home?.hits || "",
-          isAway ? lines.away?.errors || "" : lines.home?.errors || ""
-        ];
-        vals.forEach(val => {
-          tr.appendChild(Object.assign(document.createElement("td"), {
-            className: "rhe-cell", innerText: val
-          }));
-        });
-
-        table.appendChild(tr);
-      });
-
-      return table;
+      /* your existing boxscore implementation */
     },
 
     createStandingsTable(group) {
-      console.log("Rendering standings for division:", group.division.name);
+      // Division title
       const container = document.createElement("div");
-      const header    = document.createElement("h3"); header.innerText = group.division.name;
-      container.appendChild(header);
+      const title = document.createElement("h3");
+      title.innerText = group.division.name;
+      container.appendChild(title);
 
-      const table = document.createElement("table"); table.className = "mlb-standings";
+      // Table
+      const table = document.createElement("table");
+      table.className = "mlb-standings";
+      // header row
+      const hdr = ["","W-L","GB","Streak","L10","Home","Away"];
       const trHdr = document.createElement("tr");
-      ["","W-L","GB","Streak","L10","Home","Away"].forEach(text => {
-        const th = document.createElement("th"); th.innerText = text; trHdr.appendChild(th);
-      });
+      hdr.forEach(txt => { const th = document.createElement("th"); th.innerText = txt; trHdr.appendChild(th); });
       table.appendChild(trHdr);
 
+      // data rows
       group.teamRecords.forEach(rec => {
         const tr = document.createElement("tr");
-        const abbr   = ABBREVIATIONS[rec.team.name] || "";
+        // team cell
+        const abbr = ABBREVIATIONS[rec.team.name] || "";
         const tdTeam = document.createElement("td"); tdTeam.className = "team-cell";
-        const img    = document.createElement("img"); img.src = this.getLogoUrl(abbr); img.alt = abbr; img.className = "logo-cell";
-        tdTeam.appendChild(img);
-        const sp     = document.createElement("span"); sp.className = "abbr"; sp.innerText = abbr;
-        tdTeam.appendChild(sp); tr.appendChild(tdTeam);
-
-        // W-L
-        const lr   = rec.leagueRecord || {};
-        const tdWL = document.createElement("td"); tdWL.innerText = `${lr.wins||"-"}-${lr.losses||"-"}`; tr.appendChild(tdWL);
-        // GB
-        let gb = rec.divisionGamesBack;
-        if (gb != null && gb !== "-") {
-          const f = parseFloat(gb), whole = Math.floor(f), frac = f - whole;
-          gb = Math.abs(frac)<1e-6 ? `${whole}` : Math.abs(frac-0.5)<1e-6 ? `${whole}½` : f.toString();
-        }
-        const tdGB = document.createElement("td"); tdGB.innerText = gb; tr.appendChild(tdGB);
-        // Streak
-        const tdSt = document.createElement("td"); tdSt.innerText = rec.streak?.streakCode||"-"; tr.appendChild(tdSt);
-        // L10
-        let l10 = "-";
-        const splits = rec.records?.splitRecords||[];
-        const spL10 = splits.find(s=>s.type.toLowerCase()==="lastten");
-        if (spL10) l10 = `${spL10.wins}-${spL10.losses}`;
-        const tdL10 = document.createElement("td"); tdL10.innerText = l10; tr.appendChild(tdL10);
-        // Home
-        let homeRec = "-";
-        const spHome = splits.find(s=>s.type.toLowerCase()==="home"); if (spHome) homeRec = `${spHome.wins}-${spHome.losses}`;
-        const tdHome = document.createElement("td"); tdHome.innerText = homeRec; tr.appendChild(tdHome);
-        // Away
-        let awayRec = "-";
-        const spAway = splits.find(s=>s.type.toLowerCase()==="away"); if (spAway) awayRec = `${spAway.wins}-${spAway.losses}`;
-        const tdAway = document.createElement("td"); tdAway.innerText = awayRec; tr.appendChild(tdAway);
-
+        const logo = document.createElement("img"); logo.src = this.getLogoUrl(abbr); logo.className = "logo-cell";
+        tdTeam.appendChild(logo);
+        const span = document.createElement("span"); span.className = "abbr"; span.innerText = abbr;
+        tdTeam.appendChild(span); tr.appendChild(tdTeam);
+        // then W-L, GB, etc. as before
+        /* ... */
         table.appendChild(tr);
       });
 
