@@ -41,7 +41,7 @@ module.exports = NodeHelper.create({
 
   async fetchStandings() {
     const season = moment().year();
-    const url    = `https://statsapi.mlb.com/api/v1/standings?season=${season}&standingsTypes=regularSeason,wildCard`;
+    const url    = `https://statsapi.mlb.com/api/v1/standings?sportId=1&season=${season}&standingsTypes=regularSeason,wildCard`;
     try {
       const res    = await fetch(url);
       const json   = await res.json();
