@@ -26,7 +26,6 @@
 /* Box Score Table */
 .game-boxscore {
   table-layout: auto;
-  width: auto;
   border-collapse: collapse;
   margin-bottom: 10px;
 }
@@ -45,6 +44,7 @@
 }
 .game-boxscore .team-cell .logo-cell {
   height: 1em;
+  width: auto;
   margin-right: 4px;
 }
 
@@ -82,8 +82,20 @@
   padding: 4px;
   border: 0.5px solid #444;
 }
+
+/* Standings Team Cell */
 .mlb-standings .team-cell {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.mlb-standings .team-cell .logo-cell {
+  width: 24px;
+  height: 24px;
+  margin-right: 4px;
+}
+
+/* Team Abbreviation */
+.abbr {
+  font-weight: bold;
 }
