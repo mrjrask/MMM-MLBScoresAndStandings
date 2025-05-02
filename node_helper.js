@@ -25,7 +25,7 @@ module.exports = NodeHelper.create({
 
   async fetchData() {
     const date = moment().format("YYYY-MM-DD");
-    const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}`;
+    const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=linescore`;
     try {
       const res = await fetch(url);
       const json = await res.json();
@@ -44,7 +44,7 @@ module.exports = NodeHelper.create({
       const res = await fetch(url);
       const json = await res.json();
       // json.records is an array per division and wild card; flatten as needed
-      this.standings = json.records.flatMap(r => r.teamRecords);
+      this.standings = json.records;
       this.sendSocketNotification("STANDINGS", this.standings);
     } catch (e) {
       console.error("Failed to fetch standings", e);
