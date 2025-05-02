@@ -29,8 +29,13 @@ if (typeof Module !== "undefined" && Module.register) {
       position:                "top_right"
     },
 
-    getScripts() { return ["moment.js"]; },
-    getStyles()  { return ["MMM-MLBScoresAndStandings.css"]; },
+    getScripts() {
+      return ["moment.js"];
+    },
+
+    getStyles() {
+      return ["MMM-MLBScoresAndStandings.css"];
+    },
 
     start() {
       this.games               = [];
@@ -39,23 +44,23 @@ if (typeof Module !== "undefined" && Module.register) {
       this.totalStandingsPages = 0;
       this.currentScreen       = 0;
 
-      // tell helper about config & kick things off
+      // initialize helper
       this.sendSocketNotification("INIT", this.config);
 
-      // rotate every 5s
+      // rotate every rotateInterval (5s)
       setInterval(() => this.rotateView(), this.config.rotateInterval);
     },
 
     socketNotificationReceived(notification, payload) {
+      console.log(`[MMM] received ${notification}:`, payload.length);
       if (notification === "GAMES") {
         this.games = payload;
-        this.totalGamePages = Math.max(1,
+        this.totalGamePages = Math.max(
+          1,
           Math.ceil(this.games.length / this.config.gamesPerPage)
         );
-        console.log(
-          "[MLB] got GAMES:", this.games.length,
-          "-> pages:", this.totalGamePages
-        );
+        console.log("[MMM] totalGamePages=", this.totalGamePages);
+        // reset to start of game pages
         this.currentScreen = 0;
         this.updateDom();
       }
@@ -63,25 +68,27 @@ if (typeof Module !== "undefined" && Module.register) {
         this.recordGroups        = payload;
         this.totalStandingsPages = payload.length;
         console.log(
-          "[MLB] got STANDINGS groups:", this.recordGroups.map(g=>g.division.name)
+          "[MMM] totalStandingsPages=",
+          this.totalStandingsPages
         );
-        // if no games, start at standings; else jump right after game pages
-        this.currentScreen = this.games.length ? this.totalGamePages : 0;
+        // after games finished, jump into standings
+        this.currentScreen = this.totalGamePages;
         this.updateDom();
       }
     },
 
     rotateView() {
-      const totalScreens = this.totalGamePages + this.totalStandingsPages;
+      const totalScreens =
+        this.totalGamePages + this.totalStandingsPages;
       this.currentScreen = (this.currentScreen + 1) % totalScreens;
       this.updateDom(1000);
     },
 
     getDom() {
       const wrapper = document.createElement("div");
-      // header
-      const header = document.createElement("h2");
+      const header  = document.createElement("h2");
       header.className = "module-header";
+
       const inGames = this.currentScreen < this.totalGamePages;
       header.innerText = inGames ? "MLB Scores" : "MLB Standings";
       wrapper.appendChild(header);
@@ -96,11 +103,12 @@ if (typeof Module !== "undefined" && Module.register) {
       }
 
       if (inGames) {
-        // which page of games?
-        const page = this.currentScreen;
+        const page  = this.currentScreen;
         const start = page * this.config.gamesPerPage;
-        const slice = this.games.slice(start, start + this.config.gamesPerPage);
-
+        const slice = this.games.slice(
+          start,
+          start + this.config.gamesPerPage
+        );
         const cols = document.createElement("div");
         cols.className = "games-columns";
         const perCol = this.config.gamesPerPage / 2;
@@ -113,9 +121,7 @@ if (typeof Module !== "undefined" && Module.register) {
           cols.appendChild(col);
         }
         wrapper.appendChild(cols);
-
       } else {
-        // which division?
         const idx   = this.currentScreen - this.totalGamePages;
         const group = this.recordGroups[idx];
         wrapper.appendChild(this.createStandingsTable(group));
@@ -125,9 +131,9 @@ if (typeof Module !== "undefined" && Module.register) {
     },
 
     _noData(msg) {
-      const wr = document.createElement("div");
-      wr.appendChild(Object.assign(document.createElement("div"), { innerText: msg }));
-      return wr;
+      const no = document.createElement("div");
+      no.innerText = msg;
+      return no;
     },
 
     createGameBox(game) {
@@ -137,11 +143,13 @@ if (typeof Module !== "undefined" && Module.register) {
       table.cellPadding = "0";
       table.border      = "0";
 
-      // determine status text
+      // status text
       const state = game.status.abstractGameState;
       let statusText = "";
       if (state === "Preview") {
-        statusText = moment(game.gameDate).local().format("h:mm A");
+        statusText = moment(game.gameDate)
+          .local()
+          .format("h:mm A");
       } else if (state === "Final") {
         const parts = game.status.detailedState.split("/");
         statusText = parts[1] ? `F/${parts[1]}` : "F";
@@ -149,51 +157,51 @@ if (typeof Module !== "undefined" && Module.register) {
         statusText = game.status.currentInningOrdinal;
       }
 
-      // Row 1: time + R/H/E headers
+      // header row
       const trH = document.createElement("tr");
-      trH.appendChild(Object.assign(document.createElement("th"), {
-        className: "status-cell", innerText: statusText
-      }));
+      const thTime = document.createElement("th");
+      thTime.className = "status-cell";
+      thTime.innerText = statusText;
+      trH.appendChild(thTime);
       ["R", "H", "E"].forEach(lbl => {
-        trH.appendChild(Object.assign(document.createElement("th"), {
-          className: "rhe-header", innerText: lbl
-        }));
+        const th = document.createElement("th");
+        th.className = "rhe-header";
+        th.innerText = lbl;
+        trH.appendChild(th);
       });
       table.appendChild(trH);
 
-      // Rows 2 & 3: away, then home
+      // data rows
       const lines = game.linescore?.teams || {};
       [game.teams.away, game.teams.home].forEach((td, idx) => {
         const tr = document.createElement("tr");
-
         // team cell
         const abbr = ABBREVIATIONS[td.team.name] || "";
         const tdTeam = document.createElement("td");
         tdTeam.className = "team-cell";
-        const img = Object.assign(document.createElement("img"), {
-          src: this.getLogoUrl(abbr),
-          alt: abbr,
-          className: "logo-cell"
-        });
+        const img = document.createElement("img");
+        img.src       = this.getLogoUrl(abbr);
+        img.alt       = abbr;
+        img.className = "logo-cell";
         tdTeam.appendChild(img);
-        tdTeam.appendChild(Object.assign(document.createElement("span"), {
-          className: "abbr",
-          innerText: abbr
-        }));
+        const sp = document.createElement("span");
+        sp.className = "abbr";
+        sp.innerText = abbr;
+        tdTeam.appendChild(sp);
         tr.appendChild(tdTeam);
 
-        // R/H/E data
+        // R/H/E values
         const isAway = idx === 0;
         const vals = [
           state !== "Preview" ? td.score : "",
-          isAway ? lines.away?.hits   || "" : lines.home?.hits   || "",
+          isAway ? lines.away?.hits || "" : lines.home?.hits || "",
           isAway ? lines.away?.errors || "" : lines.home?.errors || ""
         ];
         vals.forEach(val => {
-          tr.appendChild(Object.assign(document.createElement("td"), {
-            className: "rhe-cell",
-            innerText: val
-          }));
+          const td = document.createElement("td");
+          td.className = "rhe-cell";
+          td.innerText = val;
+          tr.appendChild(td);
         });
 
         table.appendChild(tr);
@@ -204,14 +212,15 @@ if (typeof Module !== "undefined" && Module.register) {
 
     createStandingsTable(group) {
       const container = document.createElement("div");
-      container.appendChild(Object.assign(document.createElement("h3"), {
-        innerText: group.division.name
-      }));
+      const h3 = document.createElement("h3");
+      h3.innerText = group.division.name;
+      container.appendChild(h3);
       const table = document.createElement("table");
       table.className = "mlb-standings";
       group.teamRecords.forEach(rec => {
         const abbr = ABBREVIATIONS[rec.team.name] || "";
-        const lastTen = rec.records.find(r => r.type==="lastTen")?.summary || "";
+        const lastTen = rec.records.find(r => r.type === "lastTen")
+          ?.summary || "";
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td class="team-cell">
