@@ -1,5 +1,3 @@
-console.log("[MMM-MLBScoresAndStandings] node_helper started");
-
 const NodeHelper = require("node_helper");
 const moment = require("moment");
 
