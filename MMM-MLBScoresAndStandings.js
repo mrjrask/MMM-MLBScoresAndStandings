@@ -1,10 +1,19 @@
-const moment = require("moment");
-
 Module.register("MMM-MLBScoresAndStandings", {
   defaults: {
     updateIntervalScores: 2 * 60 * 1000,
     updateIntervalStandings: 15 * 60 * 1000,
     position: "top_right"
+  },
+
+  // ─── Load client‐side scripts ─────────────────────────────────────────────
+  getScripts() {
+    // This tells MM to include the bundled moment.js before your module runs
+    return ["moment.js"];
+  },
+
+  // ─── Load your CSS ────────────────────────────────────────────────────────
+  getStyles() {
+    return ["MMM-MLBScoresAndStandings.css"];
   },
 
   start() {
@@ -24,14 +33,10 @@ Module.register("MMM-MLBScoresAndStandings", {
     }
   },
 
-  getStyles() {
-    return ["MMM-MLBScoresAndStandings.css"];
-  },
-
   getDom() {
     const wrapper = document.createElement("div");
 
-    // ——— Games Section ———
+    // — Today's Games —
     const gamesHeader = document.createElement("h3");
     gamesHeader.innerText = "Today's Games";
     wrapper.appendChild(gamesHeader);
@@ -55,10 +60,9 @@ Module.register("MMM-MLBScoresAndStandings", {
       `;
       gamesTable.appendChild(row);
     });
-
     wrapper.appendChild(gamesTable);
 
-    // ——— Standings Section ———
+    // — Standings —
     const standHeader = document.createElement("h3");
     standHeader.innerText = "Standings";
     wrapper.appendChild(standHeader);
@@ -68,7 +72,6 @@ Module.register("MMM-MLBScoresAndStandings", {
 
     this.standings.forEach(teamRec => {
       const { team, wins, losses, divisionGamesBack, wildCardGamesBack, streak, records } = teamRec;
-      // For L10 we’ll grab the “records” array’s last summary if available
       const l10 = (records.find(r => r.type === "lastTen") || {}).summary || "–";
 
       const row = document.createElement("tr");
@@ -82,8 +85,8 @@ Module.register("MMM-MLBScoresAndStandings", {
       `;
       standTable.appendChild(row);
     });
-
     wrapper.appendChild(standTable);
+
     return wrapper;
   },
 
@@ -92,24 +95,18 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   formatStatus(game) {
-    const { abstractGameState, detailedState, currentInningOrdinal } = game.status;
-
+    const { abstractGameState, detailedState, currentInningOrdinal, gameDate } = game.status;
     if (abstractGameState === "Final") {
-      // detailedState might be "Final/10"
       const parts = detailedState.split("/");
       return parts[1] ? `F/${parts[1]}` : "F";
     }
-
     if (abstractGameState === "In Progress") {
       return currentInningOrdinal;
     }
-
     if (abstractGameState === "Preview") {
-      // show local start time like "7:10 PM"
-      return moment(game.gameDate).local().format("h:mm A");
+      // Show local start time
+      return moment(gameDate).local().format("h:mm A");
     }
-
-    // fallback (shouldn’t hit often)
     return detailedState || abstractGameState;
   }
 });
