@@ -21,19 +21,31 @@ const DIVISIONS = [
 
   for (const d of DIVISIONS) {
     const url = `https://statsapi.mlb.com/api/v1/standings`
-      + `?sportId=1&season=${season}`
-      + `&leagueId=${d.leagueId}`
-      + `&divisionId=${d.divisionId}`;
+              + `?sportId=1&season=${season}`
+              + `&leagueId=${d.leagueId}`
+              + `&divisionId=${d.divisionId}`;
     try {
       const res  = await fetch(url);
       const json = await res.json();
-      // Find the record where division.id matches
       const recs = json.records || [];
-      const match = recs.find(r => r.division?.id === d.divisionId) || { teamRecords: [] };
+
+      // **DEBUG**: show what division IDs came back
+      console.log(
+        `[fetch-standings] ${d.name} API records divisions:`,
+        recs.map(r => r.division?.id)
+      );
+
+      // pick the matching division (coerce to Number in case of string IDs)
+      const divRec =
+        recs.find(r => Number(r.division?.id) === d.divisionId) 
+        || recs[0] 
+        || { teamRecords: [] };
+
       results.push({
         division:    { name: d.name },
-        teamRecords: match.teamRecords
+        teamRecords: divRec.teamRecords || []
       });
+
     } catch (err) {
       console.error(`[fetch-standings] error for ${d.name}:`, err);
       results.push({ division: { name: d.name }, teamRecords: [] });
@@ -41,5 +53,7 @@ const DIVISIONS = [
   }
 
   fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
-  console.log(`[fetch-standings] wrote standings for ${results.length} divisions to ${outPath}`);
+  console.log(
+    `[fetch-standings] wrote standings for ${results.length} divisions to ${outPath}`
+  );
 })();
