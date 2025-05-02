@@ -32,19 +32,29 @@
   vertical-align: middle;
 }
 
-/* Box Score Title & Time */
-.box-title {
-  text-align: left;
-  font-size: 0.9em;
+/* Team Cell: logo + abbreviation */
+.team-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-.logo-cell {
-  width: 16px;
-  height: 16px;
-  vertical-align: middle;
-  margin: 0 2px;
+.team-cell .logo-cell {
+  height: 1em;
+  width: auto;
 }
-.box-time {
-  text-align: right;
+
+/* Status Cell (time/inning/final) */
+.status-cell {
+  width: 2em;
+  text-align: center;
+  font-size: 0.8em;
+}
+
+/* R/H/E Header and Data Cells */
+.rhe-header,
+.rhe-cell {
+  width: 2em;
+  text-align: center;
   font-size: 0.8em;
 }
 
@@ -59,11 +69,7 @@
   vertical-align: middle;
 }
 
-/* Team Cell in Standings */
-.team-cell {
-  display: flex;
-  align-items: center;
-}
+/* Standings Team Cell */
 .team-cell img {
   width: 24px;
   height: 24px;
