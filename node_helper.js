@@ -7,14 +7,22 @@ module.exports = NodeHelper.create({
   start() {
     this.games        = [];
     this.recordGroups = [];
+    this.config       = {};     // will be populated on INIT
   },
 
-  socketNotificationReceived(notification) {
+  socketNotificationReceived(notification, payload) {
     if (notification === "INIT") {
+      this.config = payload;         // grab the front-end config
       this.fetchData();
       this.fetchStandings();
       this.scheduleFetch();
     }
+  },
+
+  scheduleFetch() {
+    // now uses this.config.updateInterval*
+    setInterval(() => this.fetchData(),    this.config.updateIntervalScores);
+    setInterval(() => this.fetchStandings(),this.config.updateIntervalStandings);
   },
 
   async fetchData() {
@@ -24,10 +32,7 @@ module.exports = NodeHelper.create({
       const res  = await fetch(url);
       const json = await res.json();
       this.games = json.dates?.[0]?.games || [];
-      console.log(
-        "[MMM-MLBScoresAndStandings] fetched games:",
-        this.games.length
-      );
+      console.log("[MMM-MLBScoresAndStandings] fetched games:", this.games.length);
       this.sendSocketNotification("GAMES", this.games);
     } catch (e) {
       console.error("[MMM-MLBScoresAndStandings] fetchData error", e);
@@ -41,24 +46,10 @@ module.exports = NodeHelper.create({
       const res    = await fetch(url);
       const json   = await res.json();
       this.recordGroups = json.records || [];
-      console.log(
-        "[MMM-MLBScoresAndStandings] fetched standings groups:",
-        this.recordGroups.length
-      );
+      console.log("[MMM-MLBScoresAndStandings] fetched standings groups:", this.recordGroups.length);
       this.sendSocketNotification("STANDINGS", this.recordGroups);
     } catch (e) {
       console.error("[MMM-MLBScoresAndStandings] fetchStandings error", e);
     }
-  },
-
-  scheduleFetch() {
-    setInterval(
-      () => this.fetchData(),
-      this.config.updateIntervalScores
-    );
-    setInterval(
-      () => this.fetchStandings(),
-      this.config.updateIntervalStandings
-    );
   }
 });
