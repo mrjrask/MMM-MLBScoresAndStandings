@@ -228,6 +228,3 @@ if (typeof Module !== "undefined" && Module.register) {
     }
   });
 }
-```
-
-Save this full file (making sure not to replace `createGameBox`) and restart MagicMirror—your scores pages will now show correctly alongside the standings rotation.
