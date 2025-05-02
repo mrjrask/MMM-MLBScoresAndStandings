@@ -17,6 +17,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     updateIntervalStandings: 15 * 60 * 1000,
     pageInterval: 20 * 1000,
     gamesPerPage: 8,
+    logoType: 'color', // 'color' or 'bw'
     position: "top_right"
   },
 
@@ -36,7 +37,6 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.rotationMode = 'games';
     this.sendSocketNotification("INIT");
 
-    // Rotate between game pages and standings
     setInterval(() => this.rotateView(), this.config.pageInterval);
   },
 
@@ -69,11 +69,10 @@ Module.register("MMM-MLBScoresAndStandings", {
   getDom() {
     const wrapper = document.createElement("div");
     if (this.rotationMode === 'games') {
-      wrapper.appendChild(this.createGamesTable());
+      return this.createGamesTable();
     } else {
-      wrapper.appendChild(this.createStandingsTable());
+      return this.createStandingsTable();
     }
-    return wrapper;
   },
 
   createGamesTable() {
@@ -85,11 +84,12 @@ Module.register("MMM-MLBScoresAndStandings", {
     pageGames.forEach(game => {
       const status = game.status;
       const state = status.abstractGameState;
-      const isStarted = (state === 'In Progress' || state === 'Final');
-      const startTime = moment(game.gameDate).local().format("h:mm A");
-      let displayStatus;
-      if (state === 'Preview') {
-        displayStatus = startTime;
+      const hasStarted = state === 'In Progress' || state === 'Final';
+      const startTimeCT = moment(game.gameDate).tz('America/Chicago').format("h:mm A");
+      let displayStatus = '';
+
+      if (!hasStarted) {
+        displayStatus = startTimeCT;
       } else if (state === 'Final') {
         const parts = status.detailedState.split("/");
         displayStatus = parts[1] ? `F/${parts[1]}` : "F";
@@ -99,20 +99,20 @@ Module.register("MMM-MLBScoresAndStandings", {
 
       const home = game.teams.home;
       const away = game.teams.away;
-      const homeAbbr = ABBREVIATIONS[home.team.name] || home.team.abbreviation || '';
-      const awayAbbr = ABBREVIATIONS[away.team.name] || away.team.abbreviation || '';
+      const homeAbbr = ABBREVIATIONS[home.team.name];
+      const awayAbbr = ABBREVIATIONS[away.team.name];
 
       const row = document.createElement("tr");
       row.innerHTML = `
         <td class="team-cell">
-          <img src="${this.getLogoUrl(home.team.id)}" alt="${homeAbbr}" />
+          <img src="${this.getLogoUrl(homeAbbr)}" alt="${homeAbbr}" />
           <span class="abbr">${homeAbbr}</span>
         </td>
-        <td class="score-cell">${isStarted ? home.score : ''}</td>
-        <td class="dash-cell">${isStarted ? '–' : ''}</td>
-        <td class="score-cell">${isStarted ? away.score : ''}</td>
+        <td class="score-cell">${hasStarted ? home.score : ''}</td>
+        <td class="dash-cell">${hasStarted ? '–' : ''}</td>
+        <td class="score-cell">${hasStarted ? away.score : ''}</td>
         <td class="team-cell">
-          <img src="${this.getLogoUrl(away.team.id)}" alt="${awayAbbr}" />
+          <img src="${this.getLogoUrl(awayAbbr)}" alt="${awayAbbr}" />
           <span class="abbr">${awayAbbr}</span>
         </td>
         <td class="status-cell">${displayStatus}</td>
@@ -136,12 +136,12 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.standings
       .filter(rec => rec.division.name === divisionName)
       .forEach(rec => {
-        const abbr = ABBREVIATIONS[rec.team.name] || rec.team.abbreviation || '';
+        const abbr = ABBREVIATIONS[rec.team.name];
         const l10 = (rec.records.find(r => r.type === 'lastTen') || {}).summary || '–';
         const row = document.createElement("tr");
         row.innerHTML = `
           <td class="team-cell">
-            <img src="${this.getLogoUrl(rec.team.id)}" alt="${abbr}" />
+            <img src="${this.getLogoUrl(abbr)}" alt="${abbr}" />
             <span class="abbr">${abbr}</span>
           </td>
           <td>${rec.wins}-${rec.losses}</td>
@@ -157,8 +157,9 @@ Module.register("MMM-MLBScoresAndStandings", {
     return container;
   },
 
-  getLogoUrl(teamId) {
-    return `https://www.mlbstatic.com/team-logos/${teamId}/primary/60x60.png`;
+  // Build URL to local logo file
+  getLogoUrl(abbr) {
+    return this.file(`logos/${this.config.logoType}/${abbr}.png`);
   },
 
   divisions: [
