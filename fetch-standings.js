@@ -4,7 +4,7 @@
 const fs   = require("fs");
 const path = require("path");
 
-// MLB division endpoints
+// Division definitions
 const DIVISIONS = [
   { name: "NL East",    leagueId: 104, divisionId: 204 },
   { name: "NL Central", leagueId: 104, divisionId: 205 },
@@ -21,37 +21,25 @@ const DIVISIONS = [
 
   for (const d of DIVISIONS) {
     const url = `https://statsapi.mlb.com/api/v1/standings`
-              + `?season=${season}`
-              + `&leagueId=${d.leagueId}`
-              + `&divisionId=${d.divisionId}`
-              + `&sportId=1`;
+      + `?sportId=1&season=${season}`
+      + `&leagueId=${d.leagueId}`
+      + `&divisionId=${d.divisionId}`;
     try {
       const res  = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
+      // Find the record where division.id matches
       const recs = json.records || [];
-      // records array will usually be length 1 here
-      const rec  = recs[0] || { teamRecords: [] };
+      const match = recs.find(r => r.division?.id === d.divisionId) || { teamRecords: [] };
       results.push({
         division:    { name: d.name },
-        teamRecords: rec.teamRecords || []
+        teamRecords: match.teamRecords
       });
     } catch (err) {
       console.error(`[fetch-standings] error for ${d.name}:`, err);
-      // still push an empty group so front-end rotation stays in sync
-      results.push({
-        division:    { name: d.name },
-        teamRecords: []
-      });
+      results.push({ division: { name: d.name }, teamRecords: [] });
     }
   }
 
-  // Write out exactly what node_helper expects
   fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
-  console.log(
-    `[fetch-standings] wrote standings for ${
-      results.length
-    } divisions to ${outPath}`
-  );
-  process.exit(0);
+  console.log(`[fetch-standings] wrote standings for ${results.length} divisions to ${outPath}`);
 })();
