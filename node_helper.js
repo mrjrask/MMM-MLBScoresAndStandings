@@ -20,14 +20,8 @@ module.exports = NodeHelper.create({
   },
 
   scheduleFetch() {
-    setInterval(
-      () => this.fetchData(),
-      this.config.updateIntervalScores
-    );
-    setInterval(
-      () => this.fetchStandingsFromFile(),
-      this.config.updateIntervalStandings
-    );
+    setInterval(() => this.fetchData(),    this.config.updateIntervalScores);
+    setInterval(() => this.fetchStandingsFromFile(), this.config.updateIntervalStandings);
   },
 
   async fetchData() {
