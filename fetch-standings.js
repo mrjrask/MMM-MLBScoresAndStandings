@@ -4,7 +4,7 @@
 const fs   = require("fs");
 const path = require("path");
 
-// Define your six divisions
+// Your six divisions, with their IDs:
 const DIVISIONS = [
   { name: "NL East",    leagueId: 104, divisionId: 204 },
   { name: "NL Central", leagueId: 104, divisionId: 205 },
@@ -29,21 +29,21 @@ const DIVISIONS = [
       const json = await res.json();
       const recs = json.records || [];
 
-      // Show exactly what the API returned
+      // Show exactly which division blocks came back:
       console.log(
         `[fetch-standings] ${d.name} API returned divisions:`,
-        recs.map(r => `${r.division.id}(${r.division.name})`)
+        recs.map(r => `${r.division.id} (${r.division.link || "no-name"})`)
       );
 
-      // Find the exact match
+      // Pick the one whose division.id matches yours
       const match = recs.find(r => Number(r.division.id) === d.divisionId);
-      if (match) {
-        console.log(
-          `[fetch-standings] Matched ${d.name} → division ${match.division.id} (${match.division.name})`
+      if (!match) {
+        console.warn(
+          `[fetch-standings] ⚠️ No exact match for ${d.name} (id=${d.divisionId}), defaulting to first record (${recs[0]?.division.id})`
         );
       } else {
-        console.warn(
-          `[fetch-standings] ⚠️ No exact match for ${d.name} (id=${d.divisionId}), defaulting to first record ${recs[0]?.division.id}`
+        console.log(
+          `[fetch-standings] Matched ${d.name} → division ${match.division.id}`
         );
       }
 
@@ -51,7 +51,6 @@ const DIVISIONS = [
         division:    { name: d.name },
         teamRecords: (match || recs[0] || { teamRecords: [] }).teamRecords || []
       });
-
     } catch (err) {
       console.error(`[fetch-standings] Error fetching ${d.name}:`, err);
       results.push({ division: { name: d.name }, teamRecords: [] });
