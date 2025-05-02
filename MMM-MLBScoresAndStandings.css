@@ -1,17 +1,45 @@
-.mlb-games, .mlb-standings {
+/* Overall table layout */
+.mlb-games,
+.mlb-standings {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 10px;
 }
-.mlb-games td, .mlb-standings td {
+
+/* Default cell padding/alignment */
+.mlb-games td,
+.mlb-standings td {
   padding: 4px;
   vertical-align: middle;
 }
-.mlb-games img, .mlb-standings img {
+
+/* Team cell: logo + abbreviation */
+.team-cell {
+  display: flex;
+  align-items: center;
+}
+
+/* Logo sizing and spacing */
+.team-cell img {
   width: 24px;
   height: 24px;
+  margin-right: 4px;
 }
-.mlb-games td:nth-child(6) {
+
+/* Abbreviation text */
+.abbr {
+  font-weight: bold;
+}
+
+/* Score and dash columns */
+.score-cell,
+.dash-cell {
+  text-align: center;
+  width: 2em;
+}
+
+/* Status (time / inning / final) */
+.status-cell {
   text-align: right;
   font-size: 0.8em;
   color: #999;
