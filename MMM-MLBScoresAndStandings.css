@@ -32,10 +32,8 @@
 }
 .game-boxscore th,
 .game-boxscore td {
-  padding: 2px;
+  padding: 0;
   vertical-align: middle;
-  height: 1.5em;
-  border: none;
 }
 
 /* Team Cell: fixed width and centered content */
@@ -43,7 +41,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 5em;
+  width: 5em; /* room for longest team abbr + logo */
 }
 .game-boxscore .team-cell .logo-cell {
   height: 1em;
@@ -54,24 +52,23 @@
 /* Status Cell (time/inning/final) */
 .game-boxscore .status-cell {
   width: 1.5em;
+  height: 1.5em;
   text-align: center;
   font-size: 0.8em;
-  border: none;
+  line-height: 1.5em;
 }
 
-/* R/H/E Header and Data Cells: centered and square */
+/* R/H/E Header and Data Cells: square, centered */
 .game-boxscore .rhe-header,
 .game-boxscore .rhe-cell {
   width: 1.5em;
-  text-align: center;
-  font-size: 0.8em;
+  height: 1.5em;
+  padding: 0;
   border: 1px solid #444;
   box-sizing: border-box;
-}
-
-/* R/H/E values: empty until gametime, then yellow */
-.game-boxscore .rhe-cell:not(:empty) {
-  color: #ff0;
+  text-align: center;
+  font-size: 0.8em;
+  line-height: 1.5em;
 }
 
 /* Standings Table */
