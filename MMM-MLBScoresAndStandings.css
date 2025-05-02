@@ -1,60 +1,26 @@
 /* Module Header */
-.module-header {
-  font-size: 0.9em;
-  font-weight: bold;
-  margin: 0;
-}
-.module-header + hr {
-  border: none;
-  border-bottom: 0.5px solid #999;
-  margin: 2px 0 4px;  /* reduced top/bottom spacing */
-}
+.module-header { font-size:0.9em; font-weight:bold; margin:0; }
+.scores-screen .module-header + hr { border:none; border-bottom:0.5px solid #999; margin:2px 0 8px; }
+.standings-screen .module-header + hr { display:none; }
 
 /* Division Title */
-.mlb-standings h3 {
-  margin: 2px 0;      /* less space above and below the division name */
-  font-size: 1em;
-}
+.standings-screen h3 { margin:0 0 4px; font-size:1em; }
+
+/* Games Grid */
+.games-columns { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.game-col { display:flex; flex-direction:column; gap:6px; }
+
+/* Box Score Cells */
+.game-boxscore { border-collapse:collapse; margin-bottom:8px; }
+.game-boxscore th, .game-boxscore td { padding:0; vertical-align:middle; }
+.game-boxscore .team-cell { display:flex; align-items:center; justify-content:center; width:5em; }
+.game-boxscore .team-cell .logo-cell { height:1em; margin-right:4px; }
+.game-boxscore .status-cell,
+.game-boxscore .rhe-header,
+.game-boxscore .rhe-cell { width:1.5em; height:1.5em; text-align:center; line-height:1.5em; border:1px solid #444; }
 
 /* Standings Table */
-.mlb-standings {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 10px;
-}
-.mlb-standings th,
-.mlb-standings td {
-  text-align: center;
-  vertical-align: middle;
-  padding: 4px;
-  border: 0.5px solid #444;
-}
-
-/* Remove top and left border on first header cell */
-.mlb-standings tr:first-child th:first-child {
-  border-top: none;
-  border-left: none;
-}
-
-/* Team Cell */
-.mlb-standings .team-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.mlb-standings .logo-cell {
-  width: 24px;
-  height: 24px;
-  margin-right: 4px;
-}
-
-/* Font weight for abbreviation */
-.abbr {
-  font-weight: bold;
-}
-
-/* Box Score (unchanged except for logo sizing reminder) */
-.game-boxscore .team-cell .logo-cell {
-  height: 1em;    /* ensure small logos in box scores */
-  margin-right: 4px;
-}
+.mlb-standings { width:100%; border-collapse:collapse; margin-bottom:10px; }
+.mlb-standings th, .mlb-standings td { text-align:center; vertical-align:middle; padding:4px; border:0.5px solid #444; }
+.mlb-standings .team-cell { display:flex; align-items:center; justify-content:center; }
+.mlb-standings .logo-cell { width:24px; height:24px; margin-right:4px; }
