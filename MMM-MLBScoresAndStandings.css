@@ -44,3 +44,39 @@
   font-size: 0.8em;
   color: #999;
 }
+
+.games-columns {
+  display: flex;
+  gap: 10px;
+}
+
+.game-col {
+  flex: 1;
+}
+
+.game-boxscore {
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.box-title {
+  text-align: left;
+}
+
+.logo-cell {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  margin: 0 2px;
+}
+
+.box-time {
+  text-align: right;
+  font-size: 0.8em;
+}
+
+.game-boxscore th,
+.game-boxscore td {
+  padding: 2px;
+  vertical-align: middle;
+}
