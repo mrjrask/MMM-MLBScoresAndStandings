@@ -6,7 +6,7 @@
 }
 .module-header + hr {
   border: none;
-  border-bottom: 1px solid #999;
+  border-bottom: 0.5px solid #999;
   margin: 4px 0 8px;
 }
 
@@ -25,17 +25,17 @@
 
 /* Box Score Table */
 .game-boxscore {
-  table-layout: auto;    /* let the table size itself */
-  width: auto;           /* no more 100% */
+  table-layout: auto;
+  width: auto;
   border-collapse: collapse;
   margin-bottom: 10px;
 }
 .game-boxscore th,
 .game-boxscore td {
-  border: 1px solid #fff;
+  border: 0.5px solid #fff;
   padding: 2px;
   vertical-align: middle;
-  height: 1.5em;         /* uniform row height */
+  height: 1.5em;
 }
 
 /* Team Cell: logo + abbreviation */
@@ -44,7 +44,7 @@
   align-items: center;
 }
 .team-cell .logo-cell {
-  height: 1em;           /* match font size */
+  height: 1em;
   width: auto;
   margin-right: 4px;
 }
@@ -70,7 +70,9 @@
   border-collapse: collapse;
   margin-bottom: 10px;
 }
-.mlb-standings td {
+.mlb-standings td,
+.mlb-standings th {
+  border: 0.5px solid #fff;
   padding: 4px;
   vertical-align: middle;
 }
