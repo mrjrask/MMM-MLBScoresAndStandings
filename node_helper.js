@@ -1,3 +1,5 @@
+console.log("[Helper] attempting to read standings file at:", path.join(__dirname, "standings.json"));
+
 const NodeHelper = require("node_helper");
 const moment     = require("moment");
 const fs         = require("fs");
