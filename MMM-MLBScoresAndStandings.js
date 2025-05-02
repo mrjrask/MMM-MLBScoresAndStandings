@@ -16,9 +16,9 @@ const ABBREVIATIONS = {
 if (typeof Module !== "undefined" && Module.register) {
   Module.register("MMM-MLBScoresAndStandings", {
     defaults: {
-      updateIntervalScores:    2 * 60 * 1000,
+      updateIntervalScores:    1 * 60 * 1000,
       updateIntervalStandings: 15 * 60 * 1000,
-      rotateInterval:          5 * 1000,
+      rotateInterval:          7 * 1000,
       gamesPerPage:            8,
       logoType:                "color",
       position:                "top_right"
