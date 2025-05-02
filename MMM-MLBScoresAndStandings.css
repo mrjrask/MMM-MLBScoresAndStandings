@@ -21,6 +21,7 @@
 
 /* Box Score Table */
 .game-boxscore {
+  table-layout: fixed;
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 10px;
@@ -30,32 +31,29 @@
   border: 1px solid #fff;
   padding: 2px;
   vertical-align: middle;
+  height: 1.5em; /* equal row height */
+}
+
+/* Column widths for square cells */
+.status-cell {
+  width: 1.5em;
+  text-align: center;
+}
+.rhe-header,
+.rhe-cell {
+  width: 1.5em;
+  text-align: center;
 }
 
 /* Team Cell: logo + abbreviation */
 .team-cell {
   display: flex;
   align-items: center;
-  gap: 4px;
 }
 .team-cell .logo-cell {
-  height: 1em;
+  height: 1em; /* match font size */
   width: auto;
-}
-
-/* Status Cell (time/inning/final) */
-.status-cell {
-  width: 2em;
-  text-align: center;
-  font-size: 0.8em;
-}
-
-/* R/H/E Header and Data Cells */
-.rhe-header,
-.rhe-cell {
-  width: 2em;
-  text-align: center;
-  font-size: 0.8em;
+  margin-right: 4px;
 }
 
 /* Standings Table */
@@ -70,7 +68,7 @@
 }
 
 /* Standings Team Cell */
-.team-cell img {
+.mlb-standings .team-cell img {
   width: 24px;
   height: 24px;
   margin-right: 4px;
