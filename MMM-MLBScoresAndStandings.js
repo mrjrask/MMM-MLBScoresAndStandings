@@ -1,4 +1,5 @@
 // MagicMirror Module: MMM-MLBScoresAndStandings
+
 const ABBREVIATIONS = {
   "Chicago Cubs": "CUBS","Atlanta Braves": "ATL","Miami Marlins": "MIA",
   "New York Mets": "NYM","Philadelphia Phillies": "PHI","Washington Nationals": "WAS",
@@ -80,7 +81,8 @@ if (typeof Module !== "undefined" && Module.register) {
         const perCol = this.config.gamesPerPage / 2;
         for (let i = 0; i < 2; i++) {
           const col = document.createElement("div"); col.className = "game-col";
-          slice.slice(i * perCol, (i + 1) * perCol).forEach(gm => col.appendChild(this.createGameBox(gm)));
+          slice.slice(i * perCol, (i + 1) * perCol)
+               .forEach(gm => col.appendChild(this.createGameBox(gm)));
           cols.appendChild(col);
         }
         wrapper.appendChild(cols);
@@ -89,35 +91,97 @@ if (typeof Module !== "undefined" && Module.register) {
         const group = this.recordGroups[idx];
         wrapper.appendChild(this.createStandingsTable(group));
       }
+
       return wrapper;
     },
 
     _noData(msg) {
-      const div = document.createElement("div"); div.innerText = msg; return div;
+      const div = document.createElement("div");
+      div.innerText = msg;
+      return div;
     },
 
     createGameBox(game) {
-      /* unchanged boxscore code */
+      const table = document.createElement("table");
+      table.className   = "game-boxscore";
+      table.cellSpacing = "0";
+      table.cellPadding = "0";
+      table.border      = "0";
+
+      // Determine status text
+      const state = game.status.abstractGameState;
+      let statusText = "";
+      if (state === "Preview") {
+        statusText = moment(game.gameDate).local().format("h:mm A");
+      } else if (state === "Final") {
+        const parts = game.status.detailedState.split("/");
+        statusText = parts[1] ? `F/${parts[1]}` : "F";
+      } else {
+        statusText = game.status.currentInningOrdinal;
+      }
+
+      // Header row: status + R/H/E
+      const trH = document.createElement("tr");
+      trH.appendChild(Object.assign(document.createElement("th"), {
+        className: "status-cell", innerText: statusText
+      }));
+      ["R","H","E"].forEach(lbl => {
+        trH.appendChild(Object.assign(document.createElement("th"), {
+          className: "rhe-header", innerText: lbl
+        }));
+      }));
+      table.appendChild(trH);
+
+      // Data rows: away and home
+      const lines = game.linescore?.teams || {};
+      [game.teams.away, game.teams.home].forEach((td, idx) => {
+        const tr = document.createElement("tr");
+        // Team cell
+        const abbr = ABBREVIATIONS[td.team.name] || "";
+        const tdTeam = document.createElement("td"); tdTeam.className = "team-cell";
+        const img = Object.assign(document.createElement("img"), {
+          src: this.getLogoUrl(abbr), alt: abbr, className: "logo-cell"
+        });
+        tdTeam.appendChild(img);
+        tdTeam.appendChild(Object.assign(document.createElement("span"), {
+          className: "abbr", innerText: abbr
+        }));
+        tr.appendChild(tdTeam);
+
+        // R/H/E values
+        const isAway = idx === 0;
+        const vals = [
+          state !== "Preview" ? td.score : "",
+          isAway ? lines.away?.hits || "" : lines.home?.hits || "",
+          isAway ? lines.away?.errors || "" : lines.home?.errors || ""
+        ];
+        vals.forEach(val => {
+          tr.appendChild(Object.assign(document.createElement("td"), {
+            className: "rhe-cell", innerText: val
+          }));
+        }));
+
+        table.appendChild(tr);
+      });
+
+      return table;
     },
 
     createStandingsTable(group) {
       console.log("Rendering standings for division:", group.division.name);
       const container = document.createElement("div");
-      const header    = document.createElement("h3");
-      header.innerText = group.division.name;
+      const header    = document.createElement("h3"); header.innerText = group.division.name;
       container.appendChild(header);
 
       const table = document.createElement("table"); table.className = "mlb-standings";
-      // Header row
       const trHdr = document.createElement("tr");
       ["","W-L","GB","Streak","L10","Home","Away"].forEach(text => {
         const th = document.createElement("th"); th.innerText = text; trHdr.appendChild(th);
       });
       table.appendChild(trHdr);
-      // Data rows
+
       group.teamRecords.forEach(rec => {
         const tr = document.createElement("tr");
-        // Team & logo
         const abbr   = ABBREVIATIONS[rec.team.name] || "";
         const tdTeam = document.createElement("td"); tdTeam.className = "team-cell";
         const img    = document.createElement("img"); img.src = this.getLogoUrl(abbr); img.alt = abbr; img.className = "logo-cell";
@@ -126,18 +190,15 @@ if (typeof Module !== "undefined" && Module.register) {
         tdTeam.appendChild(sp); tr.appendChild(tdTeam);
 
         // W-L
-        const lr  = rec.leagueRecord || {};
+        const lr   = rec.leagueRecord || {};
         const tdWL = document.createElement("td"); tdWL.innerText = `${lr.wins||"-"}-${lr.losses||"-"}`; tr.appendChild(tdWL);
         // GB
         let gb = rec.divisionGamesBack;
         if (gb != null && gb !== "-") {
           const f = parseFloat(gb), whole = Math.floor(f), frac = f - whole;
-          if (Math.abs(frac)<1e-6) gb = `${whole}`;
-          else if (Math.abs(frac-0.5)<1e-6) gb = `${whole}½`;
-          else gb = f.toString();
+          gb = Math.abs(frac)<1e-6 ? `${whole}` : Math.abs(frac-0.5)<1e-6 ? `${whole}½` : f.toString();
         }
         const tdGB = document.createElement("td"); tdGB.innerText = gb; tr.appendChild(tdGB);
-
         // Streak
         const tdSt = document.createElement("td"); tdSt.innerText = rec.streak?.streakCode||"-"; tr.appendChild(tdSt);
         // L10
@@ -148,17 +209,16 @@ if (typeof Module !== "undefined" && Module.register) {
         const tdL10 = document.createElement("td"); tdL10.innerText = l10; tr.appendChild(tdL10);
         // Home
         let homeRec = "-";
-        const spHome = splits.find(s=>s.type.toLowerCase()==="home");
-        if (spHome) homeRec = `${spHome.wins}-${spHome.losses}`;
+        const spHome = splits.find(s=>s.type.toLowerCase()==="home"); if (spHome) homeRec = `${spHome.wins}-${spHome.losses}`;
         const tdHome = document.createElement("td"); tdHome.innerText = homeRec; tr.appendChild(tdHome);
         // Away
         let awayRec = "-";
-        const spAway = splits.find(s=>s.type.toLowerCase()==="away");
-        if (spAway) awayRec = `${spAway.wins}-${spAway.losses}`;
+        const spAway = splits.find(s=>s.type.toLowerCase()==="away"); if (spAway) awayRec = `${spAway.wins}-${spAway.losses}`;
         const tdAway = document.createElement("td"); tdAway.innerText = awayRec; tr.appendChild(tdAway);
 
         table.appendChild(tr);
       });
+
       container.appendChild(table);
       return container;
     },
@@ -168,3 +228,6 @@ if (typeof Module !== "undefined" && Module.register) {
     }
   });
 }
+```
+
+Save this full file (making sure not to replace `createGameBox`) and restart MagicMirror—your scores pages will now show correctly alongside the standings rotation.
