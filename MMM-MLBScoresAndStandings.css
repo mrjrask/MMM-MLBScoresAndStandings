@@ -1,82 +1,74 @@
-/* Overall table layout */
-.mlb-games,
-.mlb-standings {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 10px;
-}
-
-/* Default cell padding/alignment */
-.mlb-games td,
-.mlb-standings td {
-  padding: 4px;
-  vertical-align: middle;
-}
-
-/* Team cell: logo + abbreviation */
-.team-cell {
-  display: flex;
-  align-items: center;
-}
-
-/* Logo sizing and spacing */
-.team-cell img {
-  width: 24px;
-  height: 24px;
-  margin-right: 4px;
-}
-
-/* Abbreviation text */
-.abbr {
+/* Module Header */
+.module-header {
+  font-size: 0.9em;
   font-weight: bold;
+  margin: 0;
+}
+.module-header + hr {
+  border: none;
+  border-bottom: 1px solid #999;
+  margin: 4px 0 8px;
 }
 
-/* Score and dash columns */
-.score-cell,
-.dash-cell {
-  text-align: center;
-  width: 2em;
-}
-
-/* Status (time / inning / final) */
-.status-cell {
-  text-align: right;
-  font-size: 0.8em;
-  color: #999;
-}
-
+/* Game Columns Container */
 .games-columns {
   display: flex;
   gap: 10px;
 }
-
 .game-col {
   flex: 1;
 }
 
+/* Box Score Table */
 .game-boxscore {
-  margin-bottom: 10px;
   width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+.game-boxscore th,
+.game-boxscore td {
+  border: 1px solid #fff;
+  padding: 2px;
+  vertical-align: middle;
 }
 
+/* Box Score Title & Time */
 .box-title {
   text-align: left;
+  font-size: 0.9em;
 }
-
 .logo-cell {
   width: 16px;
   height: 16px;
   vertical-align: middle;
   margin: 0 2px;
 }
-
 .box-time {
   text-align: right;
   font-size: 0.8em;
 }
 
-.game-boxscore th,
-.game-boxscore td {
-  padding: 2px;
+/* Standings Table */
+.mlb-standings {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+.mlb-standings td {
+  padding: 4px;
   vertical-align: middle;
+}
+
+/* Team Cell in Standings */
+.team-cell {
+  display: flex;
+  align-items: center;
+}
+.team-cell img {
+  width: 24px;
+  height: 24px;
+  margin-right: 4px;
+}
+.abbr {
+  font-weight: bold;
 }
