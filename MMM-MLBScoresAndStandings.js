@@ -129,7 +129,7 @@ if (typeof Module !== "undefined" && Module.register) {
         trH.appendChild(Object.assign(document.createElement("th"), {
           className: "rhe-header", innerText: lbl
         }));
-      }));
+      });
       table.appendChild(trH);
 
       // Data rows: away and home
@@ -159,7 +159,7 @@ if (typeof Module !== "undefined" && Module.register) {
           tr.appendChild(Object.assign(document.createElement("td"), {
             className: "rhe-cell", innerText: val
           }));
-        }));
+        });
 
         table.appendChild(tr);
       });
