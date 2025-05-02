@@ -12,17 +12,21 @@
 
 /* Game Columns Container */
 .games-columns {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  justify-content: center;
   gap: 10px;
 }
 .game-col {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Box Score Table */
 .game-boxscore {
-  table-layout: fixed;
-  width: 100%;
+  table-layout: auto;    /* let the table size itself */
+  width: auto;           /* no more 100% */
   border-collapse: collapse;
   margin-bottom: 10px;
 }
@@ -31,18 +35,7 @@
   border: 1px solid #fff;
   padding: 2px;
   vertical-align: middle;
-  height: 1.5em; /* equal row height */
-}
-
-/* Column widths for square cells */
-.status-cell {
-  width: 1.5em;
-  text-align: center;
-}
-.rhe-header,
-.rhe-cell {
-  width: 1.5em;
-  text-align: center;
+  height: 1.5em;         /* uniform row height */
 }
 
 /* Team Cell: logo + abbreviation */
@@ -51,9 +44,24 @@
   align-items: center;
 }
 .team-cell .logo-cell {
-  height: 1em; /* match font size */
+  height: 1em;           /* match font size */
   width: auto;
   margin-right: 4px;
+}
+
+/* Status Cell (time/inning/final) */
+.status-cell {
+  width: 1.5em;
+  text-align: center;
+  font-size: 0.8em;
+}
+
+/* R/H/E Header and Data Cells */
+.rhe-header,
+.rhe-cell {
+  width: 1.5em;
+  text-align: center;
+  font-size: 0.8em;
 }
 
 /* Standings Table */
