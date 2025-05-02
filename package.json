@@ -15,7 +15,6 @@
   },
   "homepage": "https://github.com/mrjrask/MMM-MLBScoresAndStandings#readme",
   "dependencies": {
-    "node-fetch": "^3.0.0",
     "moment": "^2.29.0"
   }
 }
