@@ -1,10 +1,3 @@
-Below is the **full updated CSS** (to remove the top/left border on the first standings cell, shrink margins around headers, and keep small logos), plus a reminder of the **rotation scheduling** in your JS (no changes needed there).
-
----
-
-### MMM-MLBScoresAndStandings.css
-
-```css
 /* Module Header */
 .module-header {
   font-size: 0.9em;
