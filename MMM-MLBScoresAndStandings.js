@@ -48,6 +48,7 @@ if (typeof Module !== "undefined" && Module.register) {
     socketNotificationReceived(notification, payload) {
         // Debug log every notification
       console.log(`[MMM-MLBScoresAndStandings] socketNotificationReceived:`, notification, payload);
+      
       if (notification === "GAMES") {
         this.games = payload;
         this.totalGamePages = Math.max(
