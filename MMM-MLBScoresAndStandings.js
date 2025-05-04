@@ -18,10 +18,10 @@ if (typeof Module !== "undefined" && Module.register) {
     defaults: {
       updateIntervalScores:    2 * 60 * 1000,
       updateIntervalStandings: 15 * 60 * 1000,
-      rotateInterval:          7 * 1000,    // now default 7 seconds
+      rotateInterval:          5 * 1000,
       gamesPerPage:            8,
       logoType:                "color",
-      showWCGB:                false,       // toggle Wild Card Games Back column
+      showWildCardGamesBack:   false,
       position:                "top_right"
     },
 
@@ -81,7 +81,8 @@ if (typeof Module !== "undefined" && Module.register) {
         const perCol = this.config.gamesPerPage / 2;
         for (let i = 0; i < 2; i++) {
           const col = document.createElement("div"); col.className = "game-col";
-          slice.slice(i * perCol, (i + 1) * perCol).forEach(gm => col.appendChild(this.createGameBox(gm)));
+          slice.slice(i * perCol, (i + 1) * perCol)
+               .forEach(gm => col.appendChild(this.createGameBox(gm)));
           grid.appendChild(col);
         }
         wrapper.appendChild(grid);
@@ -107,24 +108,32 @@ if (typeof Module !== "undefined" && Module.register) {
       table.cellSpacing = 0;
       table.cellPadding = 0;
 
-      // Status row
+      // Determine status text, allowing for Postponed
       const state = game.status.abstractGameState;
-      let status = "";
-      if (state === "Preview") {
-        status = moment(game.gameDate).local().format("h:mm A");
+      let statusText = "";
+      if (state === "Postponed" || game.status.detailedState.includes("Postponed")) {
+        statusText = "Ppd";
+      } else if (state === "Preview") {
+        statusText = moment(game.gameDate).local().format("h:mm A");
       } else if (state === "Final") {
         const parts = game.status.detailedState.split("/");
-        status = parts[1] ? `F/${parts[1]}` : "F";
+        statusText = parts[1] ? `F/${parts[1]}` : "F";
       } else {
         const ls = game.linescore || {};
-        status = ((ls.inningState ? ls.inningState + " " : "") + (ls.currentInningOrdinal || "")).trim() || "In Progress";
+        statusText = ((ls.inningState ? ls.inningState + " " : "") + (ls.currentInningOrdinal || "")).trim() || "In Progress";
       }
+
+      // Build header row
       const trH = document.createElement("tr");
-      const thS = document.createElement("th"); thS.className = "status-cell"; thS.innerText = status; trH.appendChild(thS);
-      ["R","H","E"].forEach(lbl => { const th = document.createElement("th"); th.className = "rhe-header"; th.innerText = lbl; trH.appendChild(th); });
+      const thS = document.createElement("th"); thS.className = "status-cell"; thS.innerText = statusText;
+      trH.appendChild(thS);
+      ["R","H","E"].forEach(lbl => {
+        const th = document.createElement("th"); th.className = "rhe-header"; th.innerText = lbl;
+        trH.appendChild(th);
+      });
       table.appendChild(trH);
 
-      // Data rows
+      // Data rows: away & home
       const lsTeams = (game.linescore || {}).teams || {};
       [game.teams.away, game.teams.home].forEach((teamData, idx) => {
         const tr = document.createElement("tr");
@@ -132,12 +141,23 @@ if (typeof Module !== "undefined" && Module.register) {
         const tdT  = document.createElement("td"); tdT.className = "team-cell";
         const img  = document.createElement("img"); img.src = this.getLogoUrl(abbr); img.alt = abbr; img.className = "logo-cell";
         tdT.appendChild(img);
-        const sp   = document.createElement("span"); sp.className = "abbr"; sp.innerText = abbr; tdT.appendChild(sp); tr.appendChild(tdT);
+        const sp   = document.createElement("span"); sp.className = "abbr"; sp.innerText = abbr;
+        tdT.appendChild(sp); tr.appendChild(tdT);
+
+        // Determine if game in progress (for yellow)
+        const colorClass = (state !== "Preview" && state !== "Final" && state !== "Postponed")
+          ? 'live' : 'normal';
+
         const isAway = idx === 0;
-        const runs   = state !== "Preview" ? teamData.score : "";
-        const hits   = state !== "Preview" ? (isAway ? lsTeams.away?.hits : lsTeams.home?.hits) : "";
-        const errs   = state !== "Preview" ? (isAway ? lsTeams.away?.errors : lsTeams.home?.errors) : "";
-        [runs, hits, errs].forEach(val => { const td = document.createElement("td"); td.className = "rhe-cell"; td.innerText = val != null ? val : ""; tr.appendChild(td); });
+        const runs   = (state !== "Preview" && state !== "Postponed") ? teamData.score : "";
+        const hits   = (state !== "Preview" && state !== "Postponed") ? (isAway ? lsTeams.away.hits : lsTeams.home.hits) : "";
+        const errs   = (state !== "Preview" && state !== "Postponed") ? (isAway ? lsTeams.away.errors : lsTeams.home.errors) : "";
+
+        [runs, hits, errs].forEach(val => {
+          const td = document.createElement("td"); td.className = `rhe-cell ${colorClass}`;
+          td.innerText = val != null ? val : "";
+          tr.appendChild(td);
+        });
         table.appendChild(tr);
       });
       return table;
@@ -146,35 +166,32 @@ if (typeof Module !== "undefined" && Module.register) {
     createStandingsTable(group) {
       const container = document.createElement("div");
       const title     = document.createElement("h3"); title.innerText = group.division.name; container.appendChild(title);
-      const table     = document.createElement("table"); table.className = "mlb-standings";
-      // Header: blank, W-L, GB, optionally WCGB, Streak, L10, Home, Away
-      const headers = ["","W-L","GB"];
-      if (this.config.showWCGB) headers.push("WCGB");
-      headers.push("Streak","L10","Home","Away");
+
+      const table = document.createElement("table"); table.className = "mlb-standings";
+      const headers = ["","W-L","W%","GB","Streak","L10","Home","Away"];
       const trHdr = document.createElement("tr"); headers.forEach(txt => { const th = document.createElement("th"); th.innerText = txt; trHdr.appendChild(th); }); table.appendChild(trHdr);
       group.teamRecords.forEach(rec => {
         const tr = document.createElement("tr");
-        const abbr = ABBREVIATIONS[rec.team.name] || "";
+        const abbr  = ABBREVIATIONS[rec.team.name] || "";
         const tdTeam= document.createElement("td"); tdTeam.className="team-cell";
         const img   = document.createElement("img"); img.src=this.getLogoUrl(abbr); img.alt=abbr; img.className="logo-cell";
         tdTeam.appendChild(img); const sp=document.createElement("span"); sp.className="abbr"; sp.innerText=abbr; tdTeam.appendChild(sp); tr.appendChild(tdTeam);
-        const lr    = rec.leagueRecord||{}; const tdWL=document.createElement("td"); tdWL.innerText=`${lr.wins||"-"}-${lr.losses||"-"}`; tr.appendChild(tdWL);
-        let gb     = rec.divisionGamesBack; if(gb!=null&&gb!="-"){ const f=parseFloat(gb),w=Math.floor(f),r=f-w; gb=Math.abs(r)<1e-6?`${w}`:Math.abs(r-0.5)<1e-6?`${w}½`:f.toString(); } const tdGB=document.createElement("td"); tdGB.innerText=gb; tr.appendChild(tdGB);
-        if (this.config.showWCGB) {
-          let wc = rec.wildCardGamesBack; if(wc!=null&&wc!="-"){ const f2=parseFloat(wc),w2=Math.floor(f2),r2=f2-w2; wc=Math.abs(r2)<1e-6?`${w2}`:Math.abs(r2-0.5)<1e-6?`${w2}½`:f2.toString(); } const tdWC=document.createElement("td"); tdWC.innerText=wc; tr.appendChild(tdWC);
-        }
-        const tdSt  = document.createElement("td"); tdSt.innerText=rec.streak?.streakCode||"-"; tr.appendChild(tdSt);
-        let l10="-"; const splits=rec.records?.splitRecords||[]; const spL10=splits.find(s=>s.type.toLowerCase()==="lastten"); if(spL10) l10=`${spL10.wins}-${spL10.losses}`; const tdL10=document.createElement("td"); tdL10.innerText=l10; tr.appendChild(tdL10);
-        let homeRec="-"; const spHome=splits.find(s=>s.type.toLowerCase()==="home"); if(spHome) homeRec=`${spHome.wins}-${spHome.losses}`; const tdHome=document.createElement("td"); tdHome.innerText=homeRec; tr.appendChild(tdHome);
-        let awayRec="-"; const spAway=splits.find(s=>s.type.toLowerCase()==="away"); if(spAway) awayRec=`${spAway.wins}-${spAway.losses}`; const tdAway=document.createElement("td"); tdAway.innerText=awayRec; tr.appendChild(tdAway);
+        const lr = rec.leagueRecord||{};
+        const wins = parseInt(lr.wins)||0, losses=parseInt(lr.losses)||0;
+        const pct = (wins+losses>0) ? ((wins/(wins+losses)).toFixed(3).replace(/^0/,"")) : "-";
+        const tdWL = document.createElement("td"); tdWL.innerText=`${wins}-${losses}`; tr.appendChild(tdWL);
+        const tdPct = document.createElement("td"); tdPct.innerText=pct; tr.appendChild(tdPct);
+        let gb=rec.divisionGamesBack; if(gb!=null&&gb!="-"){const f=parseFloat(gb),w=Math.floor(f),r=f-w; gb=Math.abs(r)<1e-6?`${w}`:Math.abs(r-0.5)<1e-6?`${w}½`:f.toString();} const tdGB=document.createElement("td"); tdGB.innerText=gb; tr.appendChild(tdGB);
+        const tdSt=document.createElement("td"); tdSt.innerText=rec.streak?.streakCode||"-"; tr.appendChild(tdSt);
+        let l10="-"; const splits=rec.records?.splitRecords||[]; const sL10=splits.find(s=>s.type.toLowerCase()==="lastten"); if(sL10) l10=`${sL10.wins}-${sL10.losses}`; const tdL10=document.createElement("td"); tdL10.innerText=l10; tr.appendChild(tdL10);
+        let hRec="-"; const sHome=splits.find(s=>s.type.toLowerCase()==="home"); if(sHome) hRec=`${sHome.wins}-${sHome.losses}`; const tdH=document.createElement("td"); tdH.innerText=hRec; tr.appendChild(tdH);
+        let aRec="-"; const sAway=splits.find(s=>s.type.toLowerCase()==="away"); if(sAway) aRec=`${sAway.wins}-${sAway.losses}`; const tdA=document.createElement("td"); tdA.innerText=aRec; tr.appendChild(tdA);
         table.appendChild(tr);
       });
       container.appendChild(table);
       return container;
     },
 
-    getLogoUrl(abbr) {
-      return this.file(`logos/${this.config.logoType}/${abbr}.png`);
-    }
+    getLogoUrl(abbr) { return this.file(`logos/${this.config.logoType}/${abbr}.png`); }
   });
 }
