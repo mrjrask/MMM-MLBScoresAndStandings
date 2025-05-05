@@ -88,6 +88,8 @@
   vertical-align: middle;
   padding: 4px;
   border: 0.5px solid #444;
+  /* prevent wrapping */
+  white-space: nowrap;
 }
 /* Remove top/left border on first header cell */
 .mlb-standings tr:first-child th:first-child {
@@ -106,20 +108,14 @@
   object-fit: contain;
 }
 
-/* Prevent wrapping in W-L column */
-.mlb-standings th:nth-child(2),
-.mlb-standings td:nth-child(2) {
-  white-space: nowrap;
-  min-width: 3em;
-}
-
-/* Standings-pair container */
+/* Standings-pair container: stack NL above AL */
 .standings-pair {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 8px;
 }
 .standings-pair .mlb-standings {
-  width: 48%;
+  width: 100%;
 }
 
 /* Abbreviations */
