@@ -1,55 +1,69 @@
 const NodeHelper = require("node_helper");
-const moment     = require("moment");
-const fs         = require("fs");
-
-console.log("[MMM-MLBScoresAndStandings] helper started");
+const fetch = require("node-fetch");
 
 module.exports = NodeHelper.create({
   start() {
-    this.games  = [];
+    console.log("[MMM-MLBScoresAndStandings] helper started");
     this.config = {};
+    this.gamesURL = "https://statsapi.mlb.com/api/v1/schedule?leagueId=103,104&sportId=1"; // adjust as needed
+    this.standingsURLBase = "https://statsapi.mlb.com/api/v1/standings?season=2025&leagueId=";
   },
 
   socketNotificationReceived(notification, payload) {
     if (notification === "INIT") {
+      // Save user config
       this.config = payload;
-      this.fetchData();
-      this.fetchStandingsFromFile();
-      this.scheduleFetch();
+      // Kick off our first fetch
+      this.fetchGames();
+      this.fetchStandings();
+      // Schedule retries
+      setInterval(() => this.fetchGames(), this.config.updateIntervalScores);
+      setInterval(() => this.fetchStandings(), this.config.updateIntervalStandings);
     }
   },
 
-  scheduleFetch() {
-    setInterval(() => this.fetchData(),    this.config.updateIntervalScores);
-    setInterval(() => this.fetchStandingsFromFile(), this.config.updateIntervalStandings);
-  },
-
-  async fetchData() {
-    const date = moment().format("YYYY-MM-DD");
-    const url  = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=linescore`;
+  async fetchGames() {
+    console.log("[MMM-MLBScoresAndStandings] fetching games...");
     try {
-      console.log("[MMM] fetching schedule URL:", url);
-      const res  = await fetch(url);
+      const res = await fetch(this.gamesURL);
+      res.raiseForStatus?.(); // if using node-fetch@3
       const json = await res.json();
-      this.games = json.dates?.[0]?.games || [];
-      console.log("[MMM-MLBScoresAndStandings] fetched games:", this.games.length);
-      this.sendSocketNotification("GAMES", this.games);
+      // schedule.dateGames is an array; flatten all games
+      const dates = json.dates || [];
+      const games = dates.reduce((arr, day) => arr.concat(day.games || []), []);
+      console.log("[MMM-MLBScoresAndStandings] got", games.length, "games");
+      this.sendSocketNotification("GAMES", games);
     } catch (e) {
-      console.error("[MMM-MLBScoresAndStandings] fetchData error", e);
+      console.error("[MMM-MLBScoresAndStandings] Error fetching games:", e);
+      // Even on error, send empty so module leaves Loading state
       this.sendSocketNotification("GAMES", []);
     }
   },
 
-  fetchStandingsFromFile() {
-    const filePath = __dirname + "/standings.json";
-    console.log("[MMM] reading standings from file:", filePath);
+  async fetchStandings() {
+    console.log("[MMM-MLBScoresAndStandings] fetching standings...");
+    // our divisions in order: East, Central, West for NL (104) and AL (103)
+    const divisions = [
+      { leagueId: 104, divisionId: 204 },
+      { leagueId: 104, divisionId: 205 },
+      { leagueId: 104, divisionId: 203 },
+      { leagueId: 103, divisionId: 201 },
+      { leagueId: 103, divisionId: 202 },
+      { leagueId: 103, divisionId: 200 },
+    ];
     try {
-      const data    = fs.readFileSync(filePath, "utf8");
-      const records = JSON.parse(data);
-      console.log("[MMM-MLBScoresAndStandings] loaded standings from file:", records.length);
-      this.sendSocketNotification("STANDINGS", records);
+      const allRecs = await Promise.all(divisions.map(async ({ leagueId, divisionId }) => {
+        const url = `${this.standingsURLBase}${leagueId}&divisionId=${divisionId}`;
+        const res = await fetch(url);
+        res.raiseForStatus?.();
+        const json = await res.json();
+        const recs = json.records?.[0]?.teamRecords || [];
+        return { division: json.records?.[0]?.division || { name: "" }, teamRecords: recs };
+      }));
+      console.log("[MMM-MLBScoresAndStandings] got standings for", allRecs.length, "divisions");
+      this.sendSocketNotification("STANDINGS", allRecs);
     } catch (e) {
-      console.error("[MMM-MLBScoresAndStandings] read standings file error", e);
+      console.error("[MMM-MLBScoresAndStandings] Error fetching standings:", e);
       this.sendSocketNotification("STANDINGS", []);
     }
   }
