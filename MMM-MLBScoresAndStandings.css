@@ -122,3 +122,9 @@
 .abbr {
   font-weight: bold;
 }
+
+/* Make Cubs row amber */
+.mlb-standings tr.cubs-highlight td,
+.mlb-standings tr.cubs-highlight th .abbr {
+  color: #FFD242;
+}
