@@ -1,3 +1,5 @@
+/* MMM-MLBScoresAndStandings.css */
+
 /* Module Header */
 .module-header {
   font-size: 0.9em;
@@ -53,6 +55,7 @@
   margin-right: 4px;
   object-fit: contain;
 }
+/* Status + R/H/E cells */
 .game-boxscore .status-cell,
 .game-boxscore .rhe-header,
 .game-boxscore .rhe-cell {
@@ -61,6 +64,18 @@
   text-align: center;
   line-height: 1.5em;
   border: 1px solid #444;
+}
+
+/* Live vs. normal coloring for in-progress games */
+.game-boxscore .status-cell.live,
+.game-boxscore .rhe-header.live,
+.game-boxscore .rhe-cell.live {
+  color: #FFE060;
+}
+.game-boxscore .status-cell.normal,
+.game-boxscore .rhe-header.normal,
+.game-boxscore .rhe-cell.normal {
+  color: #FFF;
 }
 
 /* Standings Table */
@@ -76,6 +91,11 @@
   padding: 4px;
   border: 0.5px solid #444;
 }
+/* Remove top/left border on first header cell */
+.mlb-standings tr:first-child th:first-child {
+  border-top: none;
+  border-left: none;
+}
 .mlb-standings .team-cell {
   display: flex;
   align-items: center;
@@ -88,18 +108,16 @@
   object-fit: contain;
 }
 
+/* Standings-pair container */
+.standings-pair {
+  display: flex;
+  justify-content: space-between;
+}
+.standings-pair .mlb-standings {
+  width: 48%;
+}
+
 /* Abbreviations */
 .abbr {
   font-weight: bold;
-}
-
-/* Live vs. normal coloring for in-progress games */
-.game-boxscore .status-cell.live,
-.game-boxscore .rhe-cell.live {
-  color: #FFE060;
-}
-
-.game-boxscore .status-cell.normal,
-.game-boxscore .rhe-cell.normal {
-  color: #FFF;
 }
