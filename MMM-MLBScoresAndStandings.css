@@ -68,12 +68,10 @@
 
 /* Live vs. normal coloring for in-progress games */
 .game-boxscore .status-cell.live,
-.game-boxscore .rhe-header.live,
 .game-boxscore .rhe-cell.live {
-  color: #FFE060;
+  color: #FFD242;
 }
 .game-boxscore .status-cell.normal,
-.game-boxscore .rhe-header.normal,
 .game-boxscore .rhe-cell.normal {
   color: #FFF;
 }
@@ -106,6 +104,13 @@
   height: 24px;
   margin-right: 4px;
   object-fit: contain;
+}
+
+/* Prevent wrapping in W-L column */
+.mlb-standings th:nth-child(2),
+.mlb-standings td:nth-child(2) {
+  white-space: nowrap;
+  min-width: 3em;
 }
 
 /* Standings-pair container */
