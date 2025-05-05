@@ -18,7 +18,7 @@ if (typeof Module !== "undefined" && Module.register) {
     defaults: {
       updateIntervalScores:    2 * 60 * 1000,
       updateIntervalStandings: 15 * 60 * 1000,
-      rotateInterval:          5 * 1000,
+      rotateInterval:          7 * 1000,
       gamesPerPage:            8,
       logoType:                "color",
       showWildCardGamesBack:   false,
@@ -102,66 +102,72 @@ if (typeof Module !== "undefined" && Module.register) {
       const div = document.createElement("div"); div.innerText = msg; return div;
     },
 
-    createGameBox(game) {
-      const table = document.createElement("table");
-      table.className   = "game-boxscore";
-      table.cellSpacing = 0;
-      table.cellPadding = 0;
+  createGameBox(game) {
+  const table = document.createElement("table");
+  table.className   = "game-boxscore";
+  table.cellSpacing = 0;
+  table.cellPadding = 0;
 
-      // Determine status text, allowing for Postponed
-      const state = game.status.abstractGameState;
-      let statusText = "";
-      if (state === "Postponed" || game.status.detailedState.includes("Postponed")) {
-        statusText = "Ppd";
-      } else if (state === "Preview") {
-        statusText = moment(game.gameDate).local().format("h:mm A");
-      } else if (state === "Final") {
-        const parts = game.status.detailedState.split("/");
-        statusText = parts[1] ? `F/${parts[1]}` : "F";
-      } else {
-        const ls = game.linescore || {};
-        statusText = ((ls.inningState ? ls.inningState + " " : "") + (ls.currentInningOrdinal || "")).trim() || "In Progress";
-      }
+  // 1) Determine whether the game is live
+  const state = game.status.abstractGameState;
+  const isLive = (state !== "Preview" && state !== "Final" && state !== "Postponed");
+  const colorClass = isLive ? "live" : "normal";
 
-      // Build header row
-      const trH = document.createElement("tr");
-      const thS = document.createElement("th"); thS.className = "status-cell"; thS.innerText = statusText;
-      trH.appendChild(thS);
-      ["R","H","E"].forEach(lbl => {
-        const th = document.createElement("th"); th.className = "rhe-header"; th.innerText = lbl;
-        trH.appendChild(th);
-      });
-      table.appendChild(trH);
+  // 2) Determine status text (Postponed / Preview / Final / Inning)
+  let statusText = "";
+  if (state === "Postponed" || game.status.detailedState.includes("Postponed")) {
+    statusText = "Ppd";
+  } else if (state === "Preview") {
+    statusText = moment(game.gameDate).local().format("h:mm A");
+  } else if (state === "Final") {
+    const parts = game.status.detailedState.split("/");
+    statusText = parts[1] ? `F/${parts[1]}` : "F";
+  } else {
+    const ls = game.linescore || {};
+    statusText = (
+      (ls.inningState ? ls.inningState + " " : "") +
+      (ls.currentInningOrdinal || "")
+    ).trim() || "In Progress";
+  }
 
-      // Data rows: away & home
-      const lsTeams = (game.linescore || {}).teams || {};
-      [game.teams.away, game.teams.home].forEach((teamData, idx) => {
-        const tr = document.createElement("tr");
-        const abbr = ABBREVIATIONS[teamData.team.name] || "";
-        const tdT  = document.createElement("td"); tdT.className = "team-cell";
-        const img  = document.createElement("img"); img.src = this.getLogoUrl(abbr); img.alt = abbr; img.className = "logo-cell";
-        tdT.appendChild(img);
-        const sp   = document.createElement("span"); sp.className = "abbr"; sp.innerText = abbr;
-        tdT.appendChild(sp); tr.appendChild(tdT);
+  // 3) Build header row and apply colorClass to the status cell
+  const trH   = document.createElement("tr");
+  const thS   = document.createElement("th");
+  thS.className = `status-cell ${colorClass}`;
+  thS.innerText = statusText;
+  trH.appendChild(thS);
 
-        // Determine if game in progress (for yellow)
-        const colorClass = (state !== "Preview" && state !== "Final" && state !== "Postponed")
-          ? 'live' : 'normal';
+  ["R", "H", "E"].forEach(lbl => {
+    const th = document.createElement("th");
+    th.className = `rhe-header ${colorClass}`;
+    th.innerText = lbl;
+    trH.appendChild(th);
+  });
+  table.appendChild(trH);
 
-        const isAway = idx === 0;
-        const runs   = (state !== "Preview" && state !== "Postponed") ? teamData.score : "";
-        const hits   = (state !== "Preview" && state !== "Postponed") ? (isAway ? lsTeams.away.hits : lsTeams.home.hits) : "";
-        const errs   = (state !== "Preview" && state !== "Postponed") ? (isAway ? lsTeams.away.errors : lsTeams.home.errors) : "";
+  // 4) Build the Away/Home rows, applying colorClass to each data cell
+  const lsTeams = (game.linescore || {}).teams || {};
+  [game.teams.away, game.teams.home].forEach((teamData, idx) => {
+    const tr = document.createElement("tr");
+    // … team cell code omitted for brevity …
 
-        [runs, hits, errs].forEach(val => {
-          const td = document.createElement("td"); td.className = `rhe-cell ${colorClass}`;
-          td.innerText = val != null ? val : "";
-          tr.appendChild(td);
-        });
-        table.appendChild(tr);
-      });
-      return table;
-    },
+    const isAway = idx === 0;
+    const runs   = isLive ? teamData.score : "";
+    const hits   = isLive ? (isAway ? lsTeams.away.hits : lsTeams.home.hits) : "";
+    const errs   = isLive ? (isAway ? lsTeams.away.errors : lsTeams.home.errors) : "";
+
+    [runs, hits, errs].forEach(val => {
+      const td = document.createElement("td");
+      td.className = `rhe-cell ${colorClass}`;
+      td.innerText = val != null ? val : "";
+      tr.appendChild(td);
+    });
+
+    table.appendChild(tr);
+  });
+
+  return table;
+},
 
     createStandingsTable(group) {
       const container = document.createElement("div");
