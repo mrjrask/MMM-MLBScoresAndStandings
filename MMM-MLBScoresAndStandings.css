@@ -92,3 +92,14 @@
 .abbr {
   font-weight: bold;
 }
+
+/* Live vs. normal coloring for in-progress games */
+.game-boxscore .status-cell.live,
+.game-boxscore .rhe-cell.live {
+  color: #FFE060;
+}
+
+.game-boxscore .status-cell.normal,
+.game-boxscore .rhe-cell.normal {
+  color: #FFF;
+}
