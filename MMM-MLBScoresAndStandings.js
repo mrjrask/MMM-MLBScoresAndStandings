@@ -108,38 +108,12 @@ Module.register("MMM-MLBScoresAndStandings", {
     for (let i = 0; i < 2; i++) {
       const col = document.createElement("div");
       col.className = "game-col";
-      slice.slice(i * half, (i + 1) * half).forEach(g => col.appendChild(this.createGameBox(g)));
-      grid.appendChild(col);
-    }
-    return grid;
-  },
-
-  _buildStandings() {
-    const idx  = this.currentScreen - this.totalGamePages;
-    const pair = DIVISION_PAIRS[idx];
-    const cont = document.createElement("div");
-    cont.className = "standings-pair";
-    [pair.nl, pair.al].forEach(id => {
-      const group = this.recordGroups.find(g => g.division.id === id);
-      if (group) {
-        const div = document.createElement("div");
-        div.className = "standings-division";
-        const h3  = document.createElement("h3");
-        h3.innerText   = DIVISION_LABELS[id];
-        h3.style.margin = "0 0 4px 0";
-        div.appendChild(h3);
-        div.appendChild(this.createStandingsTable(group));
-        cont.appendChild(div);
-      }
-    });
-    return cont;
-  },
-
-  createGameBox(game) {
+      slice.slice(i * half, (i + 1) * half).forEach(g => col.appendChild(this.createGameBox(game) {
     const table = document.createElement("table");
     table.className   = "game-boxscore";
     table.cellSpacing = 0;
     table.cellPadding = 0;
+
     const s     = game.status.abstractGameState;
     const postp = s === "Postponed" || game.status.detailedState.includes("Postponed");
     const prevw = s === "Preview";
@@ -147,18 +121,24 @@ Module.register("MMM-MLBScoresAndStandings", {
     const show  = !prevw && !postp;
     const live  = show && !finn;
     const cls   = live ? "live" : "normal";
+
+    // Determine status text
     let statusText = "";
-    if (postp)      { statusText = "Ppd"; }
-    else if (prevw) { statusText = moment(game.gameDate).local().format("h:mm A"); }
-    else if (finn)  {
-      const inn     = (game.linescore?.innings || []).length;
-      statusText    = inn === 9 ? "F" : `F/${inn}`;
+    if (postp) {
+      statusText = "Ppd";
+    } else if (prevw) {
+      statusText = moment(game.gameDate).local().format("h:mm A");
+    } else if (finn) {
+      const innings = (game.linescore?.innings || []).length;
+      statusText = innings === 9 ? "F" : `F/${innings}`;
     } else {
       statusText = (
         (game.linescore?.inningState ? game.linescore.inningState + " " : "") +
         (game.linescore?.currentInningOrdinal || "")
       ).trim() || "In Progress";
     }
+
+    // Header row
     const trH = document.createElement("tr");
     const thS = document.createElement("th");
     thS.className = `status-cell ${cls}`;
@@ -171,10 +151,14 @@ Module.register("MMM-MLBScoresAndStandings", {
       trH.appendChild(th);
     });
     table.appendChild(trH);
+
+    // Data rows
     const lines = game.linescore?.teams || {};
-    [game.teams.away, game.teams.home].forEach((t,i) => {
+    [game.teams.away, game.teams.home].forEach((t, i) => {
       const tr   = document.createElement("tr");
       const abbr = ABBREVIATIONS[t.team.name] || "";
+
+      // Team cell
       const tdT  = document.createElement("td");
       tdT.className = "team-cell";
       const img  = document.createElement("img");
@@ -182,22 +166,26 @@ Module.register("MMM-MLBScoresAndStandings", {
       img.alt       = abbr;
       img.className = "logo-cell";
       tdT.appendChild(img);
-      const sp = document.createElement("span");
-      sp.className = "abbr";
-      sp.innerText = abbr;
+      const sp      = document.createElement("span");
+      sp.className  = "abbr";
+      sp.innerText  = abbr;
       tdT.appendChild(sp);
       tr.appendChild(tdT);
+
+      // R/H/E with safe chaining
       const runs = show ? t.score : "";
-      const hits = show ? (i === 0 ? lines.away.hits : lines.home.hits) : "";
-      const errs = show ? (i === 0 ? lines.away.errors : lines.home.errors) : "";
-      [runs, hits, errs].forEach(v => {
+      const hits = show ? (i === 0 ? lines.away?.hits : lines.home?.hits) || "" : "";
+      const errs = show ? (i === 0 ? lines.away?.errors : lines.home?.errors) || "" : "";
+      [runs, hits, errs].forEach(val => {
         const td = document.createElement("td");
         td.className = `rhe-cell ${cls}`;
-        td.innerText = v != null ? v : "";
+        td.innerText = val != null ? val : "";
         tr.appendChild(td);
       });
+
       table.appendChild(tr);
     });
+
     return table;
   },
 
