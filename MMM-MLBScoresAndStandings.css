@@ -44,6 +44,7 @@
   padding: 0;
   vertical-align: middle;
 }
+/* Team Cell and Logo */
 .game-boxscore .team-cell {
   display: flex;
   align-items: center;
@@ -55,6 +56,7 @@
   margin-right: 4px;
   object-fit: contain;
 }
+
 /* Status + R/H/E cells */
 .game-boxscore .status-cell,
 .game-boxscore .rhe-header,
@@ -64,6 +66,15 @@
   text-align: center;
   line-height: 1.5em;
   border: 1px solid #444;
+}
+.game-boxscore .status-cell {
+  font-weight: normal;
+}
+.game-boxscore .rhe-header {
+  font-weight: normal;
+}
+.game-boxscore .rhe-cell {
+  font-weight: bold;
 }
 
 /* Live vs. normal coloring for in-progress games */
@@ -88,7 +99,6 @@
   vertical-align: middle;
   padding: 4px;
   border: 0.5px solid #444;
-  /* prevent wrapping */
   white-space: nowrap;
 }
 /* Remove top/left border on first header cell */
