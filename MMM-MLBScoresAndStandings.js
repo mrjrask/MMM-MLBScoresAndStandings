@@ -158,10 +158,11 @@ Module.register("MMM-MLBScoresAndStandings", {
       const inn = (game.linescore?.innings || []).length;
       statusText = inn === 9 ? "F" : `F/${inn}`;
     } else {
-      // use status.* for live inning
-      const st = game.status.inningState  || "";
-      const io = game.status.currentInningOrdinal || "";
-      statusText = (st + " " + io).trim();
+    // Live games: show inning state + ordinal; if both are missing, show “In Progress”
+    const st = game.status.inningState  || "";
+    const io = game.status.currentInningOrdinal || "";
+    const liveText = (st + " " + io).trim();
+    statusText = liveText.length ? liveText : "In Progress";
     }
 
     // header row
