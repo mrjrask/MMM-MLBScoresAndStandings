@@ -31,7 +31,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     updateIntervalStandings:  15 * 60 * 1000,
     rotateIntervalScores:     10 * 1000,
     rotateIntervalStandings:   7 * 1000,
-    gamesPerPage:                  16,
+    gamesPerPage:                  8,
     logoType:                  "color"
   },
 
@@ -94,9 +94,9 @@ Module.register("MMM-MLBScoresAndStandings", {
 
   getDom() {
     const showingGames = this.currentScreen < this.totalGamePages;
-    if (showingGames && !this.loadedGames)        return this._noData("Loading...");
-    if (!showingGames && !this.loadedStandings)   return this._noData("Loading...");
-    if (showingGames && this.games.length === 0)  return this._noData("No games to display.");
+    if (showingGames && !this.loadedGames)      return this._noData("Loading...");
+    if (!showingGames && !this.loadedStandings) return this._noData("Loading...");
+    if (showingGames && this.games.length === 0) return this._noData("No games to display.");
     if (!showingGames && this.recordGroups.length === 0)
       return this._noData("Standings unavailable.");
 
@@ -104,9 +104,9 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   _noData(msg) {
-    const d = document.createElement("div");
-    d.innerText = msg;
-    return d;
+    const div = document.createElement("div");
+    div.innerText = msg;
+    return div;
   },
 
   _buildGames() {
@@ -135,10 +135,10 @@ Module.register("MMM-MLBScoresAndStandings", {
     [pair.nl, pair.al].forEach(id => {
       const group = this.recordGroups.find(g => g.division.id === id);
       if (group) {
-        const div = document.createElement("div");
+        const div   = document.createElement("div");
         div.className = "standings-division";
-        const h3 = document.createElement("h3");
-        h3.innerText = DIVISION_LABELS[id];
+        const h3    = document.createElement("h3");
+        h3.innerText   = DIVISION_LABELS[id];
         h3.style.margin = "0 0 4px 0";
         div.appendChild(h3);
         div.appendChild(this.createStandingsTable(group));
@@ -155,27 +155,29 @@ Module.register("MMM-MLBScoresAndStandings", {
     table.cellSpacing = 0;
     table.cellPadding = 0;
 
-    const s          = game.status.abstractGameState;
-    const detailed   = game.status.detailedState;
-    const postp      = s === "Postponed" || detailed.includes("Postponed");
-    const warmup     = detailed === "Warmup";
-    const prevw      = s === "Preview";
-    const finn       = s === "Final";
-    const show       = !prevw && !postp && !warmup;
-    const live       = show && !finn;
-    const cls        = live ? "live" : "normal";
+    const detailed = game.status.detailedState;
+    const isPostp  = detailed.includes("Postponed");
+    const isDelay  = detailed.includes("Delay") || detailed.includes("Delayed");
+    const isWarmup = detailed === "Warmup";
+    const isPrev   = game.status.abstractGameState === "Preview";
+    const isFin    = game.status.abstractGameState === "Final";
+    const show     = !isPrev && !isPostp && !isDelay && !isWarmup;
+    const live     = show && !isFin;
+    const cls      = live ? "live" : "normal";
 
-    // Determine status text
-    let statusText = "";
-    if (postp) {
-      statusText = "Ppd";
-    } else if (warmup) {
+    // status text
+    let statusText;
+    if (isPostp) {
+      statusText = "Postponed";
+    } else if (isDelay) {
+      statusText = "Delayed";
+    } else if (isWarmup) {
       statusText = "Warmup";
-    } else if (prevw) {
+    } else if (isPrev) {
       statusText = moment(game.gameDate).local().format("h:mm A");
-    } else if (finn) {
-      const innings = (game.linescore?.innings || []).length;
-      statusText = innings === 9 ? "F" : `F/${innings}`;
+    } else if (isFin) {
+      const inn = (game.linescore?.innings || []).length;
+      statusText = inn === 9 ? "F" : `F/${inn}`;
     } else {
       const st   = game.linescore?.inningState          || "";
       const io   = game.linescore?.currentInningOrdinal || "";
@@ -183,7 +185,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       statusText = combo.length ? combo : "In Progress";
     }
 
-    // Header row
+    // header
     const trH = document.createElement("tr");
     const thS = document.createElement("th");
     thS.className = `status-cell ${cls}`;
@@ -197,7 +199,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     });
     table.appendChild(trH);
 
-    // Data rows
+    // data rows
     const lines = game.linescore?.teams || {};
     [game.teams.away, game.teams.home].forEach((t, i) => {
       const tr   = document.createElement("tr");
@@ -212,12 +214,12 @@ Module.register("MMM-MLBScoresAndStandings", {
       img.className = "logo-cell";
       tdT.appendChild(img);
       const sp = document.createElement("span");
-      sp.className = "abbr";
-      sp.innerText = abbr;
+      sp.className  = "abbr";
+      sp.innerText  = abbr;
       tdT.appendChild(sp);
       tr.appendChild(tdT);
 
-      // Runs/Hits/Errors
+      // R/H/E values
       const runs = show ? t.score : "";
       const hits = show
         ? (i === 0 
@@ -246,9 +248,9 @@ Module.register("MMM-MLBScoresAndStandings", {
     const table = document.createElement("table");
     table.className = "mlb-standings";
 
-    const headers = ["","W-L","W%","GB","Streak","L10","Home","Away"];
-    const trH     = document.createElement("tr");
-    headers.forEach(txt => {
+    const hdrs = ["","W-L","W%","GB","Streak","L10","Home","Away"];
+    const trH  = document.createElement("tr");
+    hdrs.forEach(txt => {
       const th = document.createElement("th");
       th.innerText = txt;
       trH.appendChild(th);
@@ -302,7 +304,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       tdSt.innerText = rec.streak?.streakCode || "-";
       tr.appendChild(tdSt);
 
-      // L10 / Home / Away
+      // L10 / Home / Away splits
       let l10 = "-";
       const splits = rec.records?.splitRecords || [];
       const s10    = splits.find(s=>s.type.toLowerCase()==="lastten");
