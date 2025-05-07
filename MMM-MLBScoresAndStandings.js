@@ -25,60 +25,65 @@ const DIVISION_PAIRS = [
   { nl: 203, al: 200 }
 ];
 
+Module.register("MMM-MLBScoresAndStandings", {
+  defaults: {
+    // Polling intervals (override in config.js if desired)
+    updateIntervalScores:      2 * 60 * 1000,
+    updateIntervalStandings:  15 * 60 * 1000,
+
+    // Pagination & assets
+    gamesPerPage:                  16,
+    logoType:                  "color",
+
+    // Rotation intervals
+    rotateIntervalScores:      10 * 1000,
+    rotateIntervalEast:         7 * 1000,
+    rotateIntervalCentral:     10 * 1000,
+    rotateIntervalWest:        12 * 1000
+  },
+
   getHeader() {
-    return this.currentScreen < this.totalGamePages
-      ? "MLB Scoreboard"
-      : "MLB Standings";
+    return this.currentScreen < this.totalGamePages ? "MLB Scoreboard" : "MLB Standings";
   },
 
   getScripts() { return ["moment.js"]; },
   getStyles()  { return ["MMM-MLBScoresAndStandings.css"]; },
 
   start() {
-    this.games           = [];
-    this.recordGroups    = [];
-    this.loadedGames     = false;
-    this.loadedStandings = false;
-    this.totalGamePages  = 1;
-    this.totalStandPairs = DIVISION_PAIRS.length;
-    this.currentScreen   = 0;
-    this.rotateTimer     = null;
+    this.games            = [];
+    this.recordGroups     = [];
+    this.loadedGames      = false;
+    this.loadedStandings  = false;
+    this.totalGamePages   = 1;
+    this.totalStandPairs  = DIVISION_PAIRS.length;
+    this.currentScreen    = 0;
+    this.rotateTimer      = null;
 
     this.sendSocketNotification("INIT", this.config);
     setInterval(() => this.sendSocketNotification("INIT", this.config), this.config.updateIntervalScores);
     this._scheduleRotate();
   },
 
-_scheduleRotate() {
-  const showingGames = this.currentScreen < this.totalGamePages;
-
-  // if we’re showing scores, use the one global interval
-  if (showingGames) {
-    this._setNextRotation(this.config.rotateIntervalScores);
-    return;
-  }
-
-  // otherwise we’re on a standings pair:
-  // figure out which index (0=East, 1=Central, 2=West)
-  const standingsIndex = this.currentScreen - this.totalGamePages;
-  let delay;
-  switch (standingsIndex) {
-    case 0: delay = this.config.rotateIntervalEast;    break;
-    case 1: delay = this.config.rotateIntervalCentral; break;
-    case 2: delay = this.config.rotateIntervalWest;    break;
-    default: delay = this.config.rotateIntervalEast;   break;
-  }
-  this._setNextRotation(delay);
-},
-
-// helper to clear & schedule
-_setNextRotation(delay) {
-  clearTimeout(this.rotateTimer);
-  this.rotateTimer = setTimeout(() => {
-    this.rotateView();
-    this._scheduleRotate();
-  }, delay);
-},
+  _scheduleRotate() {
+    const showingGames = this.currentScreen < this.totalGamePages;
+    let delay;
+    if (showingGames) {
+      delay = this.config.rotateIntervalScores;
+    } else {
+      const idx = this.currentScreen - this.totalGamePages;
+      switch (idx) {
+        case 0: delay = this.config.rotateIntervalEast; break;
+        case 1: delay = this.config.rotateIntervalCentral; break;
+        case 2: delay = this.config.rotateIntervalWest; break;
+        default: delay = this.config.rotateIntervalEast;
+      }
+    }
+    clearTimeout(this.rotateTimer);
+    this.rotateTimer = setTimeout(() => {
+      this.rotateView();
+      this._scheduleRotate();
+    }, delay);
+  },
 
   socketNotificationReceived(notification, payload) {
     if (notification === "GAMES") {
@@ -105,16 +110,14 @@ _setNextRotation(delay) {
     if (showingGames && !this.loadedGames)      return this._noData("Loading...");
     if (!showingGames && !this.loadedStandings) return this._noData("Loading...");
     if (showingGames && this.games.length === 0) return this._noData("No games to display.");
-    if (!showingGames && this.recordGroups.length === 0)
-      return this._noData("Standings unavailable.");
-
+    if (!showingGames && this.recordGroups.length === 0) return this._noData("Standings unavailable.");
     return showingGames ? this._buildGames() : this._buildStandings();
   },
 
   _noData(msg) {
-    const div = document.createElement("div");
-    div.innerText = msg;
-    return div;
+    const d = document.createElement("div");
+    d.innerText = msg;
+    return d;
   },
 
   _buildGames() {
@@ -123,12 +126,10 @@ _setNextRotation(delay) {
     const grid  = document.createElement("div");
     grid.className = "games-columns";
     const half = this.config.gamesPerPage / 2;
-
     for (let i = 0; i < 2; i++) {
       const col = document.createElement("div");
       col.className = "game-col";
-      slice.slice(i * half, (i + 1) * half)
-           .forEach(g => col.appendChild(this.createGameBox(g)));
+      slice.slice(i * half, (i + 1) * half).forEach(g => col.appendChild(this.createGameBox(g)));
       grid.appendChild(col);
     }
     return grid;
@@ -139,13 +140,12 @@ _setNextRotation(delay) {
     const pair = DIVISION_PAIRS[idx];
     const container = document.createElement("div");
     container.className = "standings-pair";
-
     [pair.nl, pair.al].forEach(id => {
       const group = this.recordGroups.find(g => g.division.id === id);
       if (group) {
-        const div   = document.createElement("div");
+        const div = document.createElement("div");
         div.className = "standings-division";
-        const h3    = document.createElement("h3");
+        const h3 = document.createElement("h3");
         h3.innerText   = DIVISION_LABELS[id];
         h3.style.margin = "0 0 4px 0";
         div.appendChild(h3);
@@ -153,7 +153,6 @@ _setNextRotation(delay) {
         container.appendChild(div);
       }
     });
-
     return container;
   },
 
@@ -173,27 +172,21 @@ _setNextRotation(delay) {
     const live     = show && !isFin;
     const cls      = live ? "live" : "normal";
 
-    // status text
     let statusText;
-    if (isPostp) {
-      statusText = "Postponed";
-    } else if (isDelay) {
-      statusText = "Delayed";
-    } else if (isWarmup) {
-      statusText = "Warmup";
-    } else if (isPrev) {
-      statusText = moment(game.gameDate).local().format("h:mm A");
-    } else if (isFin) {
+    if (isPostp) statusText = "Postponed";
+    else if (isDelay) statusText = "Delayed";
+    else if (isWarmup) statusText = "Warmup";
+    else if (isPrev) statusText = moment(game.gameDate).local().format("h:mm A");
+    else if (isFin) {
       const inn = (game.linescore?.innings || []).length;
       statusText = inn === 9 ? "F" : `F/${inn}`;
     } else {
-      const st   = game.linescore?.inningState          || "";
-      const io   = game.linescore?.currentInningOrdinal || "";
+      const st   = game.linescore?.inningState           || "";
+      const io   = game.linescore?.currentInningOrdinal  || "";
       const combo = (st + " " + io).trim();
       statusText = combo.length ? combo : "In Progress";
     }
 
-    // header
     const trH = document.createElement("tr");
     const thS = document.createElement("th");
     thS.className = `status-cell ${cls}`;
@@ -207,13 +200,11 @@ _setNextRotation(delay) {
     });
     table.appendChild(trH);
 
-    // data rows
     const lines = game.linescore?.teams || {};
     [game.teams.away, game.teams.home].forEach((t, i) => {
       const tr   = document.createElement("tr");
       const abbr = ABBREVIATIONS[t.team.name] || "";
 
-      // team cell
       const tdT = document.createElement("td");
       tdT.className = "team-cell";
       const img = document.createElement("img");
@@ -222,22 +213,17 @@ _setNextRotation(delay) {
       img.className = "logo-cell";
       tdT.appendChild(img);
       const sp = document.createElement("span");
-      sp.className  = "abbr";
-      sp.innerText  = abbr;
+      sp.className = "abbr";
+      sp.innerText = abbr;
       tdT.appendChild(sp);
       tr.appendChild(tdT);
 
-      // R/H/E values
       const runs = show ? t.score : "";
       const hits = show
-        ? (i === 0 
-            ? (lines.away?.hits   ?? "") 
-            : (lines.home?.hits   ?? ""))
+        ? (i===0 ? (lines.away?.hits   ?? "") : (lines.home?.hits   ?? ""))
         : "";
       const errs = show
-        ? (i === 0 
-            ? (lines.away?.errors ?? "") 
-            : (lines.home?.errors ?? ""))
+        ? (i===0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? ""))
         : "";
       [runs, hits, errs].forEach(v => {
         const td = document.createElement("td");
@@ -269,7 +255,6 @@ _setNextRotation(delay) {
       const tr = document.createElement("tr");
       if (rec.team.name === "Chicago Cubs") tr.classList.add("cubs-highlight");
 
-      // team cell
       const tdTeam = document.createElement("td");
       tdTeam.className = "team-cell";
       const ab = ABBREVIATIONS[rec.team.name] || "";
@@ -284,7 +269,6 @@ _setNextRotation(delay) {
       tdTeam.appendChild(sp2);
       tr.appendChild(tdTeam);
 
-      // W-L & W%
       const lr  = rec.leagueRecord || {};
       const W   = parseInt(lr.wins)   || 0;
       const L   = parseInt(lr.losses) || 0;
@@ -295,7 +279,6 @@ _setNextRotation(delay) {
         tr.appendChild(td);
       });
 
-      // GB
       let gb = rec.divisionGamesBack;
       if (gb != null && gb !== "-") {
         const f = parseFloat(gb), m = Math.floor(f), r = f-m;
@@ -307,12 +290,10 @@ _setNextRotation(delay) {
       tdGB.innerText = gb;
       tr.appendChild(tdGB);
 
-      // Streak
       const tdSt = document.createElement("td");
       tdSt.innerText = rec.streak?.streakCode || "-";
       tr.appendChild(tdSt);
 
-      // L10 / Home / Away splits
       let l10 = "-";
       const splits = rec.records?.splitRecords || [];
       const s10    = splits.find(s=>s.type.toLowerCase()==="lastten");
