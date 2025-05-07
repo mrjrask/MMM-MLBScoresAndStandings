@@ -29,7 +29,7 @@ Module.register("MMM-MLBScoresAndStandings", {
   defaults: {
     updateIntervalScores:      2 * 60 * 1000,
     updateIntervalStandings:  15 * 60 * 1000,
-    rotateIntervalScores:     10 * 1000,
+    rotateIntervalScores:     20 * 1000,
     rotateIntervalStandings:   7 * 1000,
     gamesPerPage:                  16,
     logoType:                  "color"
