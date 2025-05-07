@@ -20,17 +20,17 @@ const DIVISION_LABELS = {
 };
 
 const DIVISION_PAIRS = [
-  { nl: 204, al: 201 },
-  { nl: 205, al: 202 },
-  { nl: 203, al: 200 }
+  { nl: 204, al: 201 },  // East
+  { nl: 205, al: 202 },  // Central
+  { nl: 203, al: 200 }   // West
 ];
 
 Module.register("MMM-MLBScoresAndStandings", {
   defaults: {
     updateIntervalScores:      2 * 60 * 1000,
     updateIntervalStandings:  15 * 60 * 1000,
-    gamesPerPage:                  8,
-    logoType:                  "color",
+    gamesPerPage:             16,
+    logoType:                 "color",
     rotateIntervalScores:      10 * 1000,
     rotateIntervalEast:         7 * 1000,
     rotateIntervalCentral:     10 * 1000,
@@ -84,14 +84,14 @@ Module.register("MMM-MLBScoresAndStandings", {
 
   socketNotificationReceived(notification, payload) {
     if (notification === "GAMES") {
-      this.loadedGames    = true;
-      this.games          = payload;
-      this.totalGamePages = Math.max(1, Math.ceil(this.games.length / this.config.gamesPerPage));
+      this.loadedGames      = true;
+      this.games            = payload;
+      this.totalGamePages   = Math.max(1, Math.ceil(this.games.length / this.config.gamesPerPage));
       this.updateDom();
     }
     if (notification === "STANDINGS") {
-      this.loadedStandings = true;
-      this.recordGroups    = payload;
+      this.loadedStandings  = true;
+      this.recordGroups     = payload;
       this.updateDom();
     }
   },
@@ -204,7 +204,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     });
     table.appendChild(trH);
 
-    const lines = (game.linescore && game.linescore.teams) ? game.linescore.teams : {};
+    const lines = game.linescore?.teams || {};
 
     [game.teams.away, game.teams.home].forEach((t, i) => {
       const tr   = document.createElement("tr");
@@ -225,10 +225,10 @@ Module.register("MMM-MLBScoresAndStandings", {
 
       const runs = show ? t.score : "";
       const hits = show
-        ? (i === 0 ? (lines.away?.hits || "") : (lines.home?.hits || ""))
+        ? (i === 0 ? (lines.away?.hits   ?? "") : (lines.home?.hits   ?? ""))
         : "";
       const errs = show
-        ? (i === 0 ? (lines.away?.errors || "") : (lines.home?.errors || ""))
+        ? (i === 0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? ""))
         : "";
 
       [runs, hits, errs].forEach(v => {
@@ -320,19 +320,4 @@ Module.register("MMM-MLBScoresAndStandings", {
 
       let ar = "-";
       const splitsA = rec.records?.splitRecords || [];
-      const sA = splitsA.find(s => s.type.toLowerCase() === "away");
-      if (sA) ar = `${sA.wins}-${sA.losses}`;
-      const tdA = document.createElement("td");
-      tdA.innerText = ar;
-      tr.appendChild(tdA);
-
-      table.appendChild(tr);
-    });
-
-    return table;
-  },
-
-  getLogoUrl(abbr) {
-    return this.file(`logos/${this.config.logoType}/${abbr}.png`);
-  }
-});
+      const sA = splitsA.find(s => s.type.toLowerCase() === "away"
