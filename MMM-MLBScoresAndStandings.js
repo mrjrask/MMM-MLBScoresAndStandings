@@ -36,10 +36,10 @@ Module.register("MMM-MLBScoresAndStandings", {
     logoType:                  "color",
 
     // Rotation intervals
-    rotateIntervalScores:      10 * 1000,
+    rotateIntervalScores:      15 * 1000,
     rotateIntervalEast:         7 * 1000,
-    rotateIntervalCentral:     10 * 1000,
-    rotateIntervalWest:        12 * 1000
+    rotateIntervalCentral:     12 * 1000,
+    rotateIntervalWest:        7 * 1000
   },
 
   getHeader() {
