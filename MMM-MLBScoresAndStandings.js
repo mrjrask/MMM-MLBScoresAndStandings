@@ -25,14 +25,6 @@ const DIVISION_PAIRS = [
   { nl: 203, al: 200 }
 ];
 
-Module.register("MMM-MLBScoresAndStandings", {
-  defaults: {
-    updateIntervalScores:      2 * 60 * 1000,
-    updateIntervalStandings:  15 * 60 * 1000,
-    gamesPerPage:                  16,
-    logoType:                  "color"
-  },
-
   getHeader() {
     return this.currentScreen < this.totalGamePages
       ? "MLB Scoreboard"
