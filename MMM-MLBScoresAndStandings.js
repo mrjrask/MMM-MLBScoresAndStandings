@@ -29,8 +29,6 @@ Module.register("MMM-MLBScoresAndStandings", {
   defaults: {
     updateIntervalScores:      2 * 60 * 1000,
     updateIntervalStandings:  15 * 60 * 1000,
-    rotateIntervalScores:     20 * 1000,
-    rotateIntervalStandings:   7 * 1000,
     gamesPerPage:                  16,
     logoType:                  "color"
   },
@@ -59,18 +57,36 @@ Module.register("MMM-MLBScoresAndStandings", {
     this._scheduleRotate();
   },
 
-  _scheduleRotate() {
-    const showingGames = this.currentScreen < this.totalGamePages;
-    const delay = showingGames
-      ? this.config.rotateIntervalScores
-      : this.config.rotateIntervalStandings;
+_scheduleRotate() {
+  const showingGames = this.currentScreen < this.totalGamePages;
 
-    clearTimeout(this.rotateTimer);
-    this.rotateTimer = setTimeout(() => {
-      this.rotateView();
-      this._scheduleRotate();
-    }, delay);
-  },
+  // if we’re showing scores, use the one global interval
+  if (showingGames) {
+    this._setNextRotation(this.config.rotateIntervalScores);
+    return;
+  }
+
+  // otherwise we’re on a standings pair:
+  // figure out which index (0=East, 1=Central, 2=West)
+  const standingsIndex = this.currentScreen - this.totalGamePages;
+  let delay;
+  switch (standingsIndex) {
+    case 0: delay = this.config.rotateIntervalEast;    break;
+    case 1: delay = this.config.rotateIntervalCentral; break;
+    case 2: delay = this.config.rotateIntervalWest;    break;
+    default: delay = this.config.rotateIntervalEast;   break;
+  }
+  this._setNextRotation(delay);
+},
+
+// helper to clear & schedule
+_setNextRotation(delay) {
+  clearTimeout(this.rotateTimer);
+  this.rotateTimer = setTimeout(() => {
+    this.rotateView();
+    this._scheduleRotate();
+  }, delay);
+},
 
   socketNotificationReceived(notification, payload) {
     if (notification === "GAMES") {
