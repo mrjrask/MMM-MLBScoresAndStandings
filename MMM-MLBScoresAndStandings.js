@@ -28,7 +28,7 @@ const DIVISION_PAIRS = [
 Module.register("MMM-MLBScoresAndStandings", {
   defaults: {
     // Polling intervals (override in config.js if desired)
-    updateIntervalScores:      2 * 60 * 1000,
+    updateIntervalScores:      1 * 60 * 1000,
     updateIntervalStandings:  15 * 60 * 1000,
 
     // Pagination & assets
