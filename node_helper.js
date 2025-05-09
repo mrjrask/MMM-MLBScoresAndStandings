@@ -10,10 +10,10 @@ module.exports = NodeHelper.create({
   socketNotificationReceived(notification, payload) {
     if (notification === "INIT") {
       this.config = payload;
-      // Initial data fetch
+      // Initial fetch
       this._fetchGames();
       this._fetchStandings();
-      // Schedule updates
+      // Schedule recurring updates
       setInterval(() => this._fetchGames(), this.config.updateIntervalScores);
       setInterval(() => this._fetchStandings(), this.config.updateIntervalStandings);
     }
@@ -21,11 +21,22 @@ module.exports = NodeHelper.create({
 
   async _fetchGames() {
     try {
-      // Use Central Time date to avoid UTC offset
-      const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
-      const url   = `https://statsapi.mlb.com/api/v1/schedule/games?sportId=1&date=${today}&hydrate=linescore`;
-      const res   = await fetch(url);
-      const json  = await res.json();
+      const tz = this.config.timeZone || "America/Chicago";
+      // Get Central (or configured) date in ISO YYYY-MM-DD
+      let dateCT = new Date().toLocaleDateString("en-CA", { timeZone: tz });
+      // Get time in 24h hh:mm to decide freeze cutoff
+      const timeCT = new Date().toLocaleTimeString("en-GB", { timeZone: tz, hour12: false, hour: "2-digit", minute: "2-digit" });
+      const [hStr, mStr] = timeCT.split(":");
+      const h = parseInt(hStr, 10), m = parseInt(mStr, 10);
+      // If before 08:45 in CT, keep yesterday's games
+      if (h < 8 || (h === 8 && m < 45)) {
+        const dt = new Date(dateCT);
+        dt.setDate(dt.getDate() - 1);
+        dateCT = dt.toISOString().slice(0, 10);
+      }
+      const url = `https://statsapi.mlb.com/api/v1/schedule/games?sportId=1&date=${dateCT}&hydrate=linescore`;
+      const res  = await fetch(url);
+      const json = await res.json();
       const games = (json.dates[0] && json.dates[0].games) || [];
       this.sendSocketNotification("GAMES", games);
     } catch (e) {
