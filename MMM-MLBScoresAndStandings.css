@@ -125,3 +125,7 @@
 .mlb-standings tr.team-highlight td {
   color: #FFD242;
 }
+
+.game-boxscore .loser .abbr {
+  color: #666;
+}
