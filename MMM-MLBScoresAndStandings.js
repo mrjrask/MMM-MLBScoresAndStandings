@@ -27,14 +27,14 @@ const DIVISION_PAIRS = [
 
 Module.register("MMM-MLBScoresAndStandings", {
   defaults: {
-    updateIntervalScores:     2 * 60 * 1000,
+    updateIntervalScores:     1 * 60 * 1000,
     updateIntervalStandings: 15 * 60 * 1000,
     gamesPerPage:            16,
     logoType:                "color",
-    rotateIntervalScores:    10 * 1000,
+    rotateIntervalScores:    14 * 1000,
     rotateIntervalEast:       7 * 1000,
     rotateIntervalCentral:   10 * 1000,
-    rotateIntervalWest:      12 * 1000,
+    rotateIntervalWest:      7 * 1000,
     timeZone:               "America/Chicago",
     highlightedTeams:       ["CUBS"]
   },
