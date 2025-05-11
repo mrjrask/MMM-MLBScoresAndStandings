@@ -29,11 +29,11 @@ Module.register("MMM-MLBScoresAndStandings", {
   defaults: {
     updateIntervalScores:     1 * 60 * 1000,
     updateIntervalStandings: 15 * 60 * 1000,
-    gamesPerPage:            16,
+    gamesPerPage:            8,
     logoType:                "color",
-    rotateIntervalScores:    14 * 1000,
+    rotateIntervalScores:    15 * 1000,
     rotateIntervalEast:       7 * 1000,
-    rotateIntervalCentral:   10 * 1000,
+    rotateIntervalCentral:   12 * 1000,
     rotateIntervalWest:      7 * 1000,
     timeZone:               "America/Chicago",
     highlightedTeams:       ["CUBS"]
