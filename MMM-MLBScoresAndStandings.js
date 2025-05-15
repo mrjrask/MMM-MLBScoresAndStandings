@@ -20,9 +20,9 @@ const DIVISION_LABELS = {
 };
 
 const DIVISION_PAIRS = [
-  { nl: 204, al: 201 },
-  { nl: 205, al: 202 },
-  { nl: 203, al: 200 }
+  { nl: 204, al: 201 },  // East pair
+  { nl: 205, al: 202 },  // Central pair
+  { nl: 203, al: 200 }   // West pair
 ];
 
 Module.register("MMM-MLBScoresAndStandings", {
@@ -73,7 +73,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       this.config.rotateIntervalCentral,
       this.config.rotateIntervalWest
     ];
-    let delay = showingGames
+    const delay = showingGames
       ? this.config.rotateIntervalScores
       : intervals[this.currentScreen - this.totalGamePages] || this.config.rotateIntervalEast;
 
@@ -84,8 +84,8 @@ Module.register("MMM-MLBScoresAndStandings", {
     }, delay);
   },
 
-  socketNotificationReceived(noti, payload) {
-    if (noti === "GAMES") {
+  socketNotificationReceived(notification, payload) {
+    if (notification === "GAMES") {
       this.loadedGames    = true;
       this.games          = payload;
       this.totalGamePages = Math.max(
@@ -94,7 +94,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       );
       this.updateDom();
     }
-    if (noti === "STANDINGS") {
+    if (notification === "STANDINGS") {
       this.loadedStandings = true;
       this.recordGroups    = payload;
       this.updateDom();
@@ -110,9 +110,7 @@ Module.register("MMM-MLBScoresAndStandings", {
   getDom() {
     const wrapper = document.createElement("div");
     const showingGames = this.currentScreen < this.totalGamePages;
-    wrapper.className = showingGames
-      ? "scores-screen"
-      : "standings-screen";
+    wrapper.className = showingGames ? "scores-screen" : "standings-screen";
 
     if (showingGames && !this.loadedGames)      return this._noData("Loading...");
     if (!showingGames && !this.loadedStandings) return this._noData("Loading...");
@@ -142,7 +140,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     [col1, col2].forEach(colGames => {
       const colDiv = document.createElement("div");
       colDiv.className = "game-col";
-      colGames.forEach(g => colDiv.appendChild(this.createGameBox(g)));
+      colGames.forEach(game => colDiv.appendChild(this.createGameBox(game)));
       wrapper.appendChild(colDiv);
     });
 
@@ -193,22 +191,20 @@ Module.register("MMM-MLBScoresAndStandings", {
     } else if (isPrev) {
       statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {
         timeZone: this.config.timeZone,
-        hour12:   true,
-        hour:     "numeric",
-        minute:   "2-digit"
+        hour12: true, hour: "numeric", minute: "2-digit"
       });
     } else if (isFin) {
       const innings = (ls.innings || []).length;
       statusText = innings === 9 ? "F" : `F/${innings}`;
     } else {
-      const st = ls.inningState          || "";
+      const st = ls.inningState || "";
       const io = ls.currentInningOrdinal || "";
       statusText = (st + " " + io).trim() || "In Progress";
     }
 
     const trH = document.createElement("tr");
     const thS = document.createElement("th");
-    thS.className = `status-cell normal`;
+    thS.className = "status-cell";
     thS.innerText = statusText;
     trH.appendChild(thS);
     ["R","H","E"].forEach(lbl => {
@@ -234,8 +230,8 @@ Module.register("MMM-MLBScoresAndStandings", {
       const tdT = document.createElement("td");
       tdT.className = "team-cell";
       const img = document.createElement("img");
-      img.src       = this.getLogoUrl(abbr);
-      img.alt       = abbr;
+      img.src = this.getLogoUrl(abbr);
+      img.alt = abbr;
       img.className = "logo-cell";
       tdT.appendChild(img);
       const sp = document.createElement("span");
@@ -247,17 +243,15 @@ Module.register("MMM-MLBScoresAndStandings", {
 
       const runVal = show ? t.score : "";
       const hitVal = show
-        ? (i===0 ? (lines.away?.hits   ?? "") : (lines.home?.hits   ?? ""))
+        ? (i===0 ? (lines.away?.hits ?? "") : (lines.home?.hits ?? ""))
         : "";
       const errVal = show
-        ? (t.errors != null
-            ? t.errors
-            : (i===0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? "")))
+        ? (t.errors!=null ? t.errors : (i===0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? "")))
         : "";
 
       [runVal, hitVal, errVal].forEach(v => {
         const td = document.createElement("td");
-        td.className = `rhe-cell ${live ? "live" : "normal"}`;
+        td.className = `rhe-cell`;
         td.innerText = v;
         tr.appendChild(td);
       });
