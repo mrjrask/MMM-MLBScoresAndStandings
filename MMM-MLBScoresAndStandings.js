@@ -58,37 +58,34 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.currentScreen   = 0;
     this.rotateTimer     = null;
 
-    // Initial fetch
+    // Initial data fetch
     this.sendSocketNotification("INIT", this.config);
-    // Schedule game fetch
+    // Refresh games
     setInterval(
       () => this.sendSocketNotification("INIT", this.config),
       this.config.updateIntervalScores
     );
-    // Schedule standings fetch
+    // Refresh standings
     setInterval(
       () => this.sendSocketNotification("INIT", this.config),
       this.config.updateIntervalStandings
     );
 
-    // Kick off rotation
+    // Begin rotation
     this._scheduleRotate();
   },
 
   _scheduleRotate() {
     const total = this.totalGamePages + this.totalStandPairs;
     const showingGames = this.currentScreen < this.totalGamePages;
-    let delay;
-    if (showingGames) {
-      delay = this.config.rotateIntervalScores;
-    } else {
+    let delay = this.config.rotateIntervalScores;
+
+    if (!showingGames) {
+      // After games, rotate through East, Central, West
       const idx = this.currentScreen - this.totalGamePages;
-      const intervals = [
-        this.config.rotateIntervalEast,
-        this.config.rotateIntervalCentral,
-        this.config.rotateIntervalWest
-      ];
-      delay = intervals[idx] || this.config.rotateIntervalScores;
+      if (idx === 0) delay = this.config.rotateIntervalEast;
+      else if (idx === 1) delay = this.config.rotateIntervalCentral;
+      else delay = this.config.rotateIntervalWest;
     }
 
     clearTimeout(this.rotateTimer);
@@ -117,7 +114,7 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   getDom() {
-    const wrapper = document.createElement("div");
+    const wrapper     = document.createElement("div");
     const showingGames = this.currentScreen < this.totalGamePages;
     wrapper.className = showingGames ? "scores-screen" : "standings-screen";
 
@@ -177,11 +174,11 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   createGameBox(game) {
-    /* existing createGameBox implementation unchanged */
+    // … your existing createGameBox implementation …
   },
 
   createStandingsTable(group) {
-    /* existing createStandingsTable implementation unchanged */
+    // … your existing createStandingsTable implementation …
   },
 
   getLogoUrl(abbr) {
