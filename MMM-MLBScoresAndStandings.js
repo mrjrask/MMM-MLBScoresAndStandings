@@ -32,9 +32,6 @@ Module.register("MMM-MLBScoresAndStandings", {
     gamesPerPage:            8,
     logoType:                "color",
     rotateIntervalScores:    15 * 1000,
-    rotateIntervalEast:       7 * 1000,
-    rotateIntervalCentral:   12 * 1000,
-    rotateIntervalWest:      7 * 1000,
     timeZone:               "America/Chicago",
     highlightedTeams:       ["CUBS"]
   },
@@ -56,32 +53,20 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.totalGamePages  = 1;
     this.totalStandPairs = DIVISION_PAIRS.length;
     this.currentScreen   = 0;
-    this.rotateTimer     = null;
 
+    // Fetch data and schedule refresh
     this.sendSocketNotification("INIT", this.config);
     setInterval(
       () => this.sendSocketNotification("INIT", this.config),
       this.config.updateIntervalScores
     );
-    this._scheduleRotate();
-  },
 
-  _scheduleRotate() {
-    const showingGames = this.currentScreen < this.totalGamePages;
-    const intervals = [
-      this.config.rotateIntervalEast,
-      this.config.rotateIntervalCentral,
-      this.config.rotateIntervalWest
-    ];
-    const delay = showingGames
-      ? this.config.rotateIntervalScores
-      : intervals[this.currentScreen - this.totalGamePages] || this.config.rotateIntervalEast;
-
-    clearTimeout(this.rotateTimer);
-    this.rotateTimer = setTimeout(() => {
-      this.rotateView();
-      this._scheduleRotate();
-    }, delay);
+    // Rotate view at a uniform interval
+    setInterval(() => {
+      const total = this.totalGamePages + this.totalStandPairs;
+      this.currentScreen = (this.currentScreen + 1) % total;
+      this.updateDom(1000);
+    }, this.config.rotateIntervalScores);
   },
 
   socketNotificationReceived(notification, payload) {
@@ -99,12 +84,6 @@ Module.register("MMM-MLBScoresAndStandings", {
       this.recordGroups    = payload;
       this.updateDom();
     }
-  },
-
-  rotateView() {
-    const total = this.totalGamePages + this.totalStandPairs;
-    this.currentScreen = (this.currentScreen + 1) % total;
-    this.updateDom(1000);
   },
 
   getDom() {
@@ -134,10 +113,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     wrapper.className = "games-columns";
 
     const half = Math.ceil(games.length / 2);
-    const col1 = games.slice(0, half);
-    const col2 = games.slice(half);
-
-    [col1, col2].forEach(colGames => {
+    [ games.slice(0, half), games.slice(half) ].forEach(colGames => {
       const colDiv = document.createElement("div");
       colDiv.className = "game-col";
       colGames.forEach(game => colDiv.appendChild(this.createGameBox(game)));
@@ -191,17 +167,20 @@ Module.register("MMM-MLBScoresAndStandings", {
     } else if (isPrev) {
       statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {
         timeZone: this.config.timeZone,
-        hour12: true, hour: "numeric", minute: "2-digit"
+        hour12:   true,
+        hour:     "numeric",
+        minute:   "2-digit"
       });
     } else if (isFin) {
       const innings = (ls.innings || []).length;
       statusText = innings === 9 ? "F" : `F/${innings}`;
     } else {
-      const st = ls.inningState || "";
-      const io = ls.currentInningOrdinal || "";
+      const st = ls.inningState           || "";
+      const io = ls.currentInningOrdinal  || "";
       statusText = (st + " " + io).trim() || "In Progress";
     }
 
+    // Header row
     const trH = document.createElement("tr");
     const thS = document.createElement("th");
     thS.className = "status-cell";
@@ -215,6 +194,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     });
     table.appendChild(trH);
 
+    // Away & Home rows
     const lines = ls.teams || {};
     [game.teams.away, game.teams.home].forEach((t,i) => {
       const tr = document.createElement("tr");
@@ -230,8 +210,8 @@ Module.register("MMM-MLBScoresAndStandings", {
       const tdT = document.createElement("td");
       tdT.className = "team-cell";
       const img = document.createElement("img");
-      img.src = this.getLogoUrl(abbr);
-      img.alt = abbr;
+      img.src       = this.getLogoUrl(abbr);
+      img.alt       = abbr;
       img.className = "logo-cell";
       tdT.appendChild(img);
       const sp = document.createElement("span");
@@ -243,15 +223,17 @@ Module.register("MMM-MLBScoresAndStandings", {
 
       const runVal = show ? t.score : "";
       const hitVal = show
-        ? (i===0 ? (lines.away?.hits ?? "") : (lines.home?.hits ?? ""))
+        ? (i===0 ? (lines.away?.hits   ?? "") : (lines.home?.hits   ?? ""))
         : "";
       const errVal = show
-        ? (t.errors!=null ? t.errors : (i===0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? "")))
+        ? (t.errors != null
+            ? t.errors
+            : (i===0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? "")))
         : "";
 
       [runVal, hitVal, errVal].forEach(v => {
         const td = document.createElement("td");
-        td.className = `rhe-cell`;
+        td.className = "rhe-cell";
         td.innerText = v;
         tr.appendChild(td);
       });
