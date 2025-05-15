@@ -55,7 +55,8 @@
   margin-right: 4px;
   object-fit: contain;
 }
-/* Status + R/H/E cells */
+
+/* Status + R/H/E cells (always gray) */
 .game-boxscore .status-cell,
 .game-boxscore .rhe-header,
 .game-boxscore .rhe-cell {
@@ -64,15 +65,17 @@
   text-align: center;
   line-height: 1.5em;
   border: 1px solid #444;
+  color: #999;
 }
-/* Live vs. normal coloring for in-progress games */
-.game-boxscore .status-cell.live,
-.game-boxscore .rhe-cell.live {
-  color: #FFD242;
+
+/* Bold final team abbreviation */
+.game-boxscore .abbr.final {
+  font-weight: bold;
 }
-.game-boxscore .status-cell.normal,
-.game-boxscore .rhe-cell.normal {
-  color: #FFF;
+
+/* Gray out losing team abbreviation */
+.game-boxscore tr.loser .abbr {
+  color: #666 !important;
 }
 
 /* Standings Table */
@@ -116,16 +119,12 @@
   width: 100%;
 }
 
-/* Abbreviations */
+/* Abbreviations bold by default */
 .abbr {
   font-weight: bold;
 }
 
-/* Highlighted teams (configurable via `highlightedTeams` in config.js) */
+/* Highlighted teams */
 .mlb-standings tr.team-highlight td {
   color: #FFD242;
-}
-
-.game-boxscore tr.loser .abbr {
-  color: #666 !important;
 }
