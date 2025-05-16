@@ -44,6 +44,8 @@
   padding: 0;
   vertical-align: middle;
 }
+
+/* Team Cell */
 .game-boxscore .team-cell {
   display: flex;
   align-items: center;
@@ -56,7 +58,7 @@
   object-fit: contain;
 }
 
-/* Status + R/H/E cells (always gray) */
+/* Status + R/H/E cells */
 .game-boxscore .status-cell,
 .game-boxscore .rhe-header,
 .game-boxscore .rhe-cell {
@@ -65,17 +67,17 @@
   text-align: center;
   line-height: 1.5em;
   border: 1px solid #444;
-  color: #999;
+  color: #FFF;
 }
 
-/* Bold final team abbreviation */
-.game-boxscore .abbr.final {
-  font-weight: bold;
+/* Live-game styling */
+.game-boxscore .status-cell.live {
+  /* inning/status label stays gray? */
+  color: #AAA;
 }
-
-/* Gray out losing team abbreviation */
-.game-boxscore tr.loser .abbr {
-  color: #666 !important;
+.game-boxscore .rhe-cell.live {
+  /* runs/hits/errors turn yellow when live */
+  color: #FFD242;
 }
 
 /* Standings Table */
@@ -109,22 +111,29 @@
   object-fit: contain;
 }
 
-/* Standings-pair container: stack NL above AL */
-.standings-pair {
+/* Standings-per-page containers */
+.standings-pair, .standings-single {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.standings-pair .mlb-standings {
-  width: 100%;
+.standings-pair {
+  flex-direction: row;
+  justify-content: space-between;
 }
 
-/* Abbreviations bold by default */
+/* Abbreviations */
 .abbr {
   font-weight: bold;
 }
 
-/* Highlighted teams */
-.mlb-standings tr.team-highlight td {
+/* Highlighted teams (configurable via `highlightedTeams`) */
+.mlb-standings tr.team-highlight td,
+.game-boxscore .team-cell .abbr.team-highlight {
   color: #FFD242;
+}
+
+/* Loser in final games */
+.game-boxscore tr.loser .abbr {
+  color: #666 !important;
 }
