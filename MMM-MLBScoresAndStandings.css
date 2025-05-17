@@ -72,11 +72,9 @@
 
 /* Live-game styling */
 .game-boxscore .status-cell.live {
-  /* inning/status label stays gray? */
   color: #AAA;
 }
 .game-boxscore .rhe-cell.live {
-  /* runs/hits/errors turn yellow when live */
   color: #FFD242;
 }
 
@@ -111,15 +109,12 @@
   object-fit: contain;
 }
 
-/* Standings-per-page containers */
-.standings-pair, .standings-single {
+/* Standings-per-page containers: always vertical */
+.standings-pair,
+.standings-single {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-.standings-pair {
-  flex-direction: row;
-  justify-content: space-between;
 }
 
 /* Abbreviations */
