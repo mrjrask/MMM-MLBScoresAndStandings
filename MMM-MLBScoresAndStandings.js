@@ -173,7 +173,7 @@ Module.register("MMM-MLBScoresAndStandings", {
 
     let statusText;
     if (isPostp) statusText = "Postponed";
-    else if (isWarmup) statusText = "WARMUP";
+    else if (isWarmup) statusText = "Warmup";
     else if (isPrev) {
       statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {timeZone: this.config.timeZone, hour12: true, hour: "numeric", minute: "2-digit"});
     } else if (isFin) {
