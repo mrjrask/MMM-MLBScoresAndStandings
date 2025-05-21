@@ -56,12 +56,9 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.currentScreen   = 0;
     this.rotateTimer     = null;
 
-    // Initial fetch
     this.sendSocketNotification("INIT", this.config);
-    // Periodic fetches
     setInterval(() => this.sendSocketNotification("INIT", this.config), this.config.updateIntervalScores);
     setInterval(() => this.sendSocketNotification("INIT", this.config), this.config.updateIntervalStandings);
-    // Start rotation
     this._scheduleRotate();
   },
 
@@ -69,10 +66,8 @@ Module.register("MMM-MLBScoresAndStandings", {
     const total = this.totalGamePages + this.totalStandPages;
     let delay;
     if (this.currentScreen < this.totalGamePages) {
-      // Scores
       delay = this.config.rotateIntervalScores;
     } else {
-      // Standings
       const idx = this.currentScreen - this.totalGamePages;
       if (this.config.standingsPerPage === 1) {
         delay = this.config.rotateIntervalStandingsSingle;
@@ -172,10 +167,13 @@ Module.register("MMM-MLBScoresAndStandings", {
     const isPrev    = game.status.abstractGameState === "Preview";
     const isFin     = game.status.abstractGameState === "Final";
     const isPostp   = game.status.detailedState.includes("Postponed");
-    const live      = !isPrev && !isFin && !isPostp;
+    const isWarmup  = game.status.detailedState === "Warmup";
+    const live      = !isPrev && !isFin && !isPostp && !isWarmup;
     const show      = !isPrev && !isPostp;
+
     let statusText;
     if (isPostp) statusText = "Postponed";
+    else if (isWarmup) statusText = "WARMUP";
     else if (isPrev) {
       statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {timeZone: this.config.timeZone, hour12: true, hour: "numeric", minute: "2-digit"});
     } else if (isFin) {
@@ -186,10 +184,12 @@ Module.register("MMM-MLBScoresAndStandings", {
       const io = ls.currentInningOrdinal || "";
       statusText = (st + " " + io).trim() || "In Progress";
     }
+
     const trH = document.createElement("tr");
     const thS = document.createElement("th"); thS.className = "status-cell"; thS.innerText = statusText; trH.appendChild(thS);
     ["R","H","E"].forEach(lbl => {const th = document.createElement("th"); th.className = "rhe-header"; th.innerText = lbl; trH.appendChild(th);});
     table.appendChild(trH);
+
     const lines = ls.teams || {};
     [game.teams.away, game.teams.home].forEach((t,i) => {
       const tr = document.createElement("tr");
@@ -199,11 +199,17 @@ Module.register("MMM-MLBScoresAndStandings", {
       const img = document.createElement("img"); img.src = this.getLogoUrl(abbr); img.alt = abbr; img.className = "logo-cell"; tdT.appendChild(img);
       const sp = document.createElement("span"); sp.className = "abbr"; sp.innerText = abbr;
       if (this.config.highlightedTeams.includes(abbr)) sp.classList.add("team-highlight");
-      if (isFin) sp.classList.add("final"); tdT.appendChild(sp); tr.appendChild(tdT);
+      if (isFin) sp.classList.add("final");
+      tdT.appendChild(sp); tr.appendChild(tdT);
       const runVal = show ? t.score : "";
       const hitVal = show ? (i===0 ? (lines.away?.hits ?? "") : (lines.home?.hits ?? "")) : "";
       const errVal = show ? (t.errors != null ? t.errors : (i===0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? ""))) : "";
-      [runVal, hitVal, errVal].forEach(val => { const td = document.createElement("td"); td.className = live ? "rhe-cell live" : "rhe-cell"; td.innerText = val; tr.appendChild(td); });
+      [runVal, hitVal, errVal].forEach(val => {
+        const td = document.createElement("td");
+        td.className = (live || isWarmup) ? "rhe-cell live" : "rhe-cell";
+        td.innerText = val;
+        tr.appendChild(td);
+      });
       table.appendChild(tr);
     });
     return table;
