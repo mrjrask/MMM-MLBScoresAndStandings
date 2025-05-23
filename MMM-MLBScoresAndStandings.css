@@ -132,3 +132,11 @@
 .game-boxscore tr.loser .abbr {
   color: #666 !important;
 }
+
+/* Fullscreen Above layout */
+.MMM-MLBScoresAndStandings.fullscreen_above .mlb-fullscreen-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100vh;
+}
