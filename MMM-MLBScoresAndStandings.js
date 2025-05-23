@@ -126,7 +126,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     }
 
     return wrapper;
-  }
+  },
 
   _buildGames() {
     const start = this.currentScreen * this.config.gamesPerPage;
