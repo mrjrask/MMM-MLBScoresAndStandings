@@ -103,23 +103,30 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   getDom() {
-    const wrapper      = document.createElement("div");
+    const wrapper = document.createElement("div");
     const showingGames = this.currentScreen < this.totalGamePages;
-    wrapper.className  = showingGames ? "scores-screen" : "standings-screen";
+    wrapper.className = showingGames ? "scores-screen" : "standings-screen";
 
-    if (showingGames && !this.loadedGames)      return this._noData("Loading...");
+    if (showingGames && !this.loadedGames) return this._noData("Loading...");
     if (!showingGames && !this.loadedStandings) return this._noData("Loading...");
     if (showingGames && this.games.length === 0) return this._noData("No games to display.");
     if (!showingGames && this.recordGroups.length === 0) return this._noData("Standings unavailable.");
 
-    return showingGames ? this._buildGames() : this._buildStandings();
-  },
+    const content = showingGames ? this._buildGames() : this._buildStandings();
 
-  _noData(msg) {
-    const div = document.createElement("div");
-    div.innerText = msg;
-    return div;
-  },
+    // Wrap content in a centering container if we're in fullscreen_above
+    const position = this.data.position || "";
+    if (position === "fullscreen_above") {
+      const container = document.createElement("div");
+      container.className = "mlb-fullscreen-center";
+      container.appendChild(content);
+      wrapper.appendChild(container);
+    } else {
+      wrapper.appendChild(content);
+    }
+
+    return wrapper;
+  }
 
   _buildGames() {
     const start = this.currentScreen * this.config.gamesPerPage;
