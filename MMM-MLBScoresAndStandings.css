@@ -59,8 +59,12 @@
 }
 
 /* Status + R/H/E cells */
-.game-boxscore .status-cell,
-.game-boxscore .rhe-header,
+.game-boxscore .status-cell {
+  font-weight: normal;
+},
+.game-boxscore .rhe-header {
+  font-weight: normal;
+},
 .game-boxscore .rhe-cell {
   width: 1.5em;
   height: 1.5em;
