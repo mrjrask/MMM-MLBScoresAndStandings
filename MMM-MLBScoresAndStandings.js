@@ -264,16 +264,10 @@ Module.register("MMM-MLBScoresAndStandings", {
       [runVal, hitVal, errVal].forEach(val => {
         const td = document.createElement("td");
         td.className = (live || isWarmup) ? "rhe-cell live" : "rhe-cell";
-        // Bold during final or live games
-        if (live || isFin) {
-          const strong = document.createElement("strong");
-          strong.innerText = val;
-          td.appendChild(strong);
-        } else {
-          td.innerText = val;
-        }
+        td.innerText = val;
         tr.appendChild(td);
       });
+      table.appendChild(tr);
     });
     return table;
   },
@@ -286,7 +280,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     headers.forEach(txt => {
       const th = document.createElement("th");
       th.innerText = txt;
-      tr.appendChild(th);
+      trH.appendChild(th);
     });
     table.appendChild(trH);
 
