@@ -59,12 +59,8 @@
 }
 
 /* Status + R/H/E cells */
-.game-boxscore .status-cell {
-  font-weight: normal;
-},
-.game-boxscore .rhe-header {
-  font-weight: normal;
-},
+.game-boxscore .status-cell,
+.game-boxscore .rhe-header,
 .game-boxscore .rhe-cell {
   width: 1.5em;
   height: 1.5em;
@@ -72,6 +68,15 @@
   line-height: 1.5em;
   border: 1px solid #444;
   color: #FFF;
+}
+
+/* Make only the header labels normal weight */
+.game-boxscore .rhe-header {
+  font-weight: normal;
+}
+
+/* Make only the R/H/E value cells bold */
+.game-boxscore .rhe-cell {
   font-weight: bold;
 }
 
@@ -114,7 +119,7 @@
   object-fit: contain;
 }
 
-/* Standings-per-page containers: always vertical */
+/* Standings-per-page containers */
 .standings-pair,
 .standings-single {
   display: flex;
@@ -127,7 +132,7 @@
   font-weight: bold;
 }
 
-/* Highlighted teams (configurable via `highlightedTeams`) */
+/* Highlighted teams */
 .mlb-standings tr.team-highlight td,
 .game-boxscore .team-cell .abbr.team-highlight {
   color: #FFD242;
