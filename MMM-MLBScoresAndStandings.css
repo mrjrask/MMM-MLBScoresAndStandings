@@ -85,6 +85,7 @@
 /* Make only the R/H/E value cells bold */
 .game-boxscore .rhe-cell {
   font-family: 'Times Square';
+  font-size: 1.2em; 
 }
 
 /* Live-game styling */
@@ -94,6 +95,7 @@
 .game-boxscore .rhe-cell.live {
   color: #FFD242;
   font-family: 'Times Square';
+  font-size: 1.2em; 
 }
 
 /* Standings Table */
