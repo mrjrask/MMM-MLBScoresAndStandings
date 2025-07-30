@@ -1,5 +1,3 @@
-/* MMM-MLBScoresAndStandings.css */
-
 @font-face {
   font-family: 'Times Square';
   src: url('fonts/TimesSquare-m105.ttf') format('truetype');
@@ -9,7 +7,9 @@
 
 /* Module Header */
 .module-header {
-  font-size: 0.9em;
+  font-family: 'Times Square';
+  text-shadow: 0.5px 0 currentColor;
+  font-size: 1.2em;
   font-weight: bold;
   margin: 0;
 }
@@ -24,8 +24,10 @@
 
 /* Division Title */
 .standings-screen h3 {
+  font-family: 'Times Square';
+  text-shadow: 0.5px 0 currentColor;
+  font-size: 1.2em;
   margin: 0 0 4px;
-  font-size: 1em;
 }
 
 /* Games Grid */
@@ -50,6 +52,9 @@
 .game-boxscore td {
   padding: 0;
   vertical-align: middle;
+  font-family: 'Times Square';
+  text-shadow: 0.5px 0 currentColor;
+  font-size: 1.2em;
 }
 
 /* Team Cell */
@@ -85,8 +90,8 @@
 /* Make only the R/H/E value cells bold */
 .game-boxscore .rhe-cell {
   font-family: 'Times Square';
-  font-size: 1.2em; 
   text-shadow: 0.5px 0 currentColor;
+  font-size: 1.2em;
 }
 
 /* Live-game styling */
@@ -95,9 +100,6 @@
 }
 .game-boxscore .rhe-cell.live {
   color: #FFD242;
-  font-family: 'Times Square';
-  font-size: 1.2em;
-  text-shadow: 0.5px 0 currentColor;
 }
 
 /* Standings Table */
@@ -114,9 +116,10 @@
   border: 0.5px solid #444;
   white-space: nowrap;
   font-family: 'Times Square';
-  font-size: 1.2em; 
   text-shadow: 0.5px 0 currentColor;
+  font-size: 1.2em;
 }
+
 /* Remove top/left border on first header cell */
 .mlb-standings tr:first-child th:first-child {
   border-top: none;
@@ -142,11 +145,17 @@
   gap: 8px;
 }
 
-/* Abbreviations */
-.abbr {
+/* Separate abbreviation styles */
+.scores-screen .abbr {
   font-family: 'Times Square';
-  font-size: 1.4em; 
   text-shadow: 0.5px 0 currentColor;
+  font-size: 1.2em;
+}
+
+.standings-screen .abbr {
+  font-family: 'Times Square';
+  text-shadow: 0.5px 0 currentColor;
+  font-size: 1.2em;
 }
 
 /* Highlighted teams */
