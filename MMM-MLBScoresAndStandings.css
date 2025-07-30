@@ -86,6 +86,7 @@
 .game-boxscore .rhe-cell {
   font-family: 'Times Square';
   font-size: 1.2em; 
+  text-shadow: 0.5px 0 currentColor;
 }
 
 /* Live-game styling */
@@ -95,7 +96,8 @@
 .game-boxscore .rhe-cell.live {
   color: #FFD242;
   font-family: 'Times Square';
-  font-size: 1.2em; 
+  font-size: 1.2em;
+  text-shadow: 0.5px 0 currentColor;
 }
 
 /* Standings Table */
@@ -139,7 +141,7 @@
 
 /* Abbreviations */
 .abbr {
-  font-weight: bold;
+  font-family: 'Times Square';
 }
 
 /* Highlighted teams */
