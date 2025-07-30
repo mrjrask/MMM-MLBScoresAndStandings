@@ -1,5 +1,12 @@
 /* MMM-MLBScoresAndStandings.css */
 
+@font-face {
+  font-family: 'Times Square';
+  src: url('fonts/TimesSquare-m105.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 /* Module Header */
 .module-header {
   font-size: 0.9em;
