@@ -77,7 +77,6 @@
 
 /* Make only the R/H/E value cells bold */
 .game-boxscore .rhe-cell {
-  font-weight: bold;
   font-family: 'Times Square', monospace;
 }
 
