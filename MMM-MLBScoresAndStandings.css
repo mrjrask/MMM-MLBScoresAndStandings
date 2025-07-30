@@ -113,6 +113,8 @@
   padding: 4px;
   border: 0.5px solid #444;
   white-space: nowrap;
+  font-size: 1.2em; 
+  text-shadow: 0.5px 0 currentColor;
 }
 /* Remove top/left border on first header cell */
 .mlb-standings tr:first-child th:first-child {
@@ -142,6 +144,8 @@
 /* Abbreviations */
 .abbr {
   font-family: 'Times Square';
+  font-size: 1.4em; 
+  text-shadow: 0.5px 0 currentColor;
 }
 
 /* Highlighted teams */
