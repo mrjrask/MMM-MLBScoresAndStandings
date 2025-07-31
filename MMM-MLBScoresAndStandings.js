@@ -262,4 +262,19 @@ Module.register("MMM-MLBScoresAndStandings", {
     });
     return wrapper;
   },
+    getLogoUrl(abbr, game = null) {
+    if (abbr === "CUBS" && game && game.status.abstractGameState === "Final" &&
+        this.config.highlightedTeams.length === 1 &&
+        this.config.highlightedTeams[0] === "CUBS") {
+      const isCubsHome = game.teams.home.team.name === "Chicago Cubs";
+      const cubsScore = isCubsHome ? game.teams.home.score : game.teams.away.score;
+      const oppScore = isCubsHome ? game.teams.away.score : game.teams.home.score;
+      const isWin = cubsScore > oppScore;
+      const flag = isWin ? "W_flag" : "L_flag";
+      const toggle = Math.floor((Date.now() - this._cubsLogoToggle) / 2000) % 2 === 1;
+      const file = toggle ? flag : "CUBS";
+      return this.file(`logos/${this.config.logoType}/${file}.png`);
+    }
+    return this.file(`logos/${this.config.logoType}/${abbr}.png`);
+  },
 });
