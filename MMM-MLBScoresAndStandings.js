@@ -116,165 +116,23 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   getDom() {
-  const wrapper = document.createElement("div");
-  const showingGames = this.currentScreen < this.totalGamePages;
-  wrapper.className = showingGames ? "scores-screen" : "standings-screen";
-
-  if (showingGames && !this.loadedGames) {
-    wrapper.innerText = "Loading games...";
-    return wrapper;
-  }
-  if (!showingGames && !this.loadedStandings) {
-    wrapper.innerText = "Loading standings...";
-    return wrapper;
-  }
-
-  const content = showingGames ? this._buildGames() : this._buildStandings();
-  wrapper.appendChild(content);
-  return wrapper;
-},
-  
-  _buildGames() {
-  const start = this.currentScreen * this.config.gamesPerPage;
-  const games = this.games.slice(start, start + this.config.gamesPerPage);
-
-  const wrapper = document.createElement("div");
-  wrapper.className = "games-columns";
-
-  const half = Math.ceil(games.length / 2);
-  const columns = [games.slice(0, half), games.slice(half)];
-
-  columns.forEach(colGames => {
-    const col = document.createElement("div");
-    col.className = "game-col";
-    colGames.forEach(game => col.appendChild(this.createGameBox(game)));
-    wrapper.appendChild(col);
-  });
-
-  return wrapper;
-},
-  createGameBox(game) {
-    const table = document.createElement("table");
-    table.className = "game-boxscore";
-    table.cellSpacing = 0;
-    table.cellPadding = 0;
-    const awayScore = game.teams.away.score;
-    const homeScore = game.teams.home.score;
-    const ls = game.linescore || {};
-    const isPrev = game.status.abstractGameState === "Preview";
-    const isFin = game.status.abstractGameState === "Final";
-    const isPostp = game.status.detailedState.includes("Postponed");
-    const isWarmup = game.status.detailedState === "Warmup";
-    const live = !isPrev && !isFin && !isPostp && !isWarmup;
-    const show = !isPrev && !isPostp;
-
-    let statusText = "In Progress";
-    if (isPostp) statusText = "Postponed";
-    else if (isWarmup) statusText = "Warmup";
-    else if (isPrev) {
-      statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {
-        timeZone: this.config.timeZone,
-        hour12: true,
-        hour: "numeric",
-        minute: "2-digit"
-      });
-    } else if (isFin) {
-      const innings = (ls.innings || []).length;
-      statusText = innings === 9 ? "F" : `F/${innings}`;
-    } else {
-      const st = ls.inningState || "";
-      const io = ls.currentInningOrdinal || "";
-      if ((st + " " + io).trim()) statusText = (st + " " + io).trim();
-    }
-
-    const trH = document.createElement("tr");
-    const thS = document.createElement("th");
-    thS.className = "status-cell";
-    thS.innerText = statusText;
-    trH.appendChild(thS);
-    ["R", "H", "E"].forEach(lbl => {
-      const th = document.createElement("th");
-      th.className = "rhe-header";
-      th.innerText = lbl;
-      trH.appendChild(th);
-    });
-    table.appendChild(trH);
-
-    const lines = ls.teams || {};
-    [game.teams.away, game.teams.home].forEach((t, i) => {
-      const tr = document.createElement("tr");
-      if (isFin) {
-        const awayL = awayScore < homeScore;
-        const homeL = homeScore < awayScore;
-        if ((i === 0 && awayL) || (i === 1 && homeL)) tr.classList.add("loser");
-      }
-      const abbr = ABBREVIATIONS[t.team.name] || "";
-      const tdT = document.createElement("td");
-      tdT.className = "team-cell";
-      const img = document.createElement("img");
-      img.src = this.getLogoUrl(abbr, game);
-      img.alt = abbr;
-      img.className = "logo-cell";
-      tdT.appendChild(img);
-      const sp = document.createElement("span");
-      sp.className = "abbr";
-      sp.innerText = abbr;
-      if (this.config.highlightedTeams.includes(abbr)) sp.classList.add("team-highlight");
-      if (isFin) sp.classList.add("final");
-      tdT.appendChild(sp);
-      tr.appendChild(tdT);
-
-      const runVal = show ? t.score : "";
-      const hitVal = show ? (i === 0 ? (lines.away?.hits ?? "") : (lines.home?.hits ?? "")) : "";
-      const errVal = show
-        ? (t.errors != null ? t.errors : (i === 0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? "")))
-        : "";
-
-      [runVal, hitVal, errVal].forEach(val => {
-        const td = document.createElement("td");
-        td.className = (live || isWarmup) ? "rhe-cell live" : "rhe-cell";
-        td.innerText = val;
-        tr.appendChild(td);
-      });
-      table.appendChild(tr);
-    });
-    return table;
-  },
-  _buildStandings() {
-    const idx = this.currentScreen - this.totalGamePages;
-    const groupsToShow = this.config.standingsPerPage === 2
-      ? PAIR_STAND_ORDER[idx] || []
-      : [SINGLE_STAND_ORDER[idx]].filter(Boolean);
     const wrapper = document.createElement("div");
-    wrapper.className = this.config.standingsPerPage === 1 ? "standings-single" : "standings-pair";
-    groupsToShow.forEach(divId => {
-      const group = this.recordGroups.find(g => g.division.id === divId);
-      if (group) {
-        const div = document.createElement("div");
-        div.className = "standings-division";
-        const h3 = document.createElement("h3");
-        h3.innerText = DIVISION_LABELS[divId];
-        h3.style.margin = "0 0 4px 0";
-        div.appendChild(h3);
-        div.appendChild(this.createStandingsTable(group));
-        wrapper.appendChild(div);
-      }
-    });
-    return wrapper;
-  },
-    getLogoUrl(abbr, game = null) {
-    if (abbr === "CUBS" && game && game.status.abstractGameState === "Final" &&
-        this.config.highlightedTeams.length === 1 &&
-        this.config.highlightedTeams[0] === "CUBS") {
-      const isCubsHome = game.teams.home.team.name === "Chicago Cubs";
-      const cubsScore = isCubsHome ? game.teams.home.score : game.teams.away.score;
-      const oppScore = isCubsHome ? game.teams.away.score : game.teams.home.score;
-      const isWin = cubsScore > oppScore;
-      const flag = isWin ? "W_flag" : "L_flag";
-      const toggle = Math.floor((Date.now() - this._cubsLogoToggle) / 2000) % 2 === 1;
-      const file = toggle ? flag : "CUBS";
-      return this.file(`logos/${this.config.logoType}/${file}.png`);
+    const showingGames = this.currentScreen < this.totalGamePages;
+    wrapper.className = showingGames ? "scores-screen" : "standings-screen";
+
+    if (showingGames && !this.loadedGames) {
+      wrapper.innerText = "Loading games...";
+      return wrapper;
     }
-    return this.file(`logos/${this.config.logoType}/${abbr}.png`);
-  },
+    if (!showingGames && !this.loadedStandings) {
+      wrapper.innerText = "Loading standings...";
+      return wrapper;
+    }
+
+    wrapper.innerText = showingGames
+      ? `Loaded ${this.games.length} games.`
+      : `Loaded ${this.recordGroups.length} standings groups.`;
+
+    return wrapper;
+  }
 });
