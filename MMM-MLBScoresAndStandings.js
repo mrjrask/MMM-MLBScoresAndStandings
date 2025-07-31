@@ -44,7 +44,7 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   getScripts() {
-    return ["moment.js"];
+    return ["https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"];
   },
 
   getStyles() {
@@ -57,17 +57,27 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.loadedGames = false;
     this.loadedStandings = false;
     this.totalGamePages = 1;
-    this.totalStandPages = this.config.standingsPerPage === 2 ? PAIR_STAND_ORDER.length : SINGLE_STAND_ORDER.length;
+    this.totalStandPages = this.config.standingsPerPage === 2
+      ? PAIR_STAND_ORDER.length
+      : SINGLE_STAND_ORDER.length;
     this.currentScreen = 0;
     this.rotateTimer = null;
 
+    console.log("📺 MMM-MLBScoresAndStandings started");
+
     this.sendSocketNotification("INIT", this.config);
+
+    setInterval(() => {
+      this.sendSocketNotification("INIT", this.config);
+    }, Math.min(this.config.updateIntervalScores, this.config.updateIntervalStandings));
+
     this._scheduleRotate();
   },
 
   _scheduleRotate() {
     const totalScreens = this.totalGamePages + this.totalStandPages;
     let delay;
+
     if (this.currentScreen < this.totalGamePages) {
       delay = this.config.rotateIntervalScores;
     } else {
@@ -83,19 +93,22 @@ Module.register("MMM-MLBScoresAndStandings", {
 
     clearTimeout(this.rotateTimer);
     this.rotateTimer = setTimeout(() => {
-      this.currentScreen = (this.currentScreen + 1) % (this.totalGamePages + this.totalStandPages);
+      this.currentScreen = (this.currentScreen + 1) % totalScreens;
       this.updateDom(1000);
       this._scheduleRotate();
     }, delay);
   },
 
   socketNotificationReceived(notification, payload) {
+    console.log("⬅️  Received notification:", notification);
+
     if (notification === "GAMES") {
       this.loadedGames = true;
       this.games = payload;
       this.totalGamePages = Math.max(1, Math.ceil(this.games.length / this.config.gamesPerPage));
       this.updateDom();
-    } else if (notification === "STANDINGS") {
+    }
+    if (notification === "STANDINGS") {
       this.loadedStandings = true;
       this.recordGroups = payload;
       this.updateDom();
@@ -107,29 +120,19 @@ Module.register("MMM-MLBScoresAndStandings", {
     const showingGames = this.currentScreen < this.totalGamePages;
     wrapper.className = showingGames ? "scores-screen" : "standings-screen";
 
-    if (showingGames && !this.loadedGames) return this._noData("Loading...");
-    if (!showingGames && !this.loadedStandings) return this._noData("Loading...");
-    if (showingGames && this.games.length === 0) return this._noData("No games to display.");
-    if (!showingGames && this.recordGroups.length === 0) return this._noData("Standings unavailable.");
-
-    const content = showingGames ? this._buildGames() : this._buildStandings();
-
-    if (this.data.position === "fullscreen_above") {
-      const container = document.createElement("div");
-      container.className = "mlb-fullscreen-center";
-      container.appendChild(content);
-      wrapper.appendChild(container);
-    } else {
-      wrapper.appendChild(content);
+    if (showingGames && !this.loadedGames) {
+      wrapper.innerText = "Loading games...";
+      return wrapper;
+    }
+    if (!showingGames && !this.loadedStandings) {
+      wrapper.innerText = "Loading standings...";
+      return wrapper;
     }
 
-    return wrapper;
-  },
+    wrapper.innerText = showingGames
+      ? `Loaded ${this.games.length} games.`
+      : `Loaded ${this.recordGroups.length} standings groups.`;
 
-  _noData(msg) {
-    const wrapper = document.createElement("div");
-    wrapper.className = "small dimmed";
-    wrapper.innerText = msg;
     return wrapper;
   }
 });
