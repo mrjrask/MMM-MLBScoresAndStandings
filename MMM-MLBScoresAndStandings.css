@@ -129,18 +129,18 @@
 .mlb-standings td {
   text-align: center;
   vertical-align: middle;
-  padding: 1px 2px;
+  padding: 6px 8px; /* 6px top/bottom, 8px left/right */
   border: 0.5px solid #444;
   white-space: nowrap;
   font-family: 'Times Square';
   text-shadow: 0.5px 0 currentColor;
   font-size: 1.3em;
-  line-height: 1.2em;
+  line-height: 1.4em;
 }
 
-/* Force smaller row height */
+/* Force taller row height */
 .mlb-standings tr {
-  height: 1.2em;
+  height: 2.2em;
 }
 
 /* Remove unnecessary double borders */
