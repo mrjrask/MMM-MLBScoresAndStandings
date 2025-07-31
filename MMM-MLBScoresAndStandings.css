@@ -1,3 +1,5 @@
+/* MMM-MLBScoresAndStandings.css */
+
 @font-face {
   font-family: 'Times Square';
   src: url('fonts/TimesSquare-m105.ttf') format('truetype');
@@ -106,7 +108,7 @@
 /* R/H/E value cells */
 .game-boxscore .rhe-cell {
   font-family: 'Times Square';
-  font-size: 1.5em;
+  font-size: 1.4em;
 }
 
 /* Color for active games */
@@ -129,18 +131,18 @@
 .mlb-standings td {
   text-align: center;
   vertical-align: middle;
-  padding: 6px 8px; /* 6px top/bottom, 8px left/right */
+  padding: 3px 5px; /* Reduced vertical padding by 50% */
   border: 0.5px solid #444;
   white-space: nowrap;
   font-family: 'Times Square';
   text-shadow: 0.5px 0 currentColor;
   font-size: 1.3em;
-  line-height: 1.4em;
+  line-height: 1.2em;
 }
 
 /* Force taller row height */
 .mlb-standings tr {
-  height: 2.0em;
+  height: 2.2em;
 }
 
 /* Remove unnecessary double borders */
