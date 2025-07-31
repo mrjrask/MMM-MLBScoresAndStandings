@@ -74,10 +74,10 @@
 .game-boxscore .status-cell,
 .game-boxscore .rhe-header,
 .game-boxscore .rhe-cell {
-  width: 1.5em;
-  height: 1.5em;
+  width: 1.2em;
+  height: 1.2em;
   text-align: center;
-  line-height: 1.5em;
+  line-height: 1.2em;
   border: 1px solid #444;
   color: #FFF;
 }
