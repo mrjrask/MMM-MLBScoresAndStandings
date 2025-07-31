@@ -140,7 +140,7 @@
 
 /* Force taller row height */
 .mlb-standings tr {
-  height: 2.2em;
+  height: 2.0em;
 }
 
 /* Remove unnecessary double borders */
