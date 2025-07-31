@@ -66,22 +66,40 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   _scheduleRotate() {
-    const totalScreens = this.totalGamePages + this.totalStandPages;
-    let delay = this.config.rotateIntervalScores;
-    if (this.currentScreen >= this.totalGamePages) {
-      const idx = this.currentScreen - this.totalGamePages;
-      delay = this.config.standingsPerPage === 1
-        ? this.config.rotateIntervalStandingsSingle
-        : [this.config.rotateIntervalCentral, this.config.rotateIntervalEast, this.config.rotateIntervalWest][idx] || this.config.rotateIntervalEast;
-    }
-    clearTimeout(this.rotateTimer);
-    this.rotateTimer = setTimeout(() => {
-      this.currentScreen = (this.currentScreen + 1) % totalScreens;
-      this.updateDom(1000);
-      this._scheduleRotate();
-    }, delay);
-  },
+  const gamePages = this.loadedGames
+    ? Math.max(1, Math.ceil(this.games.length / this.config.gamesPerPage))
+    : 1;
 
+  const standingsPages = this.config.standingsPerPage === 2
+    ? PAIR_STAND_ORDER.length
+    : SINGLE_STAND_ORDER.length;
+
+  const totalScreens = gamePages + standingsPages;
+
+  let delay;
+  if (this.currentScreen < gamePages) {
+    delay = this.config.rotateIntervalScores;
+  } else {
+    const idx = this.currentScreen - gamePages;
+    if (this.config.standingsPerPage === 1) {
+      delay = this.config.rotateIntervalStandingsSingle;
+    } else {
+      const intervals = [
+        this.config.rotateIntervalCentral,
+        this.config.rotateIntervalEast,
+        this.config.rotateIntervalWest
+      ];
+      delay = intervals[idx] || this.config.rotateIntervalEast;
+    }
+  }
+
+  clearTimeout(this.rotateTimer);
+  this.rotateTimer = setTimeout(() => {
+    this.currentScreen = (this.currentScreen + 1) % totalScreens;
+    this.updateDom(1000);
+    this._scheduleRotate();
+  }, delay);
+}
   socketNotificationReceived(notification, payload) {
     if (notification === "GAMES") {
       this.loadedGames = true;
