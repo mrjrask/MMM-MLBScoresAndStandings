@@ -103,11 +103,10 @@
   font-weight: normal;
 }
 
-/* R/H/E value cells (inherits bold via font face or styling) */
+/* R/H/E value cells */
 .game-boxscore .rhe-cell {
   font-family: 'Times Square';
-  text-shadow: 0.5px 0 currentColor;
-  font-size: 1.2em;
+  font-size: 1.3em;
 }
 
 /* Color for active games */
@@ -130,7 +129,7 @@
 .mlb-standings td {
   text-align: center;
   vertical-align: middle;
-  padding: 0;
+  padding: 2;
   border: 0.5px solid #444;
   white-space: nowrap;
   font-family: 'Times Square';
@@ -177,13 +176,13 @@
 .scores-screen .abbr {
   font-family: 'Times Square';
   text-shadow: 0.5px 0 currentColor;
-  font-size: 1.2em;
+  font-size: 1.3em;
 }
 
 .standings-screen .abbr {
   font-family: 'Times Square';
   text-shadow: 0.5px 0 currentColor;
-  font-size: 1.2em;
+  font-size: 1.3em;
 }
 
 /* Highlighted team row in standings or game boxscore */
