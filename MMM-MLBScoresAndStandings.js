@@ -116,25 +116,23 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   getDom() {
-    const wrapper = document.createElement("div");
-    const showingGames = this.currentScreen < this.totalGamePages;
-    wrapper.className = showingGames ? "scores-screen" : "standings-screen";
+  const wrapper = document.createElement("div");
+  const showingGames = this.currentScreen < this.totalGamePages;
+  wrapper.className = showingGames ? "scores-screen" : "standings-screen";
 
-    if (showingGames && !this.loadedGames) {
-      wrapper.innerText = "Loading games...";
-      return wrapper;
-    }
-    if (!showingGames && !this.loadedStandings) {
-      wrapper.innerText = "Loading standings...";
-      return wrapper;
-    }
-
-    wrapper.innerText = showingGames
-      ? `Loaded ${this.games.length} games.`
-      : `Loaded ${this.recordGroups.length} standings groups.`;
-
+  if (showingGames && !this.loadedGames) {
+    wrapper.innerText = "Loading games...";
     return wrapper;
-  },
+  }
+  if (!showingGames && !this.loadedStandings) {
+    wrapper.innerText = "Loading standings...";
+    return wrapper;
+  }
+
+  const content = showingGames ? this._buildGames() : this._buildStandings();
+  wrapper.appendChild(content);
+  return wrapper;
+},
   
   _buildGames() {
   const start = this.currentScreen * this.config.gamesPerPage;
@@ -241,5 +239,27 @@ Module.register("MMM-MLBScoresAndStandings", {
       table.appendChild(tr);
     });
     return table;
+  },
+  _buildStandings() {
+    const idx = this.currentScreen - this.totalGamePages;
+    const groupsToShow = this.config.standingsPerPage === 2
+      ? PAIR_STAND_ORDER[idx] || []
+      : [SINGLE_STAND_ORDER[idx]].filter(Boolean);
+    const wrapper = document.createElement("div");
+    wrapper.className = this.config.standingsPerPage === 1 ? "standings-single" : "standings-pair";
+    groupsToShow.forEach(divId => {
+      const group = this.recordGroups.find(g => g.division.id === divId);
+      if (group) {
+        const div = document.createElement("div");
+        div.className = "standings-division";
+        const h3 = document.createElement("h3");
+        h3.innerText = DIVISION_LABELS[divId];
+        h3.style.margin = "0 0 4px 0";
+        div.appendChild(h3);
+        div.appendChild(this.createStandingsTable(group));
+        wrapper.appendChild(div);
+      }
+    });
+    return wrapper;
   },
 });
