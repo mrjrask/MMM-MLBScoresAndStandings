@@ -350,6 +350,26 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   getLogoUrl(abbr) {
+    // Special case: Alternate logo if CUBS are highlighted and have a win/loss
+    if (abbr === "CUBS" && this.config.highlightedTeams.length === 1 && this.config.highlightedTeams[0] === "CUBS") {
+      const game = this.games.find(g =>
+        g.teams.away.team.name === "Chicago Cubs" || g.teams.home.team.name === "Chicago Cubs"
+      );
+      if (game && game.status.abstractGameState === "Final") {
+        const awayScore = game.teams.away.score;
+        const homeScore = game.teams.home.score;
+        const isCubsHome = game.teams.home.team.name === "Chicago Cubs";
+        const isWin = (isCubsHome && homeScore > awayScore) || (!isCubsHome && awayScore > homeScore);
+        const flag = isWin ? "W_flag" : "L_flag";
+        const now = Date.now();
+        if (!this._cubsLogoToggle) this._cubsLogoToggle = now;
+        const alt = Math.floor((now - this._cubsLogoToggle) / 2000) % 2 === 1; // flip every 2s
+        const file = alt ? flag : "CUBS";
+        const path = this.file(`logos/${this.config.logoType}/${file}.png`);
+        console.log(`🏋 Logo for CUBS: ${path}`);
+        return path;
+      }
+    }
     return this.file(`logos/${this.config.logoType}/${abbr}.png`);
   }
 });
