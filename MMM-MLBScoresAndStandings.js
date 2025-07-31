@@ -134,5 +134,25 @@ Module.register("MMM-MLBScoresAndStandings", {
       : `Loaded ${this.recordGroups.length} standings groups.`;
 
     return wrapper;
-  }
+  },
+  
+  _buildGames() {
+  const start = this.currentScreen * this.config.gamesPerPage;
+  const games = this.games.slice(start, start + this.config.gamesPerPage);
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "games-columns";
+
+  const half = Math.ceil(games.length / 2);
+  const columns = [games.slice(0, half), games.slice(half)];
+
+  columns.forEach(colGames => {
+    const col = document.createElement("div");
+    col.className = "game-col";
+    colGames.forEach(game => col.appendChild(this.createGameBox(game)));
+    wrapper.appendChild(col);
+  });
+
+  return wrapper;
+}
 });
