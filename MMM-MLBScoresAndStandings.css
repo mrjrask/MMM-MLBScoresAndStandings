@@ -5,24 +5,28 @@
   font-style: normal;
 }
 
-/* Module Header */
+/* Module title shown at top of each screen */
 .module-header {
-  #font-family: 'Times Square';
-  #text-shadow: 0.5px 0 currentColor;
-  #font-size: 1.2em;
+  font-family: 'Times Square';
+  text-shadow: 0.5px 0 currentColor;
+  font-size: 1.2em;
   font-weight: bold;
   margin: 0;
 }
+
+/* Divider line below module header (score screen only) */
 .scores-screen .module-header + hr {
   border: none;
   border-bottom: 0.5px solid #999;
   margin: 2px 0 8px;
 }
+
+/* Divider is hidden on standings screen */
 .standings-screen .module-header + hr {
   display: none;
 }
 
-/* Division Title */
+/* Division label (e.g., "NL Central") */
 .standings-screen h3 {
   font-family: 'Times Square';
   text-shadow: 0.5px 0 currentColor;
@@ -30,24 +34,28 @@
   margin: 0 0 4px;
 }
 
-/* Games Grid */
+/* Container for the two columns of games */
 .games-columns {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   justify-content: center;
 }
+
+/* One column of games */
 .game-col {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-/* Box Score Table */
+/* Table containing a single game */
 .game-boxscore {
   border-collapse: collapse;
   margin-bottom: 8px;
 }
+
+/* Game boxscore cell formatting */
 .game-boxscore th,
 .game-boxscore td {
   padding: 0;
@@ -57,20 +65,27 @@
   font-size: 1.2em;
 }
 
-/* Team Cell */
+/* Force smaller row height for compact spacing */
+.game-boxscore tr {
+  height: 1.2em;
+}
+
+/* Container for team abbreviation and logo */
 .game-boxscore .team-cell {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 5em;
 }
+
+/* Logo image next to abbreviation */
 .game-boxscore .team-cell .logo-cell {
   height: 1em;
   margin-right: 4px;
   object-fit: contain;
 }
 
-/* Status + R/H/E cells */
+/* Shared style for status and R/H/E cells */
 .game-boxscore .status-cell,
 .game-boxscore .rhe-header,
 .game-boxscore .rhe-cell {
@@ -80,21 +95,22 @@
   line-height: 1.2em;
   border: 1px solid #444;
   color: #FFF;
+  padding: 0;
 }
 
-/* Make only the header labels normal weight */
+/* R/H/E header cells (non-bold) */
 .game-boxscore .rhe-header {
   font-weight: normal;
 }
 
-/* Make only the R/H/E value cells bold */
+/* R/H/E value cells (inherits bold via font face or styling) */
 .game-boxscore .rhe-cell {
   font-family: 'Times Square';
   text-shadow: 0.5px 0 currentColor;
-  font-size: 1.0em;
+  font-size: 1.2em;
 }
 
-/* Live-game styling */
+/* Color for active games */
 .game-boxscore .status-cell.live {
   color: #AAA;
 }
@@ -102,34 +118,46 @@
   color: #FFD242;
 }
 
-/* Standings Table */
+/* Standings full table */
 .mlb-standings {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 10px;
 }
+
+/* All cells in standings */
 .mlb-standings th,
 .mlb-standings td {
   text-align: center;
   vertical-align: middle;
-  padding: 0px;
+  padding: 0;
   border: 0.5px solid #444;
   white-space: nowrap;
   font-family: 'Times Square';
   text-shadow: 0.5px 0 currentColor;
   font-size: 1.2em;
+  line-height: 1.2em;
 }
 
-/* Remove top/left border on first header cell */
+/* Force smaller row height */
+.mlb-standings tr {
+  height: 1.2em;
+}
+
+/* Remove unnecessary double borders */
 .mlb-standings tr:first-child th:first-child {
   border-top: none;
   border-left: none;
 }
+
+/* Team logo and abbreviation cell */
 .mlb-standings .team-cell {
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
+/* Team logo next to abbreviation */
 .mlb-standings .logo-cell {
   width: 24px;
   height: 24px;
@@ -137,7 +165,7 @@
   object-fit: contain;
 }
 
-/* Standings-per-page containers */
+/* Wrapper for 1 or 2 division blocks */
 .standings-pair,
 .standings-single {
   display: flex;
@@ -158,18 +186,18 @@
   font-size: 1.2em;
 }
 
-/* Highlighted teams */
+/* Highlighted team row in standings or game boxscore */
 .mlb-standings tr.team-highlight td,
 .game-boxscore .team-cell .abbr.team-highlight {
   color: #FFD242;
 }
 
-/* Loser in final games */
+/* Dim loser abbreviation in final games */
 .game-boxscore tr.loser .abbr {
   color: #666 !important;
 }
 
-/* Fullscreen Above layout */
+/* Fullscreen display layout */
 .MMM-MLBScoresAndStandings.fullscreen_above .mlb-fullscreen-center {
   display: flex;
   flex-direction: column;
