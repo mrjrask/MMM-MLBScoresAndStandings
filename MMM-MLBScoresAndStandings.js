@@ -23,16 +23,16 @@ const DIVISION_LABELS = {
 
 Module.register("MMM-MLBScoresAndStandings", {
   defaults: {
-    updateIntervalScores: 1 * 60 * 1000,
+    updateIntervalScores: 60 * 1000,
     updateIntervalStandings: 15 * 60 * 1000,
     gamesPerPage: 8,
     logoType: "color",
-    rotateIntervalScores: 15 * 1000,
-    rotateIntervalEast: 7 * 1000,
-    rotateIntervalCentral: 12 * 1000,
-    rotateIntervalWest: 7 * 1000,
+    rotateIntervalScores: 15000,
+    rotateIntervalEast: 7000,
+    rotateIntervalCentral: 12000,
+    rotateIntervalWest: 7000,
     standingsPerPage: 2,
-    rotateIntervalStandingsSingle: 7 * 1000,
+    rotateIntervalStandingsSingle: 7000,
     timeZone: "America/Chicago",
     highlightedTeams: [],
     showTitle: true
@@ -57,14 +57,11 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.loadedGames = false;
     this.loadedStandings = false;
     this.totalGamePages = 1;
-    this.totalStandPages = this.config.standingsPerPage === 2
-      ? PAIR_STAND_ORDER.length
-      : SINGLE_STAND_ORDER.length;
+    this.totalStandPages = this.config.standingsPerPage === 2 ? PAIR_STAND_ORDER.length : SINGLE_STAND_ORDER.length;
     this.currentScreen = 0;
     this.rotateTimer = null;
 
     console.log("📺 MMM-MLBScoresAndStandings started");
-
     this.sendSocketNotification("INIT", this.config);
 
     setInterval(() => {
@@ -84,11 +81,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       const idx = this.currentScreen - this.totalGamePages;
       delay = this.config.standingsPerPage === 1
         ? this.config.rotateIntervalStandingsSingle
-        : [
-            this.config.rotateIntervalCentral,
-            this.config.rotateIntervalEast,
-            this.config.rotateIntervalWest
-          ][idx] || this.config.rotateIntervalEast;
+        : [this.config.rotateIntervalCentral, this.config.rotateIntervalEast, this.config.rotateIntervalWest][idx] || this.config.rotateIntervalEast;
     }
 
     clearTimeout(this.rotateTimer);
@@ -100,8 +93,6 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   socketNotificationReceived(notification, payload) {
-    console.log("⬅️  Received notification:", notification);
-
     if (notification === "GAMES") {
       this.loadedGames = true;
       this.games = payload;
@@ -154,110 +145,13 @@ Module.register("MMM-MLBScoresAndStandings", {
     return wrapper;
   },
 
-  createGameBox(game) {
-  const table = document.createElement("table");
-  table.className = "game-boxscore";
-  table.cellSpacing = 0;
-  table.cellPadding = 0;
-
-  const awayScore = game.teams.away.score;
-  const homeScore = game.teams.home.score;
-  const ls = game.linescore || {};
-  const status = game.status;
-
-  const isPrev    = status.abstractGameState === "Preview";
-  const isFin     = status.abstractGameState === "Final";
-  const isPostp   = status.detailedState.includes("Postponed");
-  const isWarmup  = status.detailedState === "Warmup";
-  const isDelayed = status.detailedState.includes("Delayed");
-  const live      = !isPrev && !isFin && !isPostp && !isWarmup && !isDelayed;
-  const show      = !isPrev && !isPostp;
-
-  let statusText = "In Progress";
-  if (isPostp) statusText = "Postponed";
-  else if (isWarmup) statusText = "Warmup";
-  else if (isDelayed) statusText = "Delayed";
-  else if (isPrev) {
-    statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {
-      timeZone: this.config.timeZone,
-      hour12: true,
-      hour: "numeric",
-      minute: "2-digit"
-    });
-  } else if (isFin) {
-    statusText = "Final";
-  } else {
-    const st = ls.inningState || "";
-    const io = ls.currentInningOrdinal || "";
-    if ((st + " " + io).trim()) statusText = (st + " " + io).trim();
-  }
-
-  // Header row: status and R/H/E
-  const trH = document.createElement("tr");
-  const thS = document.createElement("th");
-  thS.className = "status-cell";
-  thS.innerText = statusText;
-  trH.appendChild(thS);
-  ["R", "H", "E"].forEach(lbl => {
-    const th = document.createElement("th");
-    th.className = "rhe-header";
-    th.innerText = lbl;
-    trH.appendChild(th);
-  });
-  table.appendChild(trH);
-
-  const lines = ls.teams || {};
-  [game.teams.away, game.teams.home].forEach((t, i) => {
-    const tr = document.createElement("tr");
-    if (isFin) {
-      const awayL = awayScore < homeScore;
-      const homeL = homeScore < awayScore;
-      if ((i === 0 && awayL) || (i === 1 && homeL)) tr.classList.add("loser");
-    }
-
-    const abbr = ABBREVIATIONS[t.team.name] || "";
-    const tdT = document.createElement("td");
-    tdT.className = "team-cell";
-    const img = document.createElement("img");
-    img.src = this.getLogoUrl(abbr, game);
-    img.alt = abbr;
-    img.className = "logo-cell";
-    tdT.appendChild(img);
-
-    const sp = document.createElement("span");
-    sp.className = "abbr";
-    sp.innerText = abbr;
-    if (this.config.highlightedTeams.includes(abbr)) sp.classList.add("team-highlight");
-    if (isFin) sp.classList.add("final");
-    tdT.appendChild(sp);
-    tr.appendChild(tdT);
-
-    const runVal = show ? t.score : "";
-    const hitVal = show ? (i === 0 ? (lines.away?.hits ?? "") : (lines.home?.hits ?? "")) : "";
-    const errVal = show
-      ? (t.errors != null ? t.errors : (i === 0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? "")))
-      : "";
-
-    [runVal, hitVal, errVal].forEach(val => {
-      const td = document.createElement("td");
-      td.className = (live || isWarmup) ? "rhe-cell live" : "rhe-cell";
-      td.innerText = val;
-      tr.appendChild(td);
-    });
-
-    table.appendChild(tr);
-  });
-
-  return table;
-},
-
   _buildStandings() {
     const idx = this.currentScreen - this.totalGamePages;
-    const groupsToShow = this.config.standingsPerPage === 2
-      ? PAIR_STAND_ORDER[idx] || []
-      : [SINGLE_STAND_ORDER[idx]].filter(Boolean);
+    const groupsToShow = this.config.standingsPerPage === 2 ? PAIR_STAND_ORDER[idx] || [] : [SINGLE_STAND_ORDER[idx]].filter(Boolean);
+
     const wrapper = document.createElement("div");
-    wrapper.className = this.config.standingsPerPage === 1 ? "standings-single" : "standings-pair compact-gap";
+    wrapper.className = this.config.standingsPerPage === 1 ? "standings-single" : "standings-pair tighter-gap";
+
     groupsToShow.forEach(divId => {
       const group = this.recordGroups.find(g => g.division.id === divId);
       if (group) {
@@ -265,52 +159,12 @@ Module.register("MMM-MLBScoresAndStandings", {
         div.className = "standings-division";
         const h3 = document.createElement("h3");
         h3.innerText = DIVISION_LABELS[divId];
+        h3.style.margin = "0 0 4px 0";
         div.appendChild(h3);
         div.appendChild(this.createStandingsTable(group));
         wrapper.appendChild(div);
       }
     });
     return wrapper;
-  },
-
-  createStandingsTable(group) {
-    const table = document.createElement("table");
-    table.className = "mlb-standings";
-    const headerRow = document.createElement("tr");
-    ["", "W", "L", "PCT", "GB", "L10", "HOME", "AWAY"].forEach(h => {
-      const th = document.createElement("th");
-      th.innerText = h;
-      headerRow.appendChild(th);
-    });
-    table.appendChild(headerRow);
-
-    group.teamRecords.forEach(team => {
-      const tr = document.createElement("tr");
-      const abbr = ABBREVIATIONS[team.team.name] || "";
-      const tdName = document.createElement("td");
-      tdName.className = "team-cell";
-      const img = document.createElement("img");
-      img.src = this.getLogoUrl(abbr);
-      img.alt = abbr;
-      img.className = "logo-cell";
-      tdName.appendChild(img);
-      const sp = document.createElement("span");
-      sp.className = "abbr";
-      sp.innerText = abbr;
-      if (this.config.highlightedTeams.includes(abbr)) sp.classList.add("team-highlight");
-      tdName.appendChild(sp);
-      tr.appendChild(tdName);
-      [team.wins, team.losses, team.winningPercentage, team.gamesBack, team.records.lastTen, team.records.home, team.records.away].forEach(stat => {
-        const td = document.createElement("td");
-        td.innerText = typeof stat === "object" ? `${stat.wins}-${stat.losses}` : stat;
-        tr.appendChild(td);
-      });
-      table.appendChild(tr);
-    });
-    return table;
-  },
-
-  getLogoUrl(abbr) {
-    return this.file(`logos/${this.config.logoType}/${abbr}.png`);
   }
 });
