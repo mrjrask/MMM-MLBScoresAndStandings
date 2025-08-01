@@ -15,8 +15,8 @@ const ABBREVIATIONS = {
 };
 
 // Single and paired division ordering (IDs)
-const SINGLE_STAND_ORDER = [205, 202, 204, 201, 203, 200];   // NL Central, AL Central, NL East, AL East, NL West, AL West
-const PAIR_STAND_ORDER   = [[205,202], [204,201], [203,200]]; // [NL&AL Central], [NL&AL East], [NL&AL West]
+const SINGLE_STAND_ORDER = [205, 202, 204, 201, 203, 200];
+const PAIR_STAND_ORDER   = [[205,202], [204,201], [203,200]];
 const DIVISION_LABELS    = {
   204: "NL East", 205: "NL Central", 203: "NL West",
   201: "AL East", 202: "AL Central", 200: "AL West"
@@ -212,12 +212,13 @@ Module.register("MMM-MLBScoresAndStandings", {
     } else if (isWarmup) {
       statusText = "Warmup";
     } else if (isPrev) {
-      statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {
-        timeZone: this.config.timeZone,
-        hour12: true,
-        hour: "numeric",
-        minute: "2-digit"
-      });
+      statusText = new Date(game.gameDate).
+        toLocaleTimeString("en-US", {
+          timeZone: this.config.timeZone,
+          hour12: true,
+          hour: "numeric",
+          minute: "2-digit"
+        });
     } else if (isFin) {
       statusText = innings.length === 9 ? "F" : `F/${innings.length}`;
     } else {
@@ -226,12 +227,16 @@ Module.register("MMM-MLBScoresAndStandings", {
       statusText = (st + " " + io).trim() || "In Progress";
     }
 
-    // Header row
+    // Header row for boxscore: status + R/H/E
     const trH = document.createElement("tr");
-    // Remove the extra "#" header so columns align correctly
-    ["","W-L","W%","GB","Streak","L10","Home","Away"].forEach(txt => {
+    const thS = document.createElement("th");
+    thS.className = "status-cell";
+    thS.innerText = statusText;
+    trH.appendChild(thS);
+    ["R","H","E"].forEach(lbl => {
       const th = document.createElement("th");
-      th.innerText = txt;
+      th.className = "rhe-header";
+      th.innerText = lbl;
       trH.appendChild(th);
     });
     table.appendChild(trH);
@@ -287,9 +292,8 @@ Module.register("MMM-MLBScoresAndStandings", {
     const table = document.createElement("table");
     table.className = "mlb-standings";
 
-    // Header row
+    // Header row: no extra leading cell
     const trH = document.createElement("tr");
-    // Remove the extra "#" header so columns align correctly
     ["","W-L","W%","GB","Streak","L10","Home","Away"].forEach(txt => {
       const th = document.createElement("th");
       th.innerText = txt;
@@ -302,7 +306,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       const ab   = ABBREVIATIONS[rec.team.name] || rec.team.abbreviation || "";
       if (this.config.highlightedTeams.includes(ab)) tr.classList.add("team-highlight");
 
-      // Team cell
+      // Team
       const tdTeam = document.createElement("td");
       tdTeam.className = "team-cell";
       const img2 = document.createElement("img");
@@ -333,7 +337,7 @@ Module.register("MMM-MLBScoresAndStandings", {
         tr.appendChild(td);
       });
 
-      // Games Back
+      // GB
       let gb = rec.divisionGamesBack;
       if (gb != null && gb !== "-") {
         const f = parseFloat(gb), m = Math.floor(f), r = f - m;
@@ -358,7 +362,6 @@ Module.register("MMM-MLBScoresAndStandings", {
       td10.innerText = l10;
       tr.appendChild(td10);
 
-      // Home/Away splits
       ["home","away"].forEach(type => {
         let v = "-";
         const sp = rec.records?.splitRecords?.find(s => s.type.toLowerCase() === type);
