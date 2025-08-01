@@ -43,6 +43,10 @@ Module.register("MMM-MLBScoresAndStandings", {
     return this.currentScreen < this.totalGamePages ? "MLB Scoreboard" : "MLB Standings";
   },
 
+  getScripts() {
+    return ["https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"];
+  },
+
   getStyles() {
     return ["MMM-MLBScoresAndStandings.css"];
   },
@@ -60,6 +64,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.rotateTimer = null;
 
     console.log("📺 MMM-MLBScoresAndStandings started");
+
     this.sendSocketNotification("INIT", this.config);
 
     setInterval(() => {
@@ -79,7 +84,11 @@ Module.register("MMM-MLBScoresAndStandings", {
       const idx = this.currentScreen - this.totalGamePages;
       delay = this.config.standingsPerPage === 1
         ? this.config.rotateIntervalStandingsSingle
-        : [this.config.rotateIntervalCentral, this.config.rotateIntervalEast, this.config.rotateIntervalWest][idx] || this.config.rotateIntervalEast;
+        : [
+            this.config.rotateIntervalCentral,
+            this.config.rotateIntervalEast,
+            this.config.rotateIntervalWest
+          ][idx] || this.config.rotateIntervalEast;
     }
 
     clearTimeout(this.rotateTimer);
@@ -91,6 +100,8 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   socketNotificationReceived(notification, payload) {
+    console.log("⬅️  Received notification:", notification);
+
     if (notification === "GAMES") {
       this.loadedGames = true;
       this.games = payload;
@@ -109,18 +120,17 @@ Module.register("MMM-MLBScoresAndStandings", {
     const showingGames = this.currentScreen < this.totalGamePages;
     wrapper.className = showingGames ? "scores-screen" : "standings-screen";
 
-    if (showingGames && !this.loadedGames) return this._noData("Loading games...");
-    if (!showingGames && !this.loadedStandings) return this._noData("Loading standings...");
+    if (showingGames && !this.loadedGames) {
+      wrapper.innerText = "Loading games...";
+      return wrapper;
+    }
+    if (!showingGames && !this.loadedStandings) {
+      wrapper.innerText = "Loading standings...";
+      return wrapper;
+    }
 
     const content = showingGames ? this._buildGames() : this._buildStandings();
     wrapper.appendChild(content);
-    return wrapper;
-  },
-
-  _noData(text) {
-    const wrapper = document.createElement("div");
-    wrapper.className = "dimmed small";
-    wrapper.innerText = text;
     return wrapper;
   },
 
@@ -147,81 +157,83 @@ Module.register("MMM-MLBScoresAndStandings", {
   createGameBox(game) {
     const table = document.createElement("table");
     table.className = "game-boxscore";
-
-    const away = game.teams.away;
-    const home = game.teams.home;
-    const linescore = game.linescore || {};
-    const status = game.status || {};
-    const state = status.abstractGameState || "";
-    const detailed = status.detailedState || "";
-    const live = state === "Live";
-
-    const isFin = state === "Final";
-    const isPrev = state === "Preview";
-    const isPostp = detailed.includes("Postponed");
-    const isWarmup = detailed.includes("Warmup");
+    const awayScore = game.teams.away.score;
+    const homeScore = game.teams.home.score;
+    const ls = game.linescore || {};
+    const isPrev = game.status.abstractGameState === "Preview";
+    const isFin = game.status.abstractGameState === "Final";
+    const isPostp = game.status.detailedState.includes("Postponed");
+    const isWarmup = game.status.detailedState === "Warmup";
+    const live = !isPrev && !isFin && !isPostp && !isWarmup;
     const show = !isPrev && !isPostp;
 
-    let statusText = "In Progress";
-    if (isFin) statusText = "F";
-    if (isPrev) {
-      const time = new Date(game.gameDate).toLocaleTimeString("en-US", {
+    let statusText = "";
+    if (isPostp) statusText = "Postponed";
+    else if (isWarmup) statusText = "Warmup";
+    else if (isPrev) {
+      statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {
         timeZone: this.config.timeZone,
+        hour12: true,
         hour: "numeric",
         minute: "2-digit"
       });
-      statusText = time;
+    } else if (isFin) {
+      statusText = "Final";
+    } else {
+      const st = ls.inningState || "";
+      const io = ls.currentInningOrdinal || "";
+      statusText = `${st} ${io}`.trim() || "In Progress";
     }
-    if (isPostp) statusText = "Postponed";
-    if (isWarmup) statusText = "Warmup";
 
-    const trHead = document.createElement("tr");
-    const thStatus = document.createElement("th");
-    thStatus.className = "status-cell";
-    thStatus.innerText = statusText;
-    trHead.appendChild(thStatus);
-
-    ["R", "H", "E"].forEach(label => {
+    const trH = document.createElement("tr");
+    const thS = document.createElement("th");
+    thS.className = "status-cell";
+    thS.innerText = statusText;
+    trH.appendChild(thS);
+    ["R", "H", "E"].forEach(lbl => {
       const th = document.createElement("th");
       th.className = "rhe-header";
-      th.innerText = label;
-      trHead.appendChild(th);
+      th.innerText = lbl;
+      trH.appendChild(th);
     });
-    table.appendChild(trHead);
+    table.appendChild(trH);
 
-    [away, home].forEach((team, i) => {
+    const lines = ls.teams || {};
+    [game.teams.away, game.teams.home].forEach((t, i) => {
       const tr = document.createElement("tr");
-      const abbr = ABBREVIATIONS[team.team.name] || "";
-      const td = document.createElement("td");
-      td.className = "team-cell";
+      if (isFin) {
+        const awayL = awayScore < homeScore;
+        const homeL = homeScore < awayScore;
+        if ((i === 0 && awayL) || (i === 1 && homeL)) tr.classList.add("loser");
+      }
+      const abbr = ABBREVIATIONS[t.team.name] || "";
+      const tdT = document.createElement("td");
+      tdT.className = "team-cell";
+      const img = document.createElement("img");
+      img.src = this.getLogoUrl(abbr);
+      img.alt = abbr;
+      img.className = "logo-cell";
+      tdT.appendChild(img);
+      const sp = document.createElement("span");
+      sp.className = "abbr";
+      sp.innerText = abbr;
+      if (this.config.highlightedTeams.includes(abbr)) sp.classList.add("team-highlight");
+      if (isFin) sp.classList.add("final");
+      tdT.appendChild(sp);
+      tr.appendChild(tdT);
 
-      const logo = document.createElement("img");
-      logo.src = this.getLogoUrl(abbr);
-      logo.className = "logo-cell";
-      td.appendChild(logo);
+      const runVal = show ? t.score : "";
+      const hitVal = show ? (i === 0 ? (lines.away?.hits ?? "") : (lines.home?.hits ?? "")) : "";
+      const errVal = show ? (t.errors != null ? t.errors : (i === 0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? ""))) : "";
 
-      const span = document.createElement("span");
-      span.className = "abbr";
-      span.innerText = abbr;
-      if (this.config.highlightedTeams.includes(abbr)) span.classList.add("team-highlight");
-      td.appendChild(span);
-      tr.appendChild(td);
-
-      const teamLine = i === 0 ? linescore.teams?.away : linescore.teams?.home;
-      const r = show ? team.score ?? "" : "";
-      const h = show ? teamLine?.hits ?? "" : "";
-      const e = show ? team.errors ?? teamLine?.errors ?? "" : "";
-
-      [r, h, e].forEach(val => {
+      [runVal, hitVal, errVal].forEach(val => {
         const td = document.createElement("td");
-        td.className = live ? "rhe-cell live" : "rhe-cell";
+        td.className = (live || isWarmup) ? "rhe-cell live" : "rhe-cell";
         td.innerText = val;
         tr.appendChild(td);
       });
-
       table.appendChild(tr);
     });
-
     return table;
   },
 
@@ -230,68 +242,57 @@ Module.register("MMM-MLBScoresAndStandings", {
     const groupsToShow = this.config.standingsPerPage === 2
       ? PAIR_STAND_ORDER[idx] || []
       : [SINGLE_STAND_ORDER[idx]].filter(Boolean);
-
     const wrapper = document.createElement("div");
-    wrapper.className = this.config.standingsPerPage === 1 ? "standings-single" : "standings-pair";
-
+    wrapper.className = this.config.standingsPerPage === 1 ? "standings-single" : "standings-pair compact-gap";
     groupsToShow.forEach(divId => {
       const group = this.recordGroups.find(g => g.division.id === divId);
       if (group) {
         const div = document.createElement("div");
+        div.className = "standings-division";
         const h3 = document.createElement("h3");
-        h3.innerText = DIVISION_LABELS[divId] || "";
+        h3.innerText = DIVISION_LABELS[divId];
         div.appendChild(h3);
         div.appendChild(this.createStandingsTable(group));
         wrapper.appendChild(div);
       }
     });
-
     return wrapper;
   },
 
   createStandingsTable(group) {
     const table = document.createElement("table");
     table.className = "mlb-standings";
-
-    const thead = document.createElement("thead");
-    const header = document.createElement("tr");
-    ["Team", "W", "L", "PCT", "GB"].forEach(col => {
+    const headerRow = document.createElement("tr");
+    ["", "W", "L", "PCT", "GB", "L10", "HOME", "AWAY"].forEach(h => {
       const th = document.createElement("th");
-      th.innerText = col;
-      header.appendChild(th);
+      th.innerText = h;
+      headerRow.appendChild(th);
     });
-    thead.appendChild(header);
-    table.appendChild(thead);
+    table.appendChild(headerRow);
 
-    const tbody = document.createElement("tbody");
     group.teamRecords.forEach(team => {
       const tr = document.createElement("tr");
       const abbr = ABBREVIATIONS[team.team.name] || "";
-      const tdTeam = document.createElement("td");
-      tdTeam.className = "team-cell";
-
+      const tdName = document.createElement("td");
+      tdName.className = "team-cell";
       const img = document.createElement("img");
       img.src = this.getLogoUrl(abbr);
+      img.alt = abbr;
       img.className = "logo-cell";
-      tdTeam.appendChild(img);
-
-      const span = document.createElement("span");
-      span.className = "abbr";
-      span.innerText = abbr;
-      if (this.config.highlightedTeams.includes(abbr)) span.classList.add("team-highlight");
-      tdTeam.appendChild(span);
-      tr.appendChild(tdTeam);
-
-      [team.wins, team.losses, team.winningPercentage, team.gamesBack].forEach(val => {
+      tdName.appendChild(img);
+      const sp = document.createElement("span");
+      sp.className = "abbr";
+      sp.innerText = abbr;
+      if (this.config.highlightedTeams.includes(abbr)) sp.classList.add("team-highlight");
+      tdName.appendChild(sp);
+      tr.appendChild(tdName);
+      [team.wins, team.losses, team.winningPercentage, team.gamesBack, team.records.lastTen, team.records.home, team.records.away].forEach(stat => {
         const td = document.createElement("td");
-        td.innerText = val;
+        td.innerText = typeof stat === "object" ? `${stat.wins}-${stat.losses}` : stat;
         tr.appendChild(td);
       });
-
-      tbody.appendChild(tr);
+      table.appendChild(tr);
     });
-
-    table.appendChild(tbody);
     return table;
   },
 
