@@ -55,6 +55,7 @@ module.exports = NodeHelper.create({
       const alRecs = alJson.records || [];
       // Merge NL and AL, sorted by division ID
       const all = [...nlRecs, ...alRecs].sort((a, b) => a.division.id - b.division.id);
+      console.log("📊 Full standings data:", JSON.stringify(all, null, 2));
       this.sendSocketNotification("STANDINGS", all);
     } catch (e) {
       console.error("MMM-MLBScoresAndStandings: fetchStandings failed", e);
