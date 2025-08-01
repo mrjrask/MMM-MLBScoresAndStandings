@@ -1,4 +1,4 @@
-/* MMM-MLBScoresAndStandings.js */
+/** MMM-MLBScoresAndStandings.js */
 /* global Module */
 
 const ABBREVIATIONS = {
@@ -23,8 +23,8 @@ const DIVISION_LABELS = {
 
 Module.register("MMM-MLBScoresAndStandings", {
   defaults: {
-    updateIntervalScores: 60 * 1000,
-    updateIntervalStandings: 15 * 60 * 1000,
+    updateIntervalScores: 60000,
+    updateIntervalStandings: 15 * 60000,
     gamesPerPage: 8,
     logoType: "color",
     rotateIntervalScores: 15000,
@@ -61,6 +61,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.currentScreen = 0;
     this.rotateTimer = null;
 
+    console.log("📺 MMM-MLBScoresAndStandings started");
     this.sendSocketNotification("INIT", this.config);
 
     setInterval(() => {
@@ -93,12 +94,14 @@ Module.register("MMM-MLBScoresAndStandings", {
 
   socketNotificationReceived(notification, payload) {
     if (notification === "GAMES") {
+      console.log("✅ Games data received");
       this.loadedGames = true;
       this.games = payload;
       this.totalGamePages = Math.max(1, Math.ceil(this.games.length / this.config.gamesPerPage));
       this.updateDom();
     }
     if (notification === "STANDINGS") {
+      console.log("✅ Standings data received");
       this.loadedStandings = true;
       this.recordGroups = payload;
       this.updateDom();
