@@ -151,6 +151,10 @@
   border-left: none;
 }
 
+.standings-pair.tighter-gap {
+  gap: 8px !important;
+}
+
 /* Team logo and abbreviation cell */
 .mlb-standings .team-cell {
   display: flex;
