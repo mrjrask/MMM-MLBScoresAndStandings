@@ -1,7 +1,7 @@
-// modules/MMM-MLBScoresAndStandings/node_helper.js
-
+// node_helper.js
 const NodeHelper = require("node_helper");
-const fetch = require("node-fetch");
+const nf         = require("node-fetch");
+const fetch      = nf.default || nf;
 
 module.exports = NodeHelper.create({
   start() {
@@ -20,18 +20,19 @@ module.exports = NodeHelper.create({
 
   async _fetchGames() {
     try {
-      const tz = this.config.timeZone || "America/Chicago";
-      let dateCT = new Date().toLocaleDateString("en-CA", { timeZone: tz });
-      const timeCT = new Date().toLocaleTimeString("en-GB", { timeZone: tz, hour12: false, hour: "2-digit", minute: "2-digit" });
+      const tz      = this.config.timeZone || "America/Chicago";
+      let dateCT    = new Date().toLocaleDateString("en-CA", { timeZone: tz });
+      const timeCT  = new Date().toLocaleTimeString("en-GB", { timeZone: tz, hour12: false, hour: "2-digit", minute: "2-digit" });
       const [hStr, mStr] = timeCT.split(":");
       const h = parseInt(hStr, 10), m = parseInt(mStr, 10);
+
       if (h < 8 || (h === 8 && m < 45)) {
         const dt = new Date(dateCT);
         dt.setDate(dt.getDate() - 1);
         dateCT = dt.toISOString().slice(0, 10);
       }
 
-      const url = `https://statsapi.mlb.com/api/v1/schedule/games?sportId=1&date=${dateCT}&hydrate=linescore`;
+      const url  = `https://statsapi.mlb.com/api/v1/schedule/games?sportId=1&date=${dateCT}&hydrate=linescore`;
       const res  = await fetch(url);
       const json = await res.json();
       const games = (json.dates[0] && json.dates[0].games) || [];
@@ -52,7 +53,7 @@ module.exports = NodeHelper.create({
       const [nlJson, alJson] = await Promise.all([nlRes.json(), alRes.json()]);
       const nlRecs = nlJson.records || [];
       const alRecs = alJson.records || [];
-      const all = [...nlRecs, ...alRecs].sort((a, b) => a.division.id - b.division.id);
+      const all    = [...nlRecs, ...alRecs].sort((a, b) => a.division.id - b.division.id);
 
       console.log(`📊 Sending ${all.length} division standings to front-end.`);
       this.sendSocketNotification("STANDINGS", all);
