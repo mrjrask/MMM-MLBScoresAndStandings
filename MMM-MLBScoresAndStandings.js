@@ -228,14 +228,10 @@ Module.register("MMM-MLBScoresAndStandings", {
 
     // Header row
     const trH = document.createElement("tr");
-    const thS = document.createElement("th");
-    thS.className = "status-cell";
-    thS.innerText = statusText;
-    trH.appendChild(thS);
-    ["R","H","E"].forEach(lbl => {
+    // Remove the extra "#" header so columns align correctly
+    ["","W-L","W%","GB","Streak","L10","Home","Away"].forEach(txt => {
       const th = document.createElement("th");
-      th.className = "rhe-header";
-      th.innerText = lbl;
+      th.innerText = txt;
       trH.appendChild(th);
     });
     table.appendChild(trH);
@@ -291,9 +287,10 @@ Module.register("MMM-MLBScoresAndStandings", {
     const table = document.createElement("table");
     table.className = "mlb-standings";
 
-    // Header
-    const trH     = document.createElement("tr");
-    ["#","","W-L","W%","GB","Streak","L10","Home","Away"].forEach(txt => {
+    // Header row
+    const trH = document.createElement("tr");
+    // Remove the extra "#" header so columns align correctly
+    ["","W-L","W%","GB","Streak","L10","Home","Away"].forEach(txt => {
       const th = document.createElement("th");
       th.innerText = txt;
       trH.appendChild(th);
