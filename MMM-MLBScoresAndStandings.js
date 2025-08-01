@@ -102,6 +102,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     if (notification === "STANDINGS") {
       this.loadedStandings = true;
       this.recordGroups = payload;
+      console.log("✅ Standings loaded:", JSON.stringify(payload, null, 2));
       this.updateDom();
     }
   },
