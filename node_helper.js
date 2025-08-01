@@ -1,7 +1,6 @@
 // node_helper.js
 const NodeHelper = require("node_helper");
-const nf         = require("node-fetch");
-const fetch      = nf.default || nf;
+const fetch      = global.fetch;
 
 module.exports = NodeHelper.create({
   start() {
@@ -22,7 +21,9 @@ module.exports = NodeHelper.create({
     try {
       const tz      = this.config.timeZone || "America/Chicago";
       let dateCT    = new Date().toLocaleDateString("en-CA", { timeZone: tz });
-      const timeCT  = new Date().toLocaleTimeString("en-GB", { timeZone: tz, hour12: false, hour: "2-digit", minute: "2-digit" });
+      const timeCT  = new Date().toLocaleTimeString("en-GB", {
+        timeZone: tz, hour12: false, hour: "2-digit", minute: "2-digit"
+      });
       const [hStr, mStr] = timeCT.split(":");
       const h = parseInt(hStr, 10), m = parseInt(mStr, 10);
 
