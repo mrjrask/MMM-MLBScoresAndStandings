@@ -28,11 +28,10 @@ margin: 2px 0 8px;
 display: none;
 }
 
-/* Division label (e.g., “NL Central”) /
+/* Division label (e.g., “NL Central”) */
 .standings-screen h3 {
 font-family: ‘Times Square’;
-/ remove shadow to prevent doubling effect */
-text-shadow: none;
+text-shadow: 0.5px 0 currentColor;
 font-size: 1.2em;
 margin: 0 0 4px;
 }
@@ -127,7 +126,22 @@ border-collapse: collapse;
 margin-bottom: 10px;
 }
 
-/* All cells in standings /
+/* Team logo and abbreviation cell */
+.mlb-standings .team-cell {
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+/* Team logo next to abbreviation */
+.mlb-standings .logo-cell {
+width: 24px;
+height: 24px;
+margin-right: 4px;
+object-fit: contain;
+}
+
+/* All cells in standings */
 .mlb-standings th,
 .mlb-standings td {
 text-align: center;
@@ -136,28 +150,21 @@ padding: 3px 5px;
 border: 0.5px solid #444;
 white-space: nowrap;
 font-family: ‘Times Square’;
-/ remove shadow to prevent ghosting */
-text-shadow: none;
-font-size: 1.3em;
-line-height: 1.1em;
-}
-
-/* Force tighter row height */
-.mlb-standings tr {
-height: 1.6em;
-}
-
-/* Separate abbreviation styles */
-.scores-screen .abbr {
-font-family: ‘Times Square’;
 text-shadow: 0.5px 0 currentColor;
 font-size: 1.3em;
+line-height: 1.2em;
 }
 
+/* Force tighter row height for standings */
+.mlb-standings tr {
+height: 1.8em;
+}
+
+/* Abbreviation styling */
+.scores-screen .abbr,
 .standings-screen .abbr {
 font-family: ‘Times Square’;
-/* remove shadow for clarity */
-text-shadow: none;
+text-shadow: 0.5px 0 currentColor;
 font-size: 1.3em;
 }
 
