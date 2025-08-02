@@ -2,7 +2,8 @@
 
 @font-face {
 font-family: ‘Times Square’;
-src: url(‘fonts/TimesSquare-m105.ttf’) format(‘truetype’);
+/* absolute path ensures Electron finds the font */
+src: url(’/modules/MMM-MLBScoresAndStandings/fonts/TimesSquare-m105.ttf’) format(‘truetype’);
 font-weight: normal;
 font-style: normal;
 }
