@@ -2,8 +2,8 @@
 
 @font-face {
 font-family: ‘Times Square’;
-/* absolute path ensures Electron finds the font */
-src: url(’/modules/MMM-MLBScoresAndStandings/fonts/TimesSquare-m105.ttf’) format(‘truetype’);
+/* Load from MagicMirror modules path */
+src: url(‘modules/MMM-MLBScoresAndStandings/fonts/TimesSquare-m105.ttf’) format(‘truetype’);
 font-weight: normal;
 font-style: normal;
 }
