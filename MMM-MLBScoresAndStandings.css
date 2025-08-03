@@ -61,7 +61,7 @@ height: 1.4em;
 padding: 0 6px;
 vertical-align: middle;
 font-family: ‘Times Square’, Arial, sans-serif;
-font-size: 1.1em;
+font-size: 1.5em;
 }
 
 .game-boxscore .team-cell {
@@ -79,6 +79,7 @@ object-fit: contain;
 width: 3em;
 text-align: center;
 font-family: ‘Times Square’, Arial, sans-serif;
+font-size: 1.1em;
 }
 .rhe-header {
 width: 1.2em;
