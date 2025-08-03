@@ -159,6 +159,13 @@
 /*--------------------------------------------------
   Standings Table
 --------------------------------------------------*/
+/* Division headers in standings */
+.standings-division h3 {
+  font-family: 'Times Square', Arial, sans-serif;
+  font-size: 1.2em;    /* adjust as you like */
+  margin: 0 0 4px 0;   /* remove any extra top/bottom spacing */
+}
+
 .mlb-standings {
   width: 100%;
   border-collapse: collapse;
