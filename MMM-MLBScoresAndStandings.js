@@ -77,7 +77,7 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   _scheduleRotate() {
-    const totalScreens = this.totalGamePages + this.totalStandPages;
+    const total = this.totalGamePages + this.totalStandPages;
     let delay;
     if (this.currentScreen < this.totalGamePages) {
       delay = this.config.rotateIntervalScores;
@@ -86,196 +86,144 @@ Module.register("MMM-MLBScoresAndStandings", {
       if (this.config.standingsPerPage === 1) {
         delay = this.config.rotateIntervalStandingsSingle;
       } else {
-        const intervals = [
+        const iv = [
           this.config.rotateIntervalCentral,
           this.config.rotateIntervalEast,
           this.config.rotateIntervalWest
         ];
-        delay = intervals[idx] || this.config.rotateIntervalEast;
+        delay = iv[idx] || this.config.rotateIntervalEast;
       }
     }
     clearTimeout(this.rotateTimer);
     this.rotateTimer = setTimeout(() => {
-      this.currentScreen = (this.currentScreen + 1) % totalScreens;
+      this.currentScreen = (this.currentScreen + 1) % total;
       this.updateDom(1000);
       this._scheduleRotate();
     }, delay);
   },
 
-  socketNotificationReceived(notification, payload) {
-    if (notification === "GAMES") {
+  socketNotificationReceived(n, p) {
+    if (n === "GAMES") {
       this.loadedGames    = true;
-      this.games          = payload;
-      this.totalGamePages = Math.max(1, Math.ceil(this.games.length / this.config.gamesPerPage));
+      this.games          = p;
+      this.totalGamePages = Math.max(1, Math.ceil(p.length / this.config.gamesPerPage));
       this.updateDom();
     }
-    if (notification === "STANDINGS") {
+    if (n === "STANDINGS") {
       this.loadedStandings = true;
-      this.recordGroups    = payload;
+      this.recordGroups    = p;
       this.updateDom();
     }
   },
 
   _noData(msg) {
-    const wrapper = document.createElement("div");
-    wrapper.className = "small dimmed";
-    wrapper.innerText = msg;
-    return wrapper;
+    const w = document.createElement("div");
+    w.className = "small dimmed";
+    w.innerText = msg;
+    return w;
   },
 
   getDom() {
-    const wrapper = document.createElement("div");
-    const showingGames = this.currentScreen < this.totalGamePages;
-    wrapper.className = showingGames ? "scores-screen" : "standings-screen";
+    const w = document.createElement("div");
+    const g = this.currentScreen < this.totalGamePages;
+    w.className = g ? "scores-screen" : "standings-screen";
 
-    if (showingGames && !this.loadedGames) return this._noData("Loading games...");
-    if (!showingGames && !this.loadedStandings) return this._noData("Loading standings...");
-    if (showingGames && this.games.length === 0) return this._noData("No games to display.");
-    if (!showingGames && this.recordGroups.length === 0) return this._noData("Standings unavailable.");
+    if (g && !this.loadedGames) return this._noData("Loading games...");
+    if (!g && !this.loadedStandings) return this._noData("Loading standings...");
+    if (g && this.games.length === 0) return this._noData("No games to display.");
+    if (!g && this.recordGroups.length === 0) return this._noData("Standings unavailable.");
 
-    const content = showingGames ? this._buildGames() : this._buildStandings();
-    wrapper.appendChild(content);
-    return wrapper;
+    const c = g ? this._buildGames() : this._buildStandings();
+    w.appendChild(c);
+    return w;
   },
 
   _buildGames() {
-    const start = this.currentScreen * this.config.gamesPerPage;
-    const games = this.games.slice(start, start + this.config.gamesPerPage);
-    const wrapper = document.createElement("div");
-    wrapper.className = "games-columns";
-
-    const half = Math.ceil(games.length / 2);
-    [games.slice(0, half), games.slice(half)].forEach(col => {
-      const colDiv = document.createElement("div");
-      colDiv.className = "game-col";
-      col.forEach(game => colDiv.appendChild(this.createGameBox(game)));
-      wrapper.appendChild(colDiv);
+    const s = this.currentScreen * this.config.gamesPerPage;
+    const g = this.games.slice(s, s + this.config.gamesPerPage);
+    const w = document.createElement("div"); w.className = "games-columns";
+    const h = Math.ceil(g.length/2);
+    [g.slice(0,h), g.slice(h)].forEach(col => {
+      const d = document.createElement("div"); d.className="game-col";
+      col.forEach(game => d.appendChild(this.createGameBox(game)));
+      w.appendChild(d);
     });
-
-    return wrapper;
+    return w;
   },
 
   _buildStandings() {
     const idx = this.currentScreen - this.totalGamePages;
-    const wrapper = document.createElement("div");
-
+    const w   = document.createElement("div");
     if (idx < DIV_PAIRS.length) {
-      wrapper.className = "standings-pair";
-      DIV_PAIRS[idx].forEach(divId => {
-        wrapper.appendChild(this._createStandingsBlock(divId));
-      });
+      w.className = "standings-pair";
+      DIV_PAIRS[idx].forEach(id => w.appendChild(this._createStandingsBlock(id)));
     } else {
-      wrapper.className = "standings-single";
-      const wcIdx = idx - DIV_PAIRS.length;
-      wrapper.appendChild(this._createWildCardBlock(WILD_CARD_ORDER[wcIdx]));
+      w.className = "standings-single";
+      const wc = idx - DIV_PAIRS.length;
+      w.appendChild(this._createWildCardBlock(WILD_CARD_ORDER[wc]));
     }
-
-    return wrapper;
+    return w;
   },
 
-  _createStandingsBlock(divId) {
-    const block = document.createElement("div");
-    block.className = "standings-division";
-
-    const h3 = document.createElement("h3");
-    h3.innerText = DIVISION_LABELS[divId];
-    block.appendChild(h3);
-
-    const group = this.recordGroups.find(g => g.division.id === divId);
-    block.appendChild(this.createStandingsTable(group, false));
-
-    return block;
+  _createStandingsBlock(id) {
+    const b = document.createElement("div"); b.className="standings-division";
+    const h3= document.createElement("h3");
+    h3.innerText = DIVISION_LABELS[id];
+    h3.style.margin = "0";
+    b.appendChild(h3);
+    const g = this.recordGroups.find(r=>r.division.id===id);
+    b.appendChild(this.createStandingsTable(g, false));
+    return b;
   },
 
-  _createWildCardBlock(league) {
-    const block = document.createElement("div");
-    block.className = "standings-division";
-
-    const h3 = document.createElement("h3");
-    h3.innerText = DIVISION_LABELS[league];
-    block.appendChild(h3);
-
-    const records = this.recordGroups
-      .filter(r => r.division.name.startsWith(league))
-      .flatMap(r => r.teamRecords)
-      .sort((a, b) => b.wins - a.wins || a.losses - b.losses);
-
-    const pseudoGroup = { teamRecords: records };
-    block.appendChild(this.createStandingsTable(pseudoGroup, true));
-
-    return block;
+  _createWildCardBlock(lg) {
+    const b = document.createElement("div"); b.className="standings-division";
+    const h3= document.createElement("h3");
+    h3.innerText = DIVISION_LABELS[lg];
+    h3.style.margin = "0";
+    b.appendChild(h3);
+    const recs = this.recordGroups
+      .filter(r=>r.division.name.startsWith(lg))
+      .flatMap(r=>r.teamRecords)
+      .sort((a,b)=>b.wins-a.wins||a.losses-b.losses);
+    b.appendChild(this.createStandingsTable({teamRecords:recs}, true));
+    return b;
   },
 
-  createStandingsTable(group, isWildCard = false) {
-    const table = document.createElement("table");
-    table.className = "mlb-standings";
-
-    const trH = document.createElement("tr");
-    ["","W-L","W%","GB","Streak","L10","Home","Away"].forEach(txt => {
-      const th = document.createElement("th");
-      th.innerText = txt;
-      trH.appendChild(th);
+  createStandingsTable(group, wc=false) {
+    const t = document.createElement("table"); t.className="mlb-standings";
+    const thR = document.createElement("tr");
+    ["","W-L","W%","GB","Streak","L10","Home","Away"].forEach(txt=>{
+      const th=document.createElement("th"); th.innerText=txt; thR.appendChild(th);
     });
-    table.appendChild(trH);
-
-    group.teamRecords.forEach((rec, i) => {
-      const tr = document.createElement("tr");
-      if (isWildCard && i === 3) tr.style.borderTop = "2px solid #FFD242";
-
-      const tdTeam = document.createElement("td");
-      tdTeam.className = "team-cell";
-      const img = document.createElement("img");
-      img.src = this.getLogoUrl(ABBREVIATIONS[rec.team.name] || "");
-      img.alt = ABBREVIATIONS[rec.team.name] || "";
-      img.className = "logo-cell";
-      img.onerror = () => img.style.display = "none";
-      tdTeam.appendChild(img);
-      const sp = document.createElement("span");
-      sp.className = "abbr";
-      sp.innerText = ABBREVIATIONS[rec.team.name] || "";
-      tdTeam.appendChild(sp);
-      tr.appendChild(tdTeam);
-
-      const lr = rec.leagueRecord || {};
-      const W = parseInt(lr.wins) || 0;
-      const L = parseInt(lr.losses) || 0;
-      const pct = (W + L > 0)
-        ? ((W / (W + L)).toFixed(3).replace(/^0/, ""))
-        : "-";
-      [`${W}-${L}`, pct].forEach(val => {
-        const td = document.createElement("td");
-        td.innerText = val;
-        tr.appendChild(td);
-      });
-
-      let gb = rec.divisionGamesBack;
-      if (gb != null && gb !== "-") {
-        const f = parseFloat(gb), m = Math.floor(f), r = f - m;
-        if (Math.abs(r) < 1e-6) gb = `${m}`;
-        else if (r === 0.5) gb = m === 0 ? "1/2" : `${m}1/2`;
-        else gb = f.toString();
-      }
-      const tdGB = document.createElement("td");
-      tdGB.innerText = gb;
-      tr.appendChild(tdGB);
-
-      const lastTen = rec.records?.splitRecords?.find(s => s.type.toLowerCase() === "lastten");
-      const l10 = lastTen ? `${lastTen.wins}-${lastTen.losses}` : "-";
-      const homeRec = rec.records?.splitRecords?.find(s => s.type.toLowerCase() === "home");
-      const awayRec = rec.records?.splitRecords?.find(s => s.type.toLowerCase() === "away");
-      [rec.streak?.streakCode || "-", l10,
-       homeRec ? `${homeRec.wins}-${homeRec.losses}` : "-",
-       awayRec ? `${awayRec.wins}-${awayRec.losses}` : "-"
-      ].forEach(val => {
-        const td = document.createElement("td");
-        td.innerText = val;
-        tr.appendChild(td);
-      });
-
-      table.appendChild(tr);
+    t.appendChild(thR);
+    group.teamRecords.forEach((rec,i)=>{
+      const tr=document.createElement("tr");
+      if(wc&&i===3) tr.style.borderTop="2px solid #FFD242";
+      const tdT=document.createElement("td"); tdT.className="team-cell";
+      const img=document.createElement("img"); img.src=this.getLogoUrl(ABBREVIATIONS[rec.team.name]||"");
+      img.alt=ABBREVIATIONS[rec.team.name]||""; img.className="logo-cell"; img.onerror=()=>img.style.display='none';
+      tdT.appendChild(img);
+      const sp=document.createElement("span"); sp.className="abbr"; sp.innerText=ABBREVIATIONS[rec.team.name]||"";
+      tdT.appendChild(sp); tr.appendChild(tdT);
+      const lr=rec.leagueRecord||{}; const W=+lr.wins||0; const L=+lr.losses||0;
+      const pct=(W+L>0?((W/(W+L)).toFixed(3).replace(/^0/,"")):"-");
+      [`${W}-${L}`,pct].forEach(v=>{const td=document.createElement("td");td.innerText=v;tr.appendChild(td);});
+      let gb=rec.divisionGamesBack;
+      if(gb!=null&&gb!="-"){const f=parseFloat(gb),m=Math.floor(f),r=f-m;
+        if(Math.abs(r)<1e-6) gb=`${m}`; else if(r===0.5) gb=m===0?"1/2":`${m}1/2`; else gb=f.toString();}
+      const tdG=document.createElement("td");tdG.innerText=gb;tr.appendChild(tdG);
+      const lt=rec.records?.splitRecords?.find(s=>s.type.toLowerCase()==="lastten");
+      const l10=lt?`${lt.wins}-${lt.losses}`:"-";
+      const home=rec.records?.splitRecords?.find(s=>s.type.toLowerCase()==="home");
+      const away=rec.records?.splitRecords?.find(s=>s.type.toLowerCase()==="away");
+      [rec.streak?.streakCode||"-",l10,
+       home?`${home.wins}-${home.losses}`:"-",
+       away?`${away.wins}-${away.losses}`:"-"
+      ].forEach(v=>{const td=document.createElement("td");td.innerText=v;tr.appendChild(td);});
+      t.appendChild(tr);
     });
-
-    return table;
+    return t;
   },
 
   createGameBox(game) {
@@ -300,13 +248,10 @@ Module.register("MMM-MLBScoresAndStandings", {
     const show        = !isPrev && !isPost && !isSuspended;
 
     let statusText;
-    if (isSuspended) {
-      statusText = "Suspended";
-    } else if (isPost) {
-      statusText = "Postponed";
-    } else if (isWarmup) {
-      statusText = "Warmup";
-    } else if (isPrev) {
+    if (isSuspended) statusText = "Suspended";
+    else if (isPost) statusText = "Postponed";
+    else if (isWarmup) statusText = "Warmup";
+    else if (isPrev) {
       statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {
         timeZone: this.config.timeZone,
         hour12: true,
@@ -321,12 +266,12 @@ Module.register("MMM-MLBScoresAndStandings", {
       statusText = (st + " " + io).trim() || "In Progress";
     }
 
-    // Header row
     const trH = document.createElement("tr");
     const thS = document.createElement("th");
     thS.className = "status-cell";
     thS.innerText = statusText;
     trH.appendChild(thS);
+
     ["R","H","E"].forEach(lbl => {
       const th = document.createElement("th");
       th.className = "rhe-header";
