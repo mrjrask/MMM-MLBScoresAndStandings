@@ -1,168 +1,205 @@
 /* MMM-MLBScoresAndStandings.css */
 
-/**
-	•	Load custom Times Square font
-	•	Assuming CSS file is in modules/MMM-MLBScoresAndStandings/
-	•	and font is in modules/MMM-MLBScoresAndStandings/fonts/
-*/
+/*--------------------------------------------------
+  Variables for easy customization
+--------------------------------------------------*/
+:root {
+  /* Font sizes */
+  --font-size-abbr: 1.5em;
+  --font-size-status: 1.2em;
+  --font-size-rhe: 1.5em;
+  --font-size-standings: 1.5em;
+  --font-size-fraction: 0.8em;
+
+  /* Cell paddings */
+  --pad-abbr: 0 6px;
+  --pad-status: 0 6px;
+  --pad-rhe: 0 6px;
+  --pad-standings: 3px 5px;
+
+  /* Cell dimensions */
+  --height-row-game: 1.4em;
+  --height-row-stand: 1.6em;
+  --width-status: 3em;
+  --width-rhe: 1.2em;
+  --logo-size-game: 1.4em;
+  --logo-size-stand: 1.2em;
+}
+
+/*--------------------------------------------------
+  Custom Times Square font
+--------------------------------------------------*/
 @font-face {
-font-family: ‘Times Square’;
-src: url(‘fonts/TimesSquare-m105.ttf’) format(‘truetype’);
-font-weight: normal;
-font-style: normal;
-font-display: swap;
+  font-family: 'Times Square';
+  src: url('fonts/TimesSquare-m105.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
-/* Module header */
+/*--------------------------------------------------
+  Module Header
+--------------------------------------------------*/
 .module-header {
-font-family: ‘Times Square’, Arial, sans-serif;
-font-size: 1.2em;
-font-weight: bold;
-margin: 0;
+  font-family: 'Times Square', Arial, sans-serif;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 0;
 }
 
-/* Divider under header in score screen */
 .scores-screen .module-header + hr {
-border: none;
-border-bottom: 1px solid #999;
-margin: 4px 0 8px;
+  border: none;
+  border-bottom: 1px solid #999;
+  margin: 4px 0 8px;
 }
-
-/* Hide divider in standings screen */
 .standings-screen .module-header + hr {
-display: none;
+  display: none;
 }
 
-/* SCOREBOARD GRID */
+/*--------------------------------------------------
+  Scoreboard Grid
+--------------------------------------------------*/
 .games-columns {
-display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 8px;
-justify-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  justify-items: center;
 }
 .game-col {
-display: flex;
-flex-direction: column;
-gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-/* BOX SCORE TABLE */
+/*--------------------------------------------------
+  Box Score Table
+--------------------------------------------------*/
 .game-boxscore {
-border-collapse: collapse;
-margin-bottom: 8px;
+  border-collapse: collapse;
+  border: 1px solid #444;
+  margin-bottom: 8px;
 }
 
 .game-boxscore tr {
-height: 1.4em;
+  height: var(--height-row-game);
 }
 
 .game-boxscore th,
 .game-boxscore td {
-padding: 0 6px;
-vertical-align: middle;
-font-family: ‘Times Square’, Arial, sans-serif;
-font-size: 1.5em;
+  padding: var(--pad-abbr);
+  vertical-align: middle;
+  font-family: 'Times Square', Arial, sans-serif;
 }
 
+/* Team abbreviation + logo */
 .game-boxscore .team-cell {
-display: flex;
-align-items: center;
-gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--pad-abbr);
 }
 .game-boxscore .logo-cell {
-width: 1.4em;
-height: 1.4em;
-object-fit: contain;
+  width: var(--logo-size-game);
+  height: var(--logo-size-game);
+  object-fit: contain;
+}
+.game-boxscore .abbr {
+  font-size: var(--font-size-abbr);
 }
 
+/* Status (game time/inning) */
 .status-cell {
-width: 3em;
-text-align: center;
-font-family: ‘Times Square’, Arial, sans-serif;
-font-size: 1.1em;
-}
-.rhe-header {
-width: 1.2em;
-text-align: center;
-font-family: ‘Times Square’, Arial, sans-serif;
-font-weight: normal;
-}
-.rhe-cell {
-width: 1.2em;
-text-align: center;
-font-family: ‘Times Square’, Arial, sans-serif;
-font-size: 1.5em;
+  width: var(--width-status);
+  text-align: center;
+  font-family: 'Times Square', Arial, sans-serif;
+  font-size: var(--font-size-status);
+  padding: var(--pad-status);
+  white-space: nowrap;
 }
 
-/* LIVE GAME COLORS */
+/* R/H/E header */
+.rhe-header {
+  width: var(--width-rhe);
+  text-align: center;
+  font-family: 'Times Square', Arial, sans-serif;
+  font-weight: normal;
+}
+
+/* R/H/E values */
+.rhe-cell {
+  width: var(--width-rhe);
+  text-align: center;
+  font-family: 'Times Square', Arial, sans-serif;
+  font-size: var(--font-size-rhe);
+  padding: var(--pad-rhe);
+}
+
+/* Live vs. final coloring */
 .status-cell.live,
 .rhe-cell.live {
-color: #FFD242;
+  color: #FFD242;
 }
-
-/* FINAL / NON-LIVE COLORS */
 .status-cell:not(.live),
 .rhe-cell:not(.live) {
-color: #FFF;
+  color: #FFF;
 }
 
-/* Dim losing team abbreviation */
+/* Dim losing team */
 .game-boxscore tr.loser .abbr {
-opacity: 0.6;
+  opacity: 0.6;
 }
 
-/* STANDINGS TABLE */
+/*--------------------------------------------------
+  Standings Table
+--------------------------------------------------*/
 .mlb-standings {
-width: 100%;
-border-collapse: collapse;
-margin-bottom: 10px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
 }
 
 .mlb-standings tr {
-height: 1.6em;
+  height: var(--height-row-stand);
 }
 
 .mlb-standings th,
 .mlb-standings td {
-padding: 3px 5px;
-text-align: center;
-vertical-align: middle;
-font-family: ‘Times Square’, Arial, sans-serif;
-font-size: 1.5em;
-border: 1px solid #444;
+  padding: var(--pad-standings);
+  text-align: center;
+  vertical-align: middle;
+  font-family: 'Times Square', Arial, sans-serif;
+  font-size: var(--font-size-standings);
+  border: 1px solid #444;
 }
 
 .mlb-standings .team-cell {
-display: flex;
-align-items: center;
-gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .mlb-standings .logo-cell {
-width: 1.2em;
-height: 1.2em;
-object-fit: contain;
+  width: var(--logo-size-stand);
+  height: var(--logo-size-stand);
+  object-fit: contain;
 }
 
+/* Fraction styling */
 .mlb-standings .fraction {
-  font-size: 0.8em;
+  font-size: var(--font-size-fraction);
   vertical-align: super;
 }
 
-.abbr {
-white-space: nowrap;
-}
-
-/* Highlighted team row */
+/* Highlight rows */
 .mlb-standings tr.team-highlight td,
 .game-boxscore .abbr.team-highlight {
-color: #FFD242;
+  color: #FFD242;
 }
 
-/* FULLSCREEN LAYOUT */
+/* Fullscreen layout */
 .fullscreen_above .mlb-fullscreen-center {
-display: flex;
-flex-direction: column;
-justify-content: center;
-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100vh;
 }
