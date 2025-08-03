@@ -136,10 +136,16 @@ display: flex;
 align-items: center;
 gap: 4px;
 }
+
 .mlb-standings .logo-cell {
 width: 1.2em;
 height: 1.2em;
 object-fit: contain;
+}
+
+.mlb-standings .fraction {
+  font-size: 0.8em;
+  vertical-align: super;
 }
 
 .abbr {
