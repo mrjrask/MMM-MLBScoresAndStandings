@@ -161,222 +161,228 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   _buildStandings() {
-    const idx = this.currentScreen - this.totalGamePages;
-    let groupsToShow = [];
-    if (this.config.standingsPerPage === 2) {
-      groupsToShow = PAIR_STAND_ORDER[idx] || [];
-    } else {
-      const singleId = SINGLE_STAND_ORDER[idx];
-      if (singleId !== undefined) groupsToShow = [singleId];
-    }
-    const wrapper = document.createElement("div");
-    wrapper.className = this.config.standingsPerPage === 1 ? "standings-single" : "standings-pair";
+    const idx = this.currentScreen - this.totalGamePages;  
+    let groupsToShow = [];  
+    if (this.config.standingsPerPage === 2) {  
+      groupsToShow = PAIR_STAND_ORDER[idx] || [];  
+    } else {  
+      const singleId = SINGLE_STAND_ORDER[idx];  
+      if (singleId !== undefined) groupsToShow = [singleId];  
+    }  
+    const wrapper = document.createElement("div");  
+    wrapper.className = this.config.standingsPerPage === 1 ? "standings-single" : "standings-pair";  
 
-    groupsToShow.forEach(divId => {
-      const group = this.recordGroups.find(g => g.division.id === divId);
-      if (group) {
-        const div = document.createElement("div");
-        div.className = "standings-division";
-        const h3 = document.createElement("h3");
-        h3.innerText = DIVISION_LABELS[divId];
-        h3.style.margin = "0 0 4px 0";
-        div.appendChild(h3);
-        div.appendChild(this.createStandingsTable(group));
-        wrapper.appendChild(div);
-      }
-    });
+    groupsToShow.forEach(divId => {  
+      const group = this.recordGroups.find(g => g.division.id === divId);  
+      if (group) {  
+        const div = document.createElement("div");  
+        div.className = "standings-division";  
+        const h3 = document.createElement("h3");  
+        h3.innerText = DIVISION_LABELS[divId];  
+        h3.style.margin = "0 0 4px 0";  
+        div.appendChild(h3);  
+        div.appendChild(this.createStandingsTable(group));  
+        wrapper.appendChild(div);  
+      }  
+    });  
 
-    return wrapper;
-  },
+    return wrapper;  
+  },  
 
-  createGameBox(game) {
-    const table = document.createElement("table");
-    table.className   = "game-boxscore";
-    table.cellSpacing = 0;
-    table.cellPadding = 0;
+  createGameBox(game) {  
+    const table = document.createElement("table");  
+    table.className   = "game-boxscore";  
+    table.cellSpacing = 0;  
+    table.cellPadding = 0;  
 
-    const awayScore = game.teams.away.score;
-    const homeScore = game.teams.home.score;
-    const ls        = game.linescore || {};
-    const state     = game.status.abstractGameState || "";
-    const det       = game.status.detailedState || "";
-    const innings   = ls.innings || [];
+    const awayScore = game.teams.away.score;  
+    const homeScore = game.teams.home.score;  
+    const ls        = game.linescore || {};  
+    const state     = game.status.abstractGameState || "";  
+    const det       = game.status.detailedState || "";  
+    const innings   = ls.innings || [];  
 
-    const isSuspended = det.includes("Suspended") || state === "Suspended";
-    const isPost      = det.includes("Postponed");
-    const isWarmup    = det === "Warmup";
-    const isPrev      = state === "Preview";
-    const isFin       = state === "Final";
-    const live        = !isPrev && !isFin && !isPost && !isWarmup && !isSuspended;
-    const show        = !isPrev && !isPost && !isSuspended;
+    const isSuspended = det.includes("Suspended") || state === "Suspended";  
+    const isPost      = det.includes("Postponed");  
+    const isWarmup    = det === "Warmup";  
+    const isPrev      = state === "Preview";  
+    const isFin       = state === "Final";  
+    const live        = !isPrev && !isFin && !isPost && !isWarmup && !isSuspended;  
+    const show        = !isPrev && !isPost && !isSuspended;  
 
-    let statusText;
-    if (isSuspended) {
-      statusText = "Suspended";
-    } else if (isPost) {
-      statusText = "Postponed";
-    } else if (isWarmup) {
-      statusText = "Warmup";
-    } else if (isPrev) {
-      statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {
-        timeZone: this.config.timeZone,
-        hour12: true,
-        hour: "numeric",
-        minute: "2-digit"
-      });
-    } else if (isFin) {
-      statusText = innings.length === 9 ? "F" : `F/${innings.length}`;
-    } else {
-      const st = ls.inningState || "";
-      const io = ls.currentInningOrdinal || "";
-      statusText = (st + " " + io).trim() || "In Progress";
-    }
+    let statusText;  
+    if (isSuspended) {  
+      statusText = "Suspended";  
+    } else if (isPost) {  
+      statusText = "Postponed";  
+    } else if (isWarmup) {  
+      statusText = "Warmup";  
+    } else if (isPrev) {  
+      statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {  
+        timeZone: this.config.timeZone,  
+        hour12: true,  
+        hour: "numeric",  
+        minute: "2-digit"  
+      });  
+    } else if (isFin) {  
+      statusText = innings.length === 9 ? "F" : `F/${innings.length}`;  
+    } else {  
+      const st = ls.inningState || "";  
+      const io = ls.currentInningOrdinal || "";  
+      statusText = (st + " " + io).trim() || "In Progress";  
+    }  
 
-    // Header row for boxscore: status + R/H/E
-    const trH = document.createElement("tr");
-    const thS = document.createElement("th");
-    thS.className = "status-cell";
-    thS.innerText = statusText;
-    trH.appendChild(thS);
-    ["R","H","E"].forEach(lbl => {
-      const th = document.createElement("th");
-      th.className = "rhe-header";
-      th.innerText = lbl;
-      trH.appendChild(th);
-    });
-    table.appendChild(trH);
+    // Header row for boxscore: status + R/H/E  
+    const trH = document.createElement("tr");  
+    const thS = document.createElement("th");  
+    thS.className = "status-cell";  
+    thS.innerText = statusText;  
+    trH.appendChild(thS);  
+    ["R","H","E"].forEach(lbl => {  
+      const th = document.createElement("th");  
+      th.className = "rhe-header";  
+      th.innerText = lbl;  
+      trH.appendChild(th);  
+    });  
+    table.appendChild(trH);  
 
-    const lines = ls.teams || {};
-    [game.teams.away, game.teams.home].forEach((t, i) => {
-      const tr = document.createElement("tr");
-      if (isFin) {
-        const awayL = awayScore < homeScore;
-        const homeL = homeScore < awayScore;
-        if ((i===0 && awayL) || (i===1 && homeL)) tr.classList.add("loser");
-      }
+    const lines = ls.teams || {};  
+    [game.teams.away, game.teams.home].forEach((t, i) => {  
+      const tr = document.createElement("tr");  
+      if (isFin) {  
+        const awayL = awayScore < homeScore;  
+        const homeL = homeScore < awayScore;  
+        if ((i===0 && awayL) || (i===1 && homeL)) tr.classList.add("loser");  
+      }  
 
-      const abbr = ABBREVIATIONS[t.team.name] || t.team.abbreviation || "";
-      const tdT  = document.createElement("td");
-      tdT.className = "team-cell";
-      const img  = document.createElement("img");
-      img.src      = this.getLogoUrl(abbr);
-      img.alt      = abbr;
-      img.className= "logo-cell";
-      img.onerror  = () => img.style.display = 'none';
-      tdT.appendChild(img);
-      const sp    = document.createElement("span");
-      sp.className = "abbr";
-      sp.innerText = abbr;
-      if (this.config.highlightedTeams.includes(abbr)) sp.classList.add("team-highlight");
-      if (isFin) sp.classList.add("final");
-      tdT.appendChild(sp);
-      tr.appendChild(tdT);
+      const abbr = ABBREVIATIONS[t.team.name] || t.team.abbreviation || "";  
+      const tdT  = document.createElement("td");  
+      tdT.className = "team-cell";  
+      const img  = document.createElement("img");  
+      img.src      = this.getLogoUrl(abbr);  
+      img.alt      = abbr;  
+      img.className= "logo-cell";  
+      img.onerror  = () => img.style.display = 'none';  
+      tdT.appendChild(img);  
+      const sp    = document.createElement("span");  
+      sp.className = "abbr";  
+      sp.innerText = abbr;  
+      if (this.config.highlightedTeams.includes(abbr)) sp.classList.add("team-highlight");  
+      if (isFin) sp.classList.add("final");  
+      tdT.appendChild(sp);  
+      tr.appendChild(tdT);  
 
-      const runVal = show ? t.score : "";
-      const hitVal = show
-        ? (i===0 ? (lines.away?.hits ?? "") : (lines.home?.hits ?? ""))
-        : "";
-      const errVal = show
-        ? (t.errors != null ? t.errors
-            : (i===0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? "")))
-        : "";
+      const runVal = show ? t.score : "";  
+      const hitVal = show  
+        ? (i===0 ? (lines.away?.hits ?? "") : (lines.home?.hits ?? ""))  
+        : "";  
+      const errVal = show  
+        ? (t.errors != null ? t.errors  
+            : (i===0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? "")))  
+        : "";  
 
-      [runVal, hitVal, errVal].forEach(val => {
-        const td = document.createElement("td");
-        td.className = live ? "rhe-cell live" : "rhe-cell";
-        td.innerText = val;
-        tr.appendChild(td);
-      });
-      table.appendChild(tr);
-    });
+      [runVal, hitVal, errVal].forEach(val => {  
+        const td = document.createElement("td");  
+        td.className = live ? "rhe-cell live" : "rhe-cell";  
+        td.innerText = val;  
+        tr.appendChild(td);  
+      });  
+      table.appendChild(tr);  
+    });  
 
-    return table;
-  },
+    return table;  
+  },  
 
-  createStandingsTable(group) {
-    const table = document.createElement("table");
-    table.className = "mlb-standings";
+  createStandingsTable(group) {  
+    const table = document.createElement("table");  
+    table.className = "mlb-standings";  
 
-    const trH = document.createElement("tr");
-    ["","W-L","W%","GB","Streak","L10","Home","Away"].forEach(txt => {
-      const th = document.createElement("th");
-      th.innerText = txt;
-      trH.appendChild(th);
-    });
-    table.appendChild(trH);
+    const trH = document.createElement("tr");  
+    ["","W-L","W%","GB","Streak","L10","Home","Away"].forEach(txt => {  
+      const th = document.createElement("th");  
+      th.innerText = txt;  
+      trH.appendChild(th);  
+    });  
+    table.appendChild(trH);  
 
-    group.teamRecords.forEach(rec => {
-      const tr   = document.createElement("tr");
-      const ab   = ABBREVIATIONS[rec.team.name] || rec.team.abbreviation || "";
-      if (this.config.highlightedTeams.includes(ab)) tr.classList.add("team-highlight");
+    group.teamRecords.forEach(rec => {  
+      const tr   = document.createElement("tr");  
+      const ab   = ABBREVIATIONS[rec.team.name] || rec.team.abbreviation || "";  
+      if (this.config.highlightedTeams.includes(ab)) tr.classList.add("team-highlight");  
 
-      const tdTeam = document.createElement("td");
-      tdTeam.className = "team-cell";
-      const img2 = document.createElement("img");
-      img2.src      = this.getLogoUrl(ab);
-      img2.alt      = ab;
-      img2.className= "logo-cell";
-      img2.onerror  = () => img2.style.display = 'none';
-      tdTeam.appendChild(img2);
-      const sp2 = document.createElement("span");
-      sp2.className = "abbr";
-      sp2.innerText = ab;
-      tdTeam.appendChild(sp2);
-      tr.appendChild(tdTeam);
+      const tdTeam = document.createElement("td");  
+      tdTeam.className = "team-cell";  
+      const img2 = document.createElement("img");  
+      img2.src      = this.getLogoUrl(ab);  
+      img2.alt      = ab;  
+      img2.className= "logo-cell";  
+      img2.onerror  = () => img2.style.display = 'none';  
+      tdTeam.appendChild(img2);  
+      const sp2 = document.createElement("span");  
+      sp2.className = "abbr";  
+      sp2.innerText = ab;  
+      tdTeam.appendChild(sp2);  
+      tr.appendChild(tdTeam);  
 
-      const lr = rec.leagueRecord || {};
-      const W  = parseInt(lr.wins) || 0;
-      const L  = parseInt(lr.losses) || 0;
-      const pct = (W+L>0)
-        ? ((W/(W+L)).toFixed(3).replace(/^0/,""))
-        : "-";
-      [
-        `${W}-${L}`,
-        pct
-      ].forEach(val => {
-        const td = document.createElement("td");
-        td.innerText = val;
-        tr.appendChild(td);
-      });
+      const lr = rec.leagueRecord || {};  
+      const W  = parseInt(lr.wins) || 0;  
+      const L  = parseInt(lr.losses) || 0;  
+      const pct = (W+L>0)  
+        ? ((W/(W+L)).toFixed(3).replace(/^0/,""))  
+        : "-";  
+      [  
+        `${W}-${L}`,  
+        pct  
+      ].forEach(val => {  
+        const td = document.createElement("td");  
+        td.innerText = val;  
+        tr.appendChild(td);  
+      });  
 
-      let gb = rec.divisionGamesBack;
-      if (gb != null && gb !== "-") {
-        const f = parseFloat(gb), m = Math.floor(f), r = f - m;
-        if (Math.abs(r) < 1e-6) gb = `${m}`;
-        else if (r === 0.5) gb = m === 0 ? " 1/2" : `${m} 1/2`;
-        else gb = f.toString();
-      }
-      const tdGB = document.createElement("td");
-      tdGB.innerText = gb;
-      tr.appendChild(tdGB);
+      let gb = rec.divisionGamesBack;  
+      if (gb != null && gb !== "-") {  
+        const f = parseFloat(gb), m = Math.floor(f), r = f - m;  
+        if (Math.abs(r) < 1e-6) {  
+          gb = `${m}`;  
+        } else if (r === 0.5) {  
+          gb = m === 0  
+            ? `<span class="fraction">1/2</span>`  
+            : `${m}<span class="fraction">1/2</span>`;  
+        } else {  
+          gb = f.toString();  
+        }  
+      }  
+      const tdGB = document.createElement("td");  
+      tdGB.innerHTML = gb;  
+      tr.appendChild(tdGB);  
 
-      const tdSt = document.createElement("td");
-      tdSt.innerText = rec.streak?.streakCode || "-";
-      tr.appendChild(tdSt);
+      const tdSt = document.createElement("td");  
+      tdSt.innerText = rec.streak?.streakCode || "-";  
+      tr.appendChild(tdSt);  
 
-      let l10 = "-";
-      const s10 = rec.records?.splitRecords?.find(s => s.type.toLowerCase() === "lastten");
-      if (s10) l10 = `${s10.wins}-${s10.losses}`;
-      const td10 = document.createElement("td");
-      td10.innerText = l10;
-      tr.appendChild(td10);
+      let l10 = "-";  
+      const s10 = rec.records?.splitRecords?.find(s => s.type.toLowerCase() === "lastten");  
+      if (s10) l10 = `${s10.wins}-${s10.losses}`;  
+      const td10 = document.createElement("td");  
+      td10.innerText = l10;  
+      tr.appendChild(td10);  
 
-      ["home","away"].forEach(type => {
-        let v = "-";
-        const sp = rec.records?.splitRecords?.find(s => s.type.toLowerCase() === type);
-        if (sp) v = `${sp.wins}-${sp.losses}`;
-        const td = document.createElement("td");
-        td.innerText = v;
-        tr.appendChild(td);
-      });
+      ["home","away"].forEach(type => {  
+        let v = "-";  
+        const sp = rec.records?.splitRecords?.find(s => s.type.toLowerCase() === type);  
+        if (sp) v = `${sp.wins}-${sp.losses}`;  
+        const td = document.createElement("td");  
+        td.innerText = v;  
+        tr.appendChild(td);  
+      });  
 
-      table.appendChild(tr);
-    });
+      table.appendChild(tr);  
+    });  
 
-    return table;
-  },
+    return table;  
+  },  
 
-  getLogoUrl(abbr) {
-    return this.file(`logos/${this.config.logoType}/${abbr}.png`);
-  }
+  getLogoUrl(abbr) {  
+    return this.file(`logos/${this.config.logoType}/${abbr}.png`);  
+  }  
 });
