@@ -1,16 +1,15 @@
 /* MMM-MLBScoresAndStandings.css */
 
 @font-face {
-font-family: “Times Square”;
-/* relative to this CSS file */
-src: url(”../fonts/TimesSquare-m105.ttf”) format(“truetype”);
+font-family: ‘Times Square’;
+src: url(’/modules/MMM-MLBScoresAndStandings/fonts/TimesSquare-m105.ttf’) format(‘truetype’);
 font-weight: normal;
 font-style: normal;
 }
 
 /* Module title shown at top of each screen */
 .module-header {
-font-family: “Times Square”, sans-serif;
+font-family: ‘Times Square’, sans-serif;
 font-size: 1.2em;
 font-weight: bold;
 margin: 0;
@@ -30,7 +29,7 @@ display: none;
 
 /* Division label (e.g., “NL Central”) */
 .standings-screen h3 {
-font-family: “Times Square”, sans-serif;
+font-family: ‘Times Square’, sans-serif;
 font-size: 1.2em;
 margin: 0 0 4px;
 }
@@ -40,7 +39,6 @@ margin: 0 0 4px;
 display: grid;
 grid-template-columns: repeat(2, 1fr);
 gap: 8px;
-justify-content: center;
 }
 
 /* One column of games */
@@ -61,7 +59,7 @@ margin-bottom: 8px;
 .game-boxscore td {
 padding: 0;
 vertical-align: middle;
-font-family: “Times Square”, sans-serif;
+font-family: ‘Times Square’, sans-serif;
 font-size: 1.2em;
 }
 
@@ -92,10 +90,10 @@ object-fit: contain;
 width: 1.2em;
 height: 1.2em;
 text-align: center;
-line-height: 1.2em;
 border: 1px solid #444;
 color: #FFF;
 padding: 0;
+font-family: ‘Times Square’, sans-serif;
 }
 
 /* R/H/E header cells (non-bold) */
@@ -105,16 +103,7 @@ font-weight: normal;
 
 /* R/H/E value cells */
 .game-boxscore .rhe-cell {
-font-family: “Times Square”, sans-serif;
 font-size: 1.4em;
-}
-
-/* Color for active games */
-.game-boxscore .status-cell.live {
-color: #AAA;
-}
-.game-boxscore .rhe-cell.live {
-color: #FFD242;
 }
 
 /* Standings full table */
@@ -147,7 +136,7 @@ vertical-align: middle;
 padding: 3px 5px;
 border: 0.5px solid #444;
 white-space: nowrap;
-font-family: “Times Square”, sans-serif;
+font-family: ‘Times Square’, sans-serif;
 font-size: 1.3em;
 line-height: 1.2em;
 }
@@ -160,7 +149,7 @@ height: 1.8em;
 /* Abbreviation styling */
 .scores-screen .abbr,
 .standings-screen .abbr {
-font-family: “Times Square”, sans-serif;
+font-family: ‘Times Square’, sans-serif;
 font-size: 1.3em;
 }
 
