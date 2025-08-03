@@ -27,6 +27,7 @@ module.exports = NodeHelper.create({
       const [hStr, mStr] = timeCT.split(":");
       const h = parseInt(hStr, 10), m = parseInt(mStr, 10);
 
+      // Before 8:45 AM CT show yesterday's games
       if (h < 8 || (h === 8 && m < 45)) {
         const dt = new Date(dateCT);
         dt.setDate(dt.getDate() - 1);
@@ -47,17 +48,38 @@ module.exports = NodeHelper.create({
 
   async _fetchStandings() {
     try {
+      const season = new Date().getFullYear();
+
+      // 1) Regular division records (NL + AL)
       const [nlRes, alRes] = await Promise.all([
-        fetch("https://statsapi.mlb.com/api/v1/standings?season=2025&leagueId=104"),
-        fetch("https://statsapi.mlb.com/api/v1/standings?season=2025&leagueId=103")
+        fetch(`https://statsapi.mlb.com/api/v1/standings?season=${season}&leagueId=104`),
+        fetch(`https://statsapi.mlb.com/api/v1/standings?season=${season}&leagueId=103`)
       ]);
       const [nlJson, alJson] = await Promise.all([nlRes.json(), alRes.json()]);
-      const nlRecs = nlJson.records || [];
-      const alRecs = alJson.records || [];
-      const all    = [...nlRecs, ...alRecs].sort((a, b) => a.division.id - b.division.id);
+      const regular = [
+        ...(nlJson.records || []),
+        ...(alJson.records || [])
+      ];
+      // Sort by numeric division ID
+      regular.sort((a, b) => a.division.id - b.division.id);
 
-      console.log(`📊 Sending ${all.length} division standings to front-end.`);
-      this.sendSocketNotification("STANDINGS", all);
+      // 2) Wild Card standings (league-wide)
+      const [nlWCRes, alWCRes] = await Promise.all([
+        fetch(`https://statsapi.mlb.com/api/v1/standings?season=${season}&leagueId=104&standingsTypes=wildCard`),
+        fetch(`https://statsapi.mlb.com/api/v1/standings?season=${season}&leagueId=103&standingsTypes=wildCard`)
+      ]);
+      const [nlWCJson, alWCJson] = await Promise.all([nlWCRes.json(), alWCRes.json()]);
+      const nlWCRecs = nlWCJson.records?.[0]?.teamRecords || [];
+      const alWCRecs = alWCJson.records?.[0]?.teamRecords || [];
+
+      // Append as pseudo-records for NL & AL Wild Card
+      regular.push(
+        { division: { id: "NL", name: "NL Wild Card" }, teamRecords: nlWCRecs },
+        { division: { id: "AL", name: "AL Wild Card" }, teamRecords: alWCRecs }
+      );
+
+      console.log(`📊 Sending ${regular.length} division standings to front-end.`);
+      this.sendSocketNotification("STANDINGS", regular);
     } catch (e) {
       console.error("🚨 fetchStandings failed:", e);
     }
