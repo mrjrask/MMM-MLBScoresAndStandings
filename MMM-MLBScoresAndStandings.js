@@ -14,7 +14,6 @@ const ABBREVIATIONS = {
   "Athletics": "ATH","Seattle Mariners": "SEA","Texas Rangers": "TEX"
 };
 
-// Single and paired division ordering (IDs)
 const SINGLE_STAND_ORDER = [205, 202, 204, 201, 203, 200];
 const PAIR_STAND_ORDER   = [[205,202], [204,201], [203,200]];
 const DIVISION_LABELS    = {
@@ -46,8 +45,12 @@ Module.register("MMM-MLBScoresAndStandings", {
       : "MLB Standings";
   },
 
-  getScripts() { return ["https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"]; },
-  getStyles()  { return ["MMM-MLBScoresAndStandings.css"]; },
+  getScripts() {
+    return ["https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"];
+  },
+  getStyles()  {
+    return ["MMM-MLBScoresAndStandings.css"];
+  },
 
   start() {
     this.games           = [];
@@ -195,30 +198,32 @@ Module.register("MMM-MLBScoresAndStandings", {
     const awayScore = game.teams.away.score;
     const homeScore = game.teams.home.score;
     const ls        = game.linescore || {};
-    const state     = game.status.abstractGameState;
-    const det       = game.status.detailedState;
+    const state     = game.status.abstractGameState || "";
+    const det       = game.status.detailedState || "";
     const innings   = ls.innings || [];
 
-    const isPrev   = state === "Preview";
-    const isFin    = state === "Final";
-    const isPost   = det.includes("Postponed");
-    const isWarmup = det === "Warmup";
-    const live     = !isPrev && !isFin && !isPost && !isWarmup;
-    const show     = !isPrev && !isPost;
+    const isSuspended = det.includes("Suspended") || state === "Suspended";
+    const isPost      = det.includes("Postponed");
+    const isWarmup    = det === "Warmup";
+    const isPrev      = state === "Preview";
+    const isFin       = state === "Final";
+    const live        = !isPrev && !isFin && !isPost && !isWarmup && !isSuspended;
+    const show        = !isPrev && !isPost && !isSuspended;
 
     let statusText;
-    if (isPost) {
+    if (isSuspended) {
+      statusText = "Suspended";
+    } else if (isPost) {
       statusText = "Postponed";
     } else if (isWarmup) {
       statusText = "Warmup";
     } else if (isPrev) {
-      statusText = new Date(game.gameDate).
-        toLocaleTimeString("en-US", {
-          timeZone: this.config.timeZone,
-          hour12: true,
-          hour: "numeric",
-          minute: "2-digit"
-        });
+      statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {
+        timeZone: this.config.timeZone,
+        hour12: true,
+        hour: "numeric",
+        minute: "2-digit"
+      });
     } else if (isFin) {
       statusText = innings.length === 9 ? "F" : `F/${innings.length}`;
     } else {
@@ -278,7 +283,7 @@ Module.register("MMM-MLBScoresAndStandings", {
 
       [runVal, hitVal, errVal].forEach(val => {
         const td = document.createElement("td");
-        td.className = live || isWarmup ? "rhe-cell live" : "rhe-cell";
+        td.className = live ? "rhe-cell live" : "rhe-cell";
         td.innerText = val;
         tr.appendChild(td);
       });
@@ -292,7 +297,6 @@ Module.register("MMM-MLBScoresAndStandings", {
     const table = document.createElement("table");
     table.className = "mlb-standings";
 
-    // Header row: no extra leading cell
     const trH = document.createElement("tr");
     ["","W-L","W%","GB","Streak","L10","Home","Away"].forEach(txt => {
       const th = document.createElement("th");
@@ -306,7 +310,6 @@ Module.register("MMM-MLBScoresAndStandings", {
       const ab   = ABBREVIATIONS[rec.team.name] || rec.team.abbreviation || "";
       if (this.config.highlightedTeams.includes(ab)) tr.classList.add("team-highlight");
 
-      // Team
       const tdTeam = document.createElement("td");
       tdTeam.className = "team-cell";
       const img2 = document.createElement("img");
@@ -321,7 +324,6 @@ Module.register("MMM-MLBScoresAndStandings", {
       tdTeam.appendChild(sp2);
       tr.appendChild(tdTeam);
 
-      // League record
       const lr = rec.leagueRecord || {};
       const W  = parseInt(lr.wins) || 0;
       const L  = parseInt(lr.losses) || 0;
@@ -337,24 +339,21 @@ Module.register("MMM-MLBScoresAndStandings", {
         tr.appendChild(td);
       });
 
-      // GB
       let gb = rec.divisionGamesBack;
       if (gb != null && gb !== "-") {
         const f = parseFloat(gb), m = Math.floor(f), r = f - m;
         if (Math.abs(r) < 1e-6) gb = `${m}`;
-        else if (r === 0.5) gb = m === 0 ? "½" : `${m}½`;
+        else if (r === 0.5) gb = m === 0 ? " 1/2" : `${m} 1/2`;
         else gb = f.toString();
       }
       const tdGB = document.createElement("td");
       tdGB.innerText = gb;
       tr.appendChild(tdGB);
 
-      // Streak
       const tdSt = document.createElement("td");
       tdSt.innerText = rec.streak?.streakCode || "-";
       tr.appendChild(tdSt);
 
-      // Last 10
       let l10 = "-";
       const s10 = rec.records?.splitRecords?.find(s => s.type.toLowerCase() === "lastten");
       if (s10) l10 = `${s10.wins}-${s10.losses}`;
