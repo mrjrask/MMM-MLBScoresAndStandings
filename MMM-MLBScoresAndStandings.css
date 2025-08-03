@@ -61,7 +61,7 @@ height: 1.4em;
 padding: 0 6px;
 vertical-align: middle;
 font-family: ‘Times Square’, Arial, sans-serif;
-font-size: 1.2em;
+font-size: 1.5em;
 }
 
 .game-boxscore .team-cell {
@@ -70,8 +70,8 @@ align-items: center;
 gap: 4px;
 }
 .game-boxscore .logo-cell {
-width: 1.2em;
-height: 1.2em;
+width: 1.4em;
+height: 1.4em;
 object-fit: contain;
 }
 
@@ -87,10 +87,10 @@ font-family: ‘Times Square’, Arial, sans-serif;
 font-weight: normal;
 }
 .rhe-cell {
-width: 1.2em;
+width: 1.5em;
 text-align: center;
 font-family: ‘Times Square’, Arial, sans-serif;
-font-size: 1.4em;
+font-size: 1.5em;
 }
 
 /* LIVE GAME COLORS */
@@ -127,7 +127,7 @@ padding: 3px 5px;
 text-align: center;
 vertical-align: middle;
 font-family: ‘Times Square’, Arial, sans-serif;
-font-size: 1.3em;
+font-size: 1.5em;
 border: 1px solid #444;
 }
 
