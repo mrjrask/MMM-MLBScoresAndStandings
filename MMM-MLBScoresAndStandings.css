@@ -7,7 +7,8 @@
   /* Font sizes */
   --font-size-abbr: 1.4em;
   --font-size-status: 1.0em;
-  --font-size-rhe: 1.6em;
+  --font-size-rhe-values: 1.7em;
+  --font-size-rhe-headers: 1.2em;
   --font-size-standings: 1.4em;
   --font-size-fraction: 0.6em;
 
@@ -19,7 +20,7 @@
 
   /* Cell dimensions */
   --height-row-game: 1.4em;
-  --height-row-stand: 1.2em;
+  --height-row-stand: 1.6em;
   --width-status: 3em;
   --width-rhe: 1.2em;
   --logo-size-game: 1.4em;
@@ -123,6 +124,7 @@
   width: var(--width-rhe);
   text-align: center;
   font-family: 'Times Square', Arial, sans-serif;
+  font-size: var(--font-size-rhe-headers);
   font-weight: normal;
 }
 
@@ -131,7 +133,7 @@
   width: var(--width-rhe);
   text-align: center;
   font-family: 'Times Square', Arial, sans-serif;
-  font-size: var(--font-size-rhe);
+  font-size: var(--font-size-rhe-values);
   padding: var(--pad-rhe);
 }
 
@@ -159,13 +161,6 @@
 /*--------------------------------------------------
   Standings Table
 --------------------------------------------------*/
-/* Division headers in standings */
-.standings-division h3 {
-  font-family: 'Times Square', Arial, sans-serif;
-  font-size: 1.2em;    /* adjust as you like */
-  margin: 0 0 4px 0;   /* remove any extra top/bottom spacing */
-}
-
 .mlb-standings {
   width: 100%;
   border-collapse: collapse;
