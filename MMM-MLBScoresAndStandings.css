@@ -82,10 +82,12 @@
   margin-bottom: 8px;
 }
 
+/* Boxscore table rows */
 .game-boxscore tr {
   height: var(--height-row-game);
 }
 
+/* Boxscore table headers & data */
 .game-boxscore th,
 .game-boxscore td {
   border: 1px solid #444;
