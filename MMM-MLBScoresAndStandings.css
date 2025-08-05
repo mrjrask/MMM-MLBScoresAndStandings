@@ -5,11 +5,11 @@
 --------------------------------------------------*/
 :root {
   /* Font sizes */
-  --font-size-abbr: 1.5em;
-  --font-size-status: 1.2em;
-  --font-size-rhe: 1.5em;
-  --font-size-standings: 1.5em;
-  --font-size-fraction: 0.8em;
+  --font-size-abbr: 1.4em;
+  --font-size-status: 1.0em;
+  --font-size-rhe: 1.6em;
+  --font-size-standings: 1.4em;
+  --font-size-fraction: 0.6em;
 
   /* Cell paddings */
   --pad-abbr: 0 6px;
@@ -19,7 +19,7 @@
 
   /* Cell dimensions */
   --height-row-game: 1.4em;
-  --height-row-stand: 1.4em;
+  --height-row-stand: 1.2em;
   --width-status: 3em;
   --width-rhe: 1.2em;
   --logo-size-game: 1.4em;
