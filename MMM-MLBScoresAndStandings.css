@@ -9,7 +9,8 @@
   --font-size-status: 1.0em;
   --font-size-rhe-values: 1.7em;
   --font-size-rhe-headers: 1.2em;
-  --font-size-standings: 1.4em;
+  --font-size-standings-headers: 1.0em; 
+  --font-size-standings-values:  1.3em;
   --font-size-fraction: 0.6em;
 
   /* Cell paddings */
@@ -167,11 +168,22 @@
   margin-bottom: 10px;
 }
 
+/* Standings table rows */
 .mlb-standings tr {
   height: var(--height-row-stand);
 }
 
-.mlb-standings th,
+/* Standings table headers */
+.mlb-standings th {
+  border: 1px solid #444;
+  padding: var(--pad-standings);
+  text-align: center;
+  vertical-align: middle;
+  font-family: 'Times Square', Arial, sans-serif;
+  font-size: var(--font-size-standings);
+}
+
+/* Standings table data cells */
 .mlb-standings td {
   border: 1px solid #444;
   padding: var(--pad-standings);
