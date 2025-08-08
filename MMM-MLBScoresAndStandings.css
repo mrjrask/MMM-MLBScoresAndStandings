@@ -9,7 +9,7 @@
   --font-size-status: 1.0em;
   --font-size-rhe-values: 1.7em;
   --font-size-rhe-headers: 1.2em;
-  --font-size-standings-headers: 1.0em; 
+  --font-size-standings-headers: 1.0em;
   --font-size-standings-values:  1.3em;
   --font-size-fraction: 0.6em;
 
@@ -40,80 +40,74 @@
 }
 
 /*--------------------------------------------------
-  Module Header
+  Module-specific rules
 --------------------------------------------------*/
-.module-header {
+.module.MMM-MLBScoresAndStandings {
+  /* scope for module content */
+}
+
+/* Module Header */
+.module.MMM-MLBScoresAndStandings .module-header {
   font-family: 'Times Square', Arial, sans-serif;
   font-size: 1.2em;
   font-weight: bold;
   margin: 0;
 }
-
-.scores-screen .module-header + hr {
+.module.MMM-MLBScoresAndStandings .scores-screen .module-header + hr {
   border: none;
   border-bottom: 1px solid #999;
   margin: 4px 0 8px;
 }
-.standings-screen .module-header + hr {
+.module.MMM-MLBScoresAndStandings .standings-screen .module-header + hr {
   display: none;
 }
 
-/*--------------------------------------------------
-  Scoreboard Grid
---------------------------------------------------*/
-.games-columns {
+/* Scoreboard Grid */
+.module.MMM-MLBScoresAndStandings .games-columns {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   justify-items: center;
 }
-.game-col {
+.module.MMM-MLBScoresAndStandings .game-col {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-/*--------------------------------------------------
-  Box Score Table
---------------------------------------------------*/
-.game-boxscore {
+/* Box Score Table */
+.module.MMM-MLBScoresAndStandings .game-boxscore {
   border-collapse: collapse;
   border: 1px solid #444;
   margin-bottom: 8px;
 }
-
-/* Boxscore table rows */
-.game-boxscore tr {
+.module.MMM-MLBScoresAndStandings .game-boxscore tr {
   height: var(--height-row-game);
 }
-
-/* Boxscore table headers & data */
-.game-boxscore th,
-.game-boxscore td {
+.module.MMM-MLBScoresAndStandings .game-boxscore th,
+.module.MMM-MLBScoresAndStandings .game-boxscore td {
   border: 1px solid #444;
   padding: var(--pad-abbr);
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
 }
-
-/* Team abbreviation + logo */
-.game-boxscore .team-cell {
+.module.MMM-MLBScoresAndStandings .team-cell {
   display: flex;
   align-items: center;
   gap: 4px;
   padding: var(--pad-abbr);
 }
-.game-boxscore .logo-cell {
+.module.MMM-MLBScoresAndStandings .logo-cell {
   width: var(--logo-size-game);
   height: var(--logo-size-game);
   object-fit: contain;
 }
-.game-boxscore .abbr {
+.module.MMM-MLBScoresAndStandings .abbr {
   font-size: var(--font-size-abbr);
 }
 
 /* Status (game time/inning) */
-.status-cell {
+.module.MMM-MLBScoresAndStandings .status-cell {
   width: var(--width-status);
   text-align: center;
   font-family: 'Times Square', Arial, sans-serif;
@@ -123,7 +117,7 @@
 }
 
 /* R/H/E header */
-.rhe-header {
+.module.MMM-MLBScoresAndStandings .rhe-header {
   width: var(--width-rhe);
   text-align: center;
   font-family: 'Times Square', Arial, sans-serif;
@@ -132,7 +126,7 @@
 }
 
 /* R/H/E values */
-.rhe-cell {
+.module.MMM-MLBScoresAndStandings .rhe-cell {
   width: var(--width-rhe);
   text-align: center;
   font-family: 'Times Square', Arial, sans-serif;
@@ -141,80 +135,68 @@
 }
 
 /* Live vs. final coloring */
-.status-cell.live,
-.rhe-cell.live {
+.module.MMM-MLBScoresAndStandings .status-cell.live,
+.module.MMM-MLBScoresAndStandings .rhe-cell.live {
   color: #FFD242 !important;
 }
-.status-cell:not(.live),
-.rhe-cell:not(.live) {
+.module.MMM-MLBScoresAndStandings .status-cell:not(.live),
+.module.MMM-MLBScoresAndStandings .rhe-cell:not(.live) {
   color: #FFF;
 }
 
 /* Highlighted team override */
-.game-boxscore .abbr.team-highlight,
-.mlb-standings tr.team-highlight td {
+.module.MMM-MLBScoresAndStandings .game-boxscore .abbr.team-highlight,
+.module.MMM-MLBScoresAndStandings .mlb-standings tr.team-highlight td {
   color: #FFD242 !important;
 }
 
 /* Dim losing team */
-.game-boxscore tr.loser .abbr {
+.module.MMM-MLBScoresAndStandings .game-boxscore tr.loser .abbr {
   opacity: 0.6;
 }
 
-/*--------------------------------------------------
-  Standings Table
---------------------------------------------------*/
-.mlb-standings {
+/* Standings Table */
+.module.MMM-MLBScoresAndStandings .mlb-standings {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 10px;
 }
-
-/* Standings table rows */
-.mlb-standings tr {
+.module.MMM-MLBScoresAndStandings .mlb-standings tr {
   height: var(--height-row-stand);
 }
-
-/* Standings table headers */
-.mlb-standings th {
+.module.MMM-MLBScoresAndStandings .mlb-standings th {
   border: 1px solid #444;
   padding: var(--pad-standings);
   text-align: center;
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
-  font-size: var(--font-size-standings);
+  font-size: var(--font-size-standings-headers);
 }
-
-/* Standings table data cells */
-.mlb-standings td {
+.module.MMM-MLBScoresAndStandings .mlb-standings td {
   border: 1px solid #444;
   padding: var(--pad-standings);
   text-align: center;
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
-  font-size: var(--font-size-standings);
+  font-size: var(--font-size-standings-values);
 }
-
-.mlb-standings .team-cell {
+.module.MMM-MLBScoresAndStandings .mlb-standings .team-cell {
   display: flex;
   align-items: center;
   gap: 4px;
 }
-
-.mlb-standings .logo-cell {
+.module.MMM-MLBScoresAndStandings .mlb-standings .logo-cell {
   width: var(--logo-size-stand);
   height: var(--logo-size-stand);
   object-fit: contain;
 }
-
-/* Fraction styling */
-.mlb-standings .fraction {
+.module.MMM-MLBScoresAndStandings .mlb-standings .fraction {
   font-size: var(--font-size-fraction) !important;
   vertical-align: super;
 }
 
 /* Fullscreen layout */
-.fullscreen_above .mlb-fullscreen-center {
+.module.MMM-MLBScoresAndStandings .fullscreen_above .mlb-fullscreen-center {
   display: flex;
   flex-direction: column;
   justify-content: center;
