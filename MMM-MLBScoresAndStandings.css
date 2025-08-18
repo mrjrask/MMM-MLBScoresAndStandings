@@ -22,7 +22,7 @@
   /* Cell dimensions */
   --height-row-game: 1.4em;
   /* ↓ tighter standings rows */
-  --height-row-stand: 1.2em;
+  --height-row-stand: 1.0em;
   --width-status: 3em;
   --width-rhe: 1.2em;
   --logo-size-game: 1.4em;
