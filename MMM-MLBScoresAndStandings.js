@@ -284,7 +284,8 @@ Module.register("MMM-MLBScoresAndStandings", {
         minute: "2-digit"
       });
     } else if (isFin) {
-      statusText = innings.length === 9 ? "F" : `F/${innings.length}`;
+      // CHANGED: use \"Final\" and \"Final/11\" (etc.) instead of F / F/11
+      statusText = innings.length === 9 ? "Final" : `Final/${innings.length}`;
     } else {
       const st = ls.inningState || "";
       const io = ls.currentInningOrdinal || "";
