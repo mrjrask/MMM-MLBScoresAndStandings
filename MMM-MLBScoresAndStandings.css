@@ -9,7 +9,7 @@
   --font-size-status: 1.0em;
   --font-size-rhe-values: 1.7em;
   --font-size-rhe-headers: 1.2em;
-  --font-size-standings-headers: 1.0em;
+  --font-size-standings-headers: 1.0em; 
   --font-size-standings-values:  1.3em;
   --font-size-fraction: 0.6em;
 
@@ -17,16 +17,22 @@
   --pad-abbr: 0 6px;
   --pad-status: 0 6px;
   --pad-rhe: 0 6px;
-  --pad-standings: 3px 5px;
+
+  /* Standings now use separate X/Y padding so rows can be tighter */
+  --pad-standings-y: 2px;   /* ↓ was 3px */
+  --pad-standings-x: 5px;
 
   /* Cell dimensions */
   --height-row-game: 1.4em;
-  /* ↓ tighter standings rows */
+
+  /* ↓ Adjust this to tighten/loosen standings row height */
   --height-row-stand: 1.0em;
+
   --width-status: 3em;
   --width-rhe: 1.2em;
+
   --logo-size-game: 1.4em;
-  --logo-size-stand: 1.2em;
+  --logo-size-stand: 1.2em; /* max width for standings logos */
 }
 
 /*--------------------------------------------------
@@ -43,9 +49,7 @@
 /*--------------------------------------------------
   Module-specific rules
 --------------------------------------------------*/
-.module.MMM-MLBScoresAndStandings {
-  /* scope for module content */
-}
+.module.MMM-MLBScoresAndStandings {}
 
 /* Module Header */
 .module.MMM-MLBScoresAndStandings .module-header {
@@ -63,7 +67,9 @@
   display: none;
 }
 
-/* Scoreboard Grid */
+/*--------------------------------------------------
+  Scoreboard Grid
+--------------------------------------------------*/
 .module.MMM-MLBScoresAndStandings .games-columns {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -76,7 +82,9 @@
   gap: 6px;
 }
 
-/* Box Score Table */
+/*--------------------------------------------------
+  Box Score Table
+--------------------------------------------------*/
 .module.MMM-MLBScoresAndStandings .game-boxscore {
   border-collapse: collapse;
   border: 1px solid #444;
@@ -156,47 +164,64 @@
   opacity: 0.6;
 }
 
-/* Standings Table */
+/*--------------------------------------------------
+  Standings Table  (tight row control)
+--------------------------------------------------*/
 .module.MMM-MLBScoresAndStandings .mlb-standings {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 10px;
 }
-.module.MMM-MLBScoresAndStandings .mlb-standings tr {
-  height: var(--height-row-stand);
-}
-.module.MMM-MLBScoresAndStandings .mlb-standings th {
+
+/* IMPORTANT: apply height + line-height on cells (not just tr) */
+.module.MMM-MLBScoresAndStandings .mlb-standings th,
+.module.MMM-MLBScoresAndStandings .mlb-standings td {
   border: 1px solid #444;
-  padding: var(--pad-standings);
+  /* tight vertical padding via X/Y vars */
+  padding: var(--pad-standings-y) var(--pad-standings-x);
   text-align: center;
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
+
+  /* enforce compact row height */
+  height: var(--height-row-stand);
+  line-height: calc(var(--height-row-stand) - (var(--pad-standings-y) * 2));
+}
+
+/* Standings fonts: headers vs values */
+.module.MMM-MLBScoresAndStandings .mlb-standings th {
   font-size: var(--font-size-standings-headers);
 }
 .module.MMM-MLBScoresAndStandings .mlb-standings td {
-  border: 1px solid #444;
-  padding: var(--pad-standings);
-  text-align: center;
-  vertical-align: middle;
-  font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-standings-values);
 }
+
+/* Team cell layout */
 .module.MMM-MLBScoresAndStandings .mlb-standings .team-cell {
   display: flex;
   align-items: center;
   gap: 4px;
 }
+
+/* Clamp the logo so it cannot stretch the row */
 .module.MMM-MLBScoresAndStandings .mlb-standings .logo-cell {
-  width: var(--logo-size-stand);
-  height: var(--logo-size-stand);
+  max-width: var(--logo-size-stand);
+  max-height: calc(var(--height-row-stand) - (var(--pad-standings-y) * 2));
+  width: auto;
+  height: auto;
   object-fit: contain;
+  display: inline-block;
 }
+
+/* Fraction styling (e.g., 1/2 in GB) */
 .module.MMM-MLBScoresAndStandings .mlb-standings .fraction {
   font-size: var(--font-size-fraction) !important;
   vertical-align: super;
 }
 
-/* Fullscreen layout */
+/*--------------------------------------------------
+  Fullscreen layout
+--------------------------------------------------*/
 .module.MMM-MLBScoresAndStandings .fullscreen_above .mlb-fullscreen-center {
   display: flex;
   flex-direction: column;
