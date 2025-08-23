@@ -21,6 +21,8 @@ const DIV_PAIRS = [
   [203, 200]  // NL West & AL West
 ];
 const WILD_CARD_ORDER = ["NL", "AL"]; // one page each
+const NL_DIVS = new Set([203, 204, 205]);
+const AL_DIVS = new Set([200, 201, 202]);
 
 const DIVISION_LABELS = {
   204: "NL East", 205: "NL Central", 203: "NL West",
@@ -77,7 +79,6 @@ Module.register("MMM-MLBScoresAndStandings", {
       delay = this.config.rotateIntervalScores;
     } else {
       const idx = this.currentScreen - this.totalGamePages;
-      // keep your pacing for the 3 division pages; WC pages use East timing fallback
       const intervals = [
         this.config.rotateIntervalEast,    // pair 0 (East)
         this.config.rotateIntervalCentral, // pair 1 (Central)
@@ -162,7 +163,7 @@ Module.register("MMM-MLBScoresAndStandings", {
   _createDivisionBlock(divId) {
     const block = document.createElement("div"); block.className = "standings-division";
     const title = document.createElement("h3");
-    title.className = "division-title";
+    title.className = "division-title"; // ensure Times Square via CSS
     title.innerText = DIVISION_LABELS[divId];
     title.style.margin = "0";
     block.appendChild(title);
@@ -176,17 +177,16 @@ Module.register("MMM-MLBScoresAndStandings", {
     const block = document.createElement("div"); block.className = "standings-division";
     const title = document.createElement("h3");
     title.className = "division-title";
-    title.innerText = DIVISION_LABELS[league]; // "NL Wild Card" / "AL Wild Card"
+    title.innerText = DIVISION_LABELS[league];
     title.style.margin = "0";
     block.appendChild(title);
 
-    const leagueId = league === "NL" ? 104 : 103;
-    const wcGroup = this._buildWildCardGroup(leagueId);
+    const wcGroup = this._buildWildCardGroup(league === "NL" ? NL_DIVS : AL_DIVS);
     block.appendChild(this.createStandingsTable(wcGroup, { isWildCard: true }));
     return block;
   },
 
-  // ---------- Wild Card build helpers ----------
+  // ---------- Wild Card build helpers (division-ID driven) ----------
 
   _pct(rec) {
     const w = parseInt(rec.leagueRecord?.wins || 0, 10);
@@ -198,59 +198,61 @@ Module.register("MMM-MLBScoresAndStandings", {
     return this._pct(b) - this._pct(a);
   },
 
-  _divisionLeadersMap() {
-    const leaders = new Map(); // divisionId -> teamId
+  _leadersByDivision() {
+    // Map<divisionId, leaderTeamId> by best pct within that division
+    const m = new Map();
     (this.recordGroups || []).forEach(gr => {
-      if (!gr?.division?.id || !(gr.teamRecords || []).length) return;
+      const divId = gr?.division?.id;
+      if (!divId || !(gr.teamRecords || []).length) return;
       const leader = [...gr.teamRecords].sort((a,b) => this._cmpPctDesc(a,b))[0];
-      if (leader?.team?.id) leaders.set(gr.division.id, leader.team.id);
+      if (leader?.team?.id) m.set(divId, leader.team.id);
     });
-    return leaders;
+    return m;
   },
 
-  _buildWildCardGroup(leagueId) {
-    // 1) gather league teams from division payload
-    const leagueTeams = (this.recordGroups || [])
-      .filter(gr =>
-        gr.teamRecords?.some(t => t.team?.league?.id === leagueId)
-      )
-      .flatMap(gr => gr.teamRecords || []);
+  _buildWildCardGroup(leagueDivSet) {
+    // Collect teams in the requested league by division id set (stable)
+    const leagueGroups = (this.recordGroups || []).filter(gr => leagueDivSet.has(gr?.division?.id));
+    if (!leagueGroups.length) return { teamRecords: [] };
 
-    // 2) exclude division leaders
-    const leaders = this._divisionLeadersMap();
-    const isLeader = (rec) => [...leaders.values()].includes(rec.team?.id);
-    const pool = leagueTeams.filter(tr => !isLeader(tr));
+    const leaders = this._leadersByDivision();
+    const isLeader = (rec, divId) => leaders.get(divId) === rec.team?.id;
 
-    // 3) sort by WCGB (asc), then pct (desc), then wins (desc)
-    //    To sort by WCGB we need to compute it relative to the current 3rd team.
-    //    We'll compute WCGB *after* initial pct sort to find the baseline (3rd place).
-    const byPct = [...pool].sort((a,b) => {
+    // Build a pool of *non-leaders* from those divisions
+    const pool = [];
+    leagueGroups.forEach(gr => {
+      const divId = gr.division.id;
+      (gr.teamRecords || []).forEach(tr => { if (!isLeader(tr, divId)) pool.push(tr); });
+    });
+    if (!pool.length) return { teamRecords: [] };
+
+    // Initial sort by pct desc, then wins desc
+    const sortedByPct = [...pool].sort((a,b) => {
       const pct = this._cmpPctDesc(a,b);
       if (pct !== 0) return pct;
-      // tiebreaker by wins desc
       const aw = parseInt(a.leagueRecord?.wins || 0, 10);
       const bw = parseInt(b.leagueRecord?.wins || 0, 10);
       return bw - aw;
     });
 
-    const base = byPct[2]; // third team (last WC spot)
-    // helper to compute numeric WCGB vs baseline
+    // Baseline = 3rd team (last WC slot)
+    const base = sortedByPct[2] || sortedByPct[sortedByPct.length - 1];
+
     const wcgbNum = (r) => {
       if (!base) return 0;
       const bw = parseInt(base.leagueRecord?.wins || 0, 10);
       const bl = parseInt(base.leagueRecord?.losses || 0, 10);
       const rw = parseInt(r.leagueRecord?.wins || 0, 10);
       const rl = parseInt(r.leagueRecord?.losses || 0, 10);
-      // games behind the 3rd team
       return Math.max(0, ((bw - rw) + (rl - bl)) / 2);
     };
 
-    // attach wcgb numbers, then sort by wcgb asc (then pct desc, then wins desc)
-    const withWCGB = byPct.map(r => {
+    // Attach WCGB and sort by WCGB asc, pct desc, wins desc
+    const withWCGB = sortedByPct.map(r => {
       const n = wcgbNum(r);
       return Object.assign({}, r, { _wcgbNum: n, _wcgbText: this._formatGB(n) });
     }).sort((a,b) => {
-      if (a._wcgbNum !== b._wcgbNum) return a._wcgbNum - b._wcgbNum; // asc
+      if (a._wcgbNum !== b._wcgbNum) return a._wcgbNum - b._wcgbNum;
       const pct = this._cmpPctDesc(a,b);
       if (pct !== 0) return pct;
       const aw = parseInt(a.leagueRecord?.wins || 0, 10);
@@ -262,15 +264,13 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   _formatGB(num) {
-    // num is a number like 0, 0.5, 1, 1.5, etc. Return string with 1/2 superscript span when needed.
     if (num == null) return "-";
     const m = Math.floor(num + 1e-9);
     const r = num - m;
-    if (Math.abs(r) < 1e-6) return `${m}`;             // whole number
-    if (Math.abs(r - 0.5) < 1e-6) {                    // half-game
+    if (Math.abs(r) < 1e-6) return `${m}`;
+    if (Math.abs(r - 0.5) < 1e-6) {
       return m === 0 ? '<span class="fraction">1/2</span>' : `${m}<span class="fraction">1/2</span>`;
     }
-    // fallback for unexpected values (e.g., 0.0x due to rounding)
     return num.toFixed(1).replace(/\.0$/, "");
   },
 
@@ -293,7 +293,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       if (isWildCard && i === 3) tr.style.borderTop = "2px solid #FFD242"; // separator after 3rd
 
       const ab = ABBREVIATIONS[rec.team?.name] || rec.team?.abbreviation || "";
-      if (this.config.highlightedTeams.includes(ab)) tr.classList.add("team-highlight");
+      if (this._isHighlighted(ab)) tr.classList.add("team-highlight");
 
       // Team cell
       const tdT = document.createElement("td"); tdT.className = "team-cell";
@@ -316,12 +316,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       // GB cell: WCGB for wildcard pages, Division GB otherwise
       let gbCellHTML = "-";
       if (isWildCard) {
-        // prefer computed _wcgbText; fallback to wildCardGamesBack if present; then fallback to "-"
-        if (typeof rec._wcgbText === "string") gbCellHTML = rec._wcgbText;
-        else if (rec.wildCardGamesBack != null && rec.wildCardGamesBack !== "-") {
-          const n = parseFloat(rec.wildCardGamesBack);
-          gbCellHTML = this._formatGB(isNaN(n) ? 0 : n);
-        }
+        gbCellHTML = (typeof rec._wcgbText === "string") ? rec._wcgbText : "-";
       } else {
         let gb = rec.divisionGamesBack;
         if (gb != null && gb !== "-") {
@@ -433,7 +428,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       const sp    = document.createElement("span");
       sp.className = "abbr";
       sp.innerText = abbr;
-      if (this.config.highlightedTeams.includes(abbr)) sp.classList.add("team-highlight");
+      if (this._isHighlighted(abbr)) sp.classList.add("team-highlight");
       if (isFin) sp.classList.add("final");
       tdT.appendChild(sp);
       tr.appendChild(tdT);
@@ -458,6 +453,13 @@ Module.register("MMM-MLBScoresAndStandings", {
     });
 
     return table;
+  },
+
+  _isHighlighted(abbr) {
+    const h = this.config.highlightedTeams;
+    if (Array.isArray(h)) return h.includes(abbr);
+    if (typeof h === "string") return h.toUpperCase() === abbr.toUpperCase();
+    return false;
   },
 
   getLogoUrl(abbr) {
