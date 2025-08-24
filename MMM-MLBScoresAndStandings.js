@@ -163,7 +163,7 @@ Module.register("MMM-MLBScoresAndStandings", {
   _createDivisionBlock(divId) {
     const block = document.createElement("div"); block.className = "standings-division";
     const title = document.createElement("h3");
-    title.className = "division-title"; // ensure Times Square via CSS
+    title.className = "division-title"; // styled in CSS to use Times Square
     title.innerText = DIVISION_LABELS[divId];
     title.style.margin = "0";
     block.appendChild(title);
@@ -211,14 +211,14 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   _buildWildCardGroup(leagueDivSet) {
-    // Collect teams in the requested league by division id set (stable)
+    // Collect teams in the requested league by division id set
     const leagueGroups = (this.recordGroups || []).filter(gr => leagueDivSet.has(gr?.division?.id));
     if (!leagueGroups.length) return { teamRecords: [] };
 
     const leaders = this._leadersByDivision();
     const isLeader = (rec, divId) => leaders.get(divId) === rec.team?.id;
 
-    // Build a pool of *non-leaders* from those divisions
+    // Pool of *non-leaders*
     const pool = [];
     leagueGroups.forEach(gr => {
       const divId = gr.division.id;
@@ -226,7 +226,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     });
     if (!pool.length) return { teamRecords: [] };
 
-    // Initial sort by pct desc, then wins desc
+    // Sort by pct desc, then wins desc
     const sortedByPct = [...pool].sort((a,b) => {
       const pct = this._cmpPctDesc(a,b);
       if (pct !== 0) return pct;
@@ -264,13 +264,15 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   _formatGB(num) {
+    // 0 becomes "--" per your request
     if (num == null) return "-";
+    if (Math.abs(num) < 1e-6) return "--";
     const m = Math.floor(num + 1e-9);
     const r = num - m;
-    if (Math.abs(r) < 1e-6) return `${m}`;
     if (Math.abs(r - 0.5) < 1e-6) {
       return m === 0 ? '<span class="fraction">1/2</span>' : `${m}<span class="fraction">1/2</span>`;
     }
+    if (Math.abs(r) < 1e-6) return `${m}`;
     return num.toFixed(1).replace(/\.0$/, "");
   },
 
@@ -280,15 +282,17 @@ Module.register("MMM-MLBScoresAndStandings", {
     const isWildCard = !!opts.isWildCard;
     const table = document.createElement("table"); table.className = "mlb-standings";
 
-    // Header row (use WCGB on WC screens)
+    // Headers: add WCGB column after GB for division pages
     const trH = document.createElement("tr");
-    const headers = ["", "W-L", "W%", isWildCard ? "WCGB" : "GB", "Streak", "L10", "Home", "Away"];
+    const headers = isWildCard
+      ? ["", "W-L", "W%", "WCGB", "Streak", "L10", "Home", "Away"]
+      : ["", "W-L", "W%", "GB", "WCGB", "Streak", "L10", "Home", "Away"];
     headers.forEach(txt => {
       const th = document.createElement("th"); th.innerText = txt; trH.appendChild(th);
     });
     table.appendChild(trH);
 
-    (group.teamRecords || []).forEach((rec, i) => {
+    (group?.teamRecords || []).forEach((rec, i) => {
       const tr = document.createElement("tr");
       if (isWildCard && i === 3) tr.style.borderTop = "2px solid #FFD242"; // separator after 3rd
 
@@ -313,21 +317,29 @@ Module.register("MMM-MLBScoresAndStandings", {
         const td = document.createElement("td"); td.innerText = val; tr.appendChild(td);
       });
 
-      // GB cell: WCGB for wildcard pages, Division GB otherwise
-      let gbCellHTML = "-";
+      // GB (division) + WCGB display rules
       if (isWildCard) {
-        gbCellHTML = (typeof rec._wcgbText === "string") ? rec._wcgbText : "-";
+        // WC screen: only WCGB column (already in headers)
+        const wcgbHTML = (typeof rec._wcgbText === "string") ? rec._wcgbText : "--";
+        const tdWC = document.createElement("td"); tdWC.innerHTML = wcgbHTML; tr.appendChild(tdWC);
       } else {
-        let gb = rec.divisionGamesBack;
-        if (gb != null && gb !== "-") {
-          const f = parseFloat(gb), m = Math.floor(f), r = f - m;
-          if (Math.abs(r) < 1e-6) gb = `${m}`;
-          else if (Math.abs(r - 0.5) < 1e-6) gb = m === 0 ? '<span class="fraction">1/2</span>' : `${m}<span class="fraction">1/2</span>`;
-          else gb = f.toString();
-          gbCellHTML = gb;
+        // Division screen: GB then WCGB (new)
+        // GB:
+        let gbHTML = "-";
+        if (rec.divisionGamesBack != null && rec.divisionGamesBack !== "-") {
+          const f = parseFloat(rec.divisionGamesBack);
+          gbHTML = this._formatGB(isNaN(f) ? 0 : f);
         }
+        const tdGB = document.createElement("td"); tdGB.innerHTML = gbHTML; tr.appendChild(tdGB);
+
+        // WCGB (prefer field from API; else compute relative to wild-card baseline using wins/losses if needed)
+        let wcgbHTML = "--";
+        if (rec.wildCardGamesBack != null && rec.wildCardGamesBack !== "-") {
+          const f = parseFloat(rec.wildCardGamesBack);
+          wcgbHTML = this._formatGB(isNaN(f) ? 0 : f);
+        }
+        const tdWC = document.createElement("td"); tdWC.innerHTML = wcgbHTML; tr.appendChild(tdWC);
       }
-      const tdG = document.createElement("td"); tdG.innerHTML = gbCellHTML; tr.appendChild(tdG);
 
       // Streak, L10, Home, Away
       const sr = rec.streak?.streakCode || "-";
