@@ -392,9 +392,8 @@ Module.register("MMM-MLBScoresAndStandings", {
     const m = Math.floor(num + 1e-9);
     const r = num - m;
     if (Math.abs(r - 0.5) < 1e-6) {
-      return (m === 0)
-        ? '<span class="fraction">1/2</span>'
-        : `${m}<span class="fraction">1/2</span>`;
+      // No superscript; no space between whole and 1/2
+      return (m === 0) ? "1/2" : `${m}1/2`;
     }
     if (Math.abs(r) < 1e-6) return `${m}`;
     return num.toFixed(1).replace(/\.0$/, "");
@@ -413,7 +412,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     const table = document.createElement("table");
     table.className = "mlb-standings";
 
-    // Division: ["", "W-L", "W%", "GB", "E#", "WCGB", "WC E#", "Streak", "L10", "Home", "Away"]
+    // Division: ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
     // WildCard: ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
     const headers = isWildCard
       ? ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
@@ -484,7 +483,7 @@ Module.register("MMM-MLBScoresAndStandings", {
         tdEDiv.innerText = this._formatENum(rec?.eliminationNumber);
         tr.appendChild(tdEDiv);
 
-        // WCGB, WC E#
+        // WCGB, E# (wild card, label is just "E#" per request)
         const tdWC = document.createElement("td");
         tdWC.innerHTML = this._formatGB(rec?.wildCardGamesBack ?? "-");
         tr.appendChild(tdWC);
