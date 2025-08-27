@@ -169,7 +169,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     block.appendChild(title);
 
     const group = this.recordGroups.find(g => g.division.id === divId);
-    block.appendChild(this.createStandingsTable(group || { teamRecords: [] }, { isWildCard: false }));
+    block.appendChild(this.createStandingsTable(group || { teamRecords: [] }, { isWildCard: false, leagueDivSet: (NL_DIVS.has(divId) ? NL_DIVS : AL_DIVS) }));
     return block;
   },
 
@@ -264,7 +264,7 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   _formatGB(num) {
-    // 0 becomes "--" per your request
+    // 0 becomes "--"
     if (num == null) return "-";
     if (Math.abs(num) < 1e-6) return "--";
     const m = Math.floor(num + 1e-9);
@@ -276,17 +276,28 @@ Module.register("MMM-MLBScoresAndStandings", {
     return num.toFixed(1).replace(/\.0$/, "");
   },
 
+  _formatENum(val) {
+    // E# formatting: 0 -> "--"; "-", null/undefined -> "-"
+    if (val == null) return "-";
+    if (val === "-" || val === "--") return val;
+    const n = parseInt(val, 10);
+    if (!isNaN(n)) return n === 0 ? "--" : String(n);
+    return String(val);
+  },
+
   // ---------- Standings Table Render ----------
 
-  createStandingsTable(group, opts = { isWildCard: false }) {
+  createStandingsTable(group, opts = { isWildCard: false, leagueDivSet: null }) {
     const isWildCard = !!opts.isWildCard;
     const table = document.createElement("table"); table.className = "mlb-standings";
 
-    // Headers: add WCGB column after GB for division pages
+    // Headers:
+    // - Division: add E# after GB, then WCGB
+    // - Wild Card: WCGB then E#
     const trH = document.createElement("tr");
     const headers = isWildCard
-      ? ["", "W-L", "W%", "WCGB", "Streak", "L10", "Home", "Away"]
-      : ["", "W-L", "W%", "GB", "WCGB", "Streak", "L10", "Home", "Away"];
+      ? ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
+      : ["", "W-L", "W%", "GB", "E#", "WCGB", "Streak", "L10", "Home", "Away"];
     headers.forEach(txt => {
       const th = document.createElement("th"); th.innerText = txt; trH.appendChild(th);
     });
@@ -317,22 +328,25 @@ Module.register("MMM-MLBScoresAndStandings", {
         const td = document.createElement("td"); td.innerText = val; tr.appendChild(td);
       });
 
-      // GB (division) + WCGB display rules
       if (isWildCard) {
-        // WC screen: only WCGB column (already in headers)
+        // WCGB
         const wcgbHTML = (typeof rec._wcgbText === "string") ? rec._wcgbText : "--";
         const tdWC = document.createElement("td"); tdWC.innerHTML = wcgbHTML; tr.appendChild(tdWC);
+        // E# (wild card)
+        const eWC = this._formatENum(rec.wildCardEliminationNumber);
+        const tdE = document.createElement("td"); tdE.innerText = eWC; tr.appendChild(tdE);
       } else {
-        // Division screen: GB then WCGB (new)
-        // GB:
+        // Division GB
         let gbHTML = "-";
         if (rec.divisionGamesBack != null && rec.divisionGamesBack !== "-") {
           const f = parseFloat(rec.divisionGamesBack);
           gbHTML = this._formatGB(isNaN(f) ? 0 : f);
         }
         const tdGB = document.createElement("td"); tdGB.innerHTML = gbHTML; tr.appendChild(tdGB);
-
-        // WCGB (prefer field from API; else compute relative to wild-card baseline using wins/losses if needed)
+        // Division E#
+        const eDiv = this._formatENum(rec.eliminationNumber);
+        const tdED = document.createElement("td"); tdED.innerText = eDiv; tr.appendChild(tdED);
+        // WCGB
         let wcgbHTML = "--";
         if (rec.wildCardGamesBack != null && rec.wildCardGamesBack !== "-") {
           const f = parseFloat(rec.wildCardGamesBack);
