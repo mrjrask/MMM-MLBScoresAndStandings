@@ -417,7 +417,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     // WildCard: ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
     const headers = isWildCard
       ? ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
-      : ["", "W-L", "W%", "GB", "E#", "WCGB", "WC E#", "Streak", "L10", "Home", "Away"];
+      : ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10", "Home", "Away"];
 
     const trH = document.createElement("tr");
     headers.forEach(txt => {
