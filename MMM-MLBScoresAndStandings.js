@@ -381,23 +381,27 @@ Module.register("MMM-MLBScoresAndStandings", {
     return { teamRecords: withWCGB };
   },
 
-  _formatGB(num) {
-    if (num == null) return "-";
-    if (typeof num === "string") {
-      if (num === "-" || num.trim() === "") return "-";
-      const f = parseFloat(num);
-      if (!isNaN(f)) num = f; else return "-";
-    }
-    if (Math.abs(num) < 1e-6) return "--";
-    const m = Math.floor(num + 1e-9);
-    const r = num - m;
-    if (Math.abs(r - 0.5) < 1e-6) {
-      // No superscript; no space between whole and 1/2
-      return (m === 0) ? "1/2" : `${m}1/2`;
-    }
-    if (Math.abs(r) < 1e-6) return `${m}`;
-    return num.toFixed(1).replace(/\.0$/, "");
-  },
+_formatGB(num) {
+  if (num == null) return "-";
+  if (typeof num === "string") {
+    if (num === "-" || num.trim() === "") return "-";
+    const f = parseFloat(num);
+    if (!isNaN(f)) num = f; else return "-";
+  }
+  if (Math.abs(num) < 1e-6) return "--";
+
+  const m = Math.floor(num + 1e-9);
+  const r = num - m;
+
+  if (Math.abs(r - 0.5) < 1e-6) {
+    // Wrap 1/2 in <span class="fraction">
+    if (m === 0) return `<span class="fraction">1/2</span>`;
+    return `${m}<span class="fraction">1/2</span>`;
+  }
+
+  if (Math.abs(r) < 1e-6) return `${m}`;
+  return num.toFixed(1).replace(/\.0$/, "");
+},
 
   _formatENum(val) {
     if (val == null) return "-";
