@@ -20,7 +20,7 @@ const DIV_PAIRS = [
   [205, 202], // NL Central & AL Central
   [203, 200]  // NL West & AL West
 ];
-const WILD_CARD_ORDER = ["NL", "AL"]; // one page each
+const WILD_CARD_ORDER = ["NL", "AL"];
 const NL_DIVS = new Set([203, 204, 205]);
 const AL_DIVS = new Set([200, 201, 202]);
 
@@ -57,11 +57,11 @@ Module.register("MMM-MLBScoresAndStandings", {
 
   start() {
     this.games           = [];
-    this.recordGroups    = []; // division objects from helper (AL+NL)
+    this.recordGroups    = [];
     this.loadedGames     = false;
     this.loadedStandings = false;
     this.totalGamePages  = 1;
-    this.totalStandPages = DIV_PAIRS.length + WILD_CARD_ORDER.length; // 3 pairs + 2 WC
+    this.totalStandPages = DIV_PAIRS.length + WILD_CARD_ORDER.length;
     this.currentScreen   = 0;
     this.rotateTimer     = null;
 
@@ -74,19 +74,17 @@ Module.register("MMM-MLBScoresAndStandings", {
 
   _scheduleRotate() {
     const total = this.totalGamePages + this.totalStandPages;
-    let delay;
-    if (this.currentScreen < this.totalGamePages) {
-      delay = this.config.rotateIntervalScores;
-    } else {
+    clearTimeout(this.rotateTimer);
+    let delay = this.config.rotateIntervalScores;
+    if (this.currentScreen >= this.totalGamePages) {
       const idx = this.currentScreen - this.totalGamePages;
       const intervals = [
-        this.config.rotateIntervalEast,    // pair 0 (East)
-        this.config.rotateIntervalCentral, // pair 1 (Central)
-        this.config.rotateIntervalWest     // pair 2 (West)
+        this.config.rotateIntervalEast,
+        this.config.rotateIntervalCentral,
+        this.config.rotateIntervalWest
       ];
       delay = intervals[idx] || this.config.rotateIntervalEast;
     }
-    clearTimeout(this.rotateTimer);
     this.rotateTimer = setTimeout(() => {
       this.currentScreen = (this.currentScreen + 1) % total;
       this.updateDom(300);
@@ -103,168 +101,12 @@ Module.register("MMM-MLBScoresAndStandings", {
     }
     if (notification === "STANDINGS") {
       this.loadedStandings = true;
-      this.recordGroups    = payload; // array of division records from helper
+      this.recordGroups    = payload;
       this.updateDom();
     }
   },
 
-  _noData(msg) {
-    const div = document.createElement("div");
-    div.className = "small dimmed";
-    div.innerText = msg;
-    return div;
-  },
-
-  getDom() {
-    const wrapper = document.createElement("div");
-    const showingGames = this.currentScreen < this.totalGamePages;
-    wrapper.className = showingGames ? "scores-screen" : "standings-screen";
-
-    if (showingGames && !this.loadedGames)       return this._noData("Loading games...");
-    if (!showingGames && !this.loadedStandings)  return this._noData("Loading standings...");
-    if (showingGames && this.games.length === 0) return this._noData("No games to display.");
-    if (!showingGames && this.recordGroups.length === 0) return this._noData("Standings unavailable.");
-
-    wrapper.appendChild(showingGames ? this._buildGames() : this._buildStandings());
-    return wrapper;
-  },
-
-  _buildGames() {
-    const start = this.currentScreen * this.config.gamesPerPage;
-    const games = this.games.slice(start, start + this.config.gamesPerPage);
-    const wrapper = document.createElement("div"); wrapper.className = "games-columns";
-    const half = Math.ceil(games.length / 2);
-    [games.slice(0, half), games.slice(half)].forEach(col => {
-      const colDiv = document.createElement("div"); colDiv.className = "game-col";
-      col.forEach(game => colDiv.appendChild(this.createGameBox(game)));
-      wrapper.appendChild(colDiv);
-    });
-    return wrapper;
-  },
-
-  _buildStandings() {
-    const idx = this.currentScreen - this.totalGamePages;
-    const wrapper = document.createElement("div");
-
-    if (idx < DIV_PAIRS.length) {
-      // Division screens (two per page)
-      wrapper.className = "standings-pair";
-      DIV_PAIRS[idx].forEach(divId => wrapper.appendChild(this._createDivisionBlock(divId)));
-    } else {
-      // Wild Card screens (one per page)
-      wrapper.className = "standings-single";
-      const wcIdx = idx - DIV_PAIRS.length;
-      const league = WILD_CARD_ORDER[wcIdx]; // "NL" or "AL"
-      wrapper.appendChild(this._createWildCardBlock(league));
-    }
-    return wrapper;
-  },
-
-  _createDivisionBlock(divId) {
-    const block = document.createElement("div"); block.className = "standings-division";
-    const title = document.createElement("h3");
-    title.className = "division-title"; // styled in CSS to use Times Square
-    title.innerText = DIVISION_LABELS[divId];
-    title.style.margin = "0";
-    block.appendChild(title);
-
-    const group = this.recordGroups.find(g => g.division.id === divId);
-    block.appendChild(this.createStandingsTable(group || { teamRecords: [] }, { isWildCard: false, leagueDivSet: (NL_DIVS.has(divId) ? NL_DIVS : AL_DIVS) }));
-    return block;
-  },
-
-  _createWildCardBlock(league) {
-    const block = document.createElement("div"); block.className = "standings-division";
-    const title = document.createElement("h3");
-    title.className = "division-title";
-    title.innerText = DIVISION_LABELS[league];
-    title.style.margin = "0";
-    block.appendChild(title);
-
-    const wcGroup = this._buildWildCardGroup(league === "NL" ? NL_DIVS : AL_DIVS);
-    block.appendChild(this.createStandingsTable(wcGroup, { isWildCard: true }));
-    return block;
-  },
-
-  // ---------- Wild Card build helpers (division-ID driven) ----------
-
-  _pct(rec) {
-    const w = parseInt(rec.leagueRecord?.wins || 0, 10);
-    const l = parseInt(rec.leagueRecord?.losses || 0, 10);
-    return (w + l) ? (w / (w + l)) : 0;
-  },
-
-  _cmpPctDesc(a, b) {
-    return this._pct(b) - this._pct(a);
-  },
-
-  _leadersByDivision() {
-    // Map<divisionId, leaderTeamId> by best pct within that division
-    const m = new Map();
-    (this.recordGroups || []).forEach(gr => {
-      const divId = gr?.division?.id;
-      if (!divId || !(gr.teamRecords || []).length) return;
-      const leader = [...gr.teamRecords].sort((a,b) => this._cmpPctDesc(a,b))[0];
-      if (leader?.team?.id) m.set(divId, leader.team.id);
-    });
-    return m;
-  },
-
-  _buildWildCardGroup(leagueDivSet) {
-    // Collect teams in the requested league by division id set
-    const leagueGroups = (this.recordGroups || []).filter(gr => leagueDivSet.has(gr?.division?.id));
-    if (!leagueGroups.length) return { teamRecords: [] };
-
-    const leaders = this._leadersByDivision();
-    const isLeader = (rec, divId) => leaders.get(divId) === rec.team?.id;
-
-    // Pool of *non-leaders*
-    const pool = [];
-    leagueGroups.forEach(gr => {
-      const divId = gr.division.id;
-      (gr.teamRecords || []).forEach(tr => { if (!isLeader(tr, divId)) pool.push(tr); });
-    });
-    if (!pool.length) return { teamRecords: [] };
-
-    // Sort by pct desc, then wins desc
-    const sortedByPct = [...pool].sort((a,b) => {
-      const pct = this._cmpPctDesc(a,b);
-      if (pct !== 0) return pct;
-      const aw = parseInt(a.leagueRecord?.wins || 0, 10);
-      const bw = parseInt(b.leagueRecord?.wins || 0, 10);
-      return bw - aw;
-    });
-
-    // Baseline = 3rd team (last WC slot)
-    const base = sortedByPct[2] || sortedByPct[sortedByPct.length - 1];
-
-    const wcgbNum = (r) => {
-      if (!base) return 0;
-      const bw = parseInt(base.leagueRecord?.wins || 0, 10);
-      const bl = parseInt(base.leagueRecord?.losses || 0, 10);
-      const rw = parseInt(r.leagueRecord?.wins || 0, 10);
-      const rl = parseInt(r.leagueRecord?.losses || 0, 10);
-      return Math.max(0, ((bw - rw) + (rl - bl)) / 2);
-    };
-
-    // Attach WCGB and sort by WCGB asc, pct desc, wins desc
-    const withWCGB = sortedByPct.map(r => {
-      const n = wcgbNum(r);
-      return Object.assign({}, r, { _wcgbNum: n, _wcgbText: this._formatGB(n) });
-    }).sort((a,b) => {
-      if (a._wcgbNum !== b._wcgbNum) return a._wcgbNum - b._wcgbNum;
-      const pct = this._cmpPctDesc(a,b);
-      if (pct !== 0) return pct;
-      const aw = parseInt(a.leagueRecord?.wins || 0, 10);
-      const bw = parseInt(b.leagueRecord?.wins || 0, 10);
-      return bw - aw;
-    });
-
-    return { teamRecords: withWCGB };
-  },
-
   _formatGB(num) {
-    // 0 becomes "--"
     if (num == null) return "-";
     if (Math.abs(num) < 1e-6) return "--";
     const m = Math.floor(num + 1e-9);
@@ -277,7 +119,6 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   _formatENum(val) {
-    // E# formatting: 0 -> "--"; "-", null/undefined -> "-"
     if (val == null) return "-";
     if (val === "-" || val === "--") return val;
     const n = parseInt(val, 10);
@@ -285,19 +126,14 @@ Module.register("MMM-MLBScoresAndStandings", {
     return String(val);
   },
 
-  // ---------- Standings Table Render ----------
-
-  createStandingsTable(group, opts = { isWildCard: false, leagueDivSet: null }) {
+  createStandingsTable(group, opts = { isWildCard: false }) {
     const isWildCard = !!opts.isWildCard;
     const table = document.createElement("table"); table.className = "mlb-standings";
 
-    // Headers:
-    // - Division: add E# after GB, then WCGB
-    // - Wild Card: WCGB then E#
-    const trH = document.createElement("tr");
     const headers = isWildCard
       ? ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
-      : ["", "W-L", "W%", "GB", "E#", "WCGB", "Streak", "L10", "Home", "Away"];
+      : ["", "W-L", "W%", "GB", "E#", "WCGB", "WC E#", "Streak", "L10", "Home", "Away"];
+    const trH = document.createElement("tr");
     headers.forEach(txt => {
       const th = document.createElement("th"); th.innerText = txt; trH.appendChild(th);
     });
@@ -305,21 +141,16 @@ Module.register("MMM-MLBScoresAndStandings", {
 
     (group?.teamRecords || []).forEach((rec, i) => {
       const tr = document.createElement("tr");
-      if (isWildCard && i === 3) tr.style.borderTop = "2px solid #FFD242"; // separator after 3rd
+      if (isWildCard && i === 3) tr.style.borderTop = "2px solid #FFD242";
 
       const ab = ABBREVIATIONS[rec.team?.name] || rec.team?.abbreviation || "";
-      if (this._isHighlighted(ab)) tr.classList.add("team-highlight");
-
-      // Team cell
       const tdT = document.createElement("td"); tdT.className = "team-cell";
-      const img = document.createElement("img");
-      img.src = this.getLogoUrl(ab); img.alt = ab;
-      img.className = "logo-cell"; img.onerror = () => img.style.display = 'none';
+      const img = document.createElement("img"); img.src = this.getLogoUrl(ab); img.alt = ab;
+      img.className = "logo-cell"; img.onerror = () => img.style.display = "none";
       tdT.appendChild(img);
       const sp = document.createElement("span"); sp.className = "abbr"; sp.innerText = ab;
       tdT.appendChild(sp); tr.appendChild(tdT);
 
-      // W-L and Pct
       const lr = rec.leagueRecord || {};
       const W  = parseInt(lr.wins)   || 0;
       const L  = parseInt(lr.losses) || 0;
@@ -329,42 +160,28 @@ Module.register("MMM-MLBScoresAndStandings", {
       });
 
       if (isWildCard) {
-        // WCGB
-        const wcgbHTML = (typeof rec._wcgbText === "string") ? rec._wcgbText : "--";
-        const tdWC = document.createElement("td"); tdWC.innerHTML = wcgbHTML; tr.appendChild(tdWC);
-        // E# (wild card)
+        const wcgb = this._formatGB(parseFloat(rec._wcgbNum || rec.wildCardGamesBack || 0));
+        const tdWC = document.createElement("td"); tdWC.innerHTML = wcgb; tr.appendChild(tdWC);
         const eWC = this._formatENum(rec.wildCardEliminationNumber);
         const tdE = document.createElement("td"); tdE.innerText = eWC; tr.appendChild(tdE);
       } else {
-        // Division GB
-        let gbHTML = "-";
-        if (rec.divisionGamesBack != null && rec.divisionGamesBack !== "-") {
-          const f = parseFloat(rec.divisionGamesBack);
-          gbHTML = this._formatGB(isNaN(f) ? 0 : f);
-        }
-        const tdGB = document.createElement("td"); tdGB.innerHTML = gbHTML; tr.appendChild(tdGB);
-        // Division E#
+        const gb = this._formatGB(parseFloat(rec.divisionGamesBack || 0));
+        const tdGB = document.createElement("td"); tdGB.innerHTML = gb; tr.appendChild(tdGB);
         const eDiv = this._formatENum(rec.eliminationNumber);
         const tdED = document.createElement("td"); tdED.innerText = eDiv; tr.appendChild(tdED);
-        // WCGB
-        let wcgbHTML = "--";
-        if (rec.wildCardGamesBack != null && rec.wildCardGamesBack !== "-") {
-          const f = parseFloat(rec.wildCardGamesBack);
-          wcgbHTML = this._formatGB(isNaN(f) ? 0 : f);
-        }
-        const tdWC = document.createElement("td"); tdWC.innerHTML = wcgbHTML; tr.appendChild(tdWC);
+        const wcgb = this._formatGB(parseFloat(rec.wildCardGamesBack || 0));
+        const tdWC = document.createElement("td"); tdWC.innerHTML = wcgb; tr.appendChild(tdWC);
+        const eWC = this._formatENum(rec.wildCardEliminationNumber);
+        const tdEWC = document.createElement("td"); tdEWC.innerText = eWC; tr.appendChild(tdEWC);
       }
 
-      // Streak, L10, Home, Away
-      const sr = rec.streak?.streakCode || "-";
-      const s10 = rec.records?.splitRecords?.find(s => s.type?.toLowerCase() === "lastten");
-      const l10 = s10 ? `${s10.wins}-${s10.losses}` : "-";
-      const home = rec.records?.splitRecords?.find(s => s.type?.toLowerCase() === "home");
-      const away = rec.records?.splitRecords?.find(s => s.type?.toLowerCase() === "away");
-
-      [sr, l10,
-        home ? `${home.wins}-${home.losses}` : "-",
-        away ? `${away.wins}-${away.losses}` : "-"
+      [rec.streak?.streakCode || "-",
+       (rec.records?.splitRecords?.find(s => s.type?.toLowerCase() === "lastten")?.wins || "-") + "-" +
+       (rec.records?.splitRecords?.find(s => s.type?.toLowerCase() === "lastten")?.losses || "-"),
+       rec.records?.splitRecords?.find(s => s.type?.toLowerCase() === "home") ?
+         `${rec.records.splitRecords.find(s => s.type.toLowerCase()==="home").wins}-${rec.records.splitRecords.find(s => s.type.toLowerCase()==="home").losses}` : "-",
+       rec.records?.splitRecords?.find(s => s.type?.toLowerCase() === "away") ?
+         `${rec.records.splitRecords.find(s => s.type.toLowerCase()==="away").wins}-${rec.records.splitRecords.find(s => s.type.toLowerCase()==="away").losses}` : "-"
       ].forEach(val => {
         const td = document.createElement("td"); td.innerText = val; tr.appendChild(td);
       });
@@ -373,119 +190,6 @@ Module.register("MMM-MLBScoresAndStandings", {
     });
 
     return table;
-  },
-
-  // ---------- Scoreboard ----------
-
-  createGameBox(game) {
-    const table = document.createElement("table");
-    table.className   = "game-boxscore";
-    table.cellSpacing = 0;
-    table.cellPadding = 0;
-
-    const awayScore = game.teams.away.score;
-    const homeScore = game.teams.home.score;
-    const ls        = game.linescore || {};
-    const state     = game.status.abstractGameState || "";
-    const det       = game.status.detailedState || "";
-    const innings   = ls.innings || [];
-
-    const isSuspended = det.includes("Suspended") || state === "Suspended";
-    const isPost      = det.includes("Postponed");
-    const isWarmup    = det === "Warmup";
-    const isPrev      = state === "Preview";
-    const isFin       = state === "Final";
-    const live        = !isPrev && !isFin && !isPost && !isWarmup && !isSuspended;
-    const show        = !isPrev && !isPost && !isSuspended;
-
-    let statusText;
-    if (isSuspended) statusText = "Suspended";
-    else if (isPost) statusText = "Postponed";
-    else if (isWarmup) statusText = "Warmup";
-    else if (isPrev) {
-      statusText = new Date(game.gameDate).toLocaleTimeString("en-US", {
-        timeZone: this.config.timeZone,
-        hour12: true,
-        hour: "numeric",
-        minute: "2-digit"
-      });
-    } else if (isFin) {
-      // Use Final and Final/X instead of F / F/X
-      statusText = innings.length === 9 ? "Final" : `Final/${innings.length}`;
-    } else {
-      const st = ls.inningState || "";
-      const io = ls.currentInningOrdinal || "";
-      statusText = (st + " " + io).trim() || "In Progress";
-    }
-
-    // Header row
-    const trH = document.createElement("tr");
-    const thS = document.createElement("th");
-    thS.className = "status-cell";
-    thS.innerText = statusText;
-    trH.appendChild(thS);
-    ["R","H","E"].forEach(lbl => {
-      const th = document.createElement("th");
-      th.className = "rhe-header";
-      th.innerText = lbl;
-      trH.appendChild(th);
-    });
-    table.appendChild(trH);
-
-    const lines = ls.teams || {};
-    [game.teams.away, game.teams.home].forEach((t, i) => {
-      const tr = document.createElement("tr");
-      if (isFin) {
-        const awayL = awayScore < homeScore;
-        const homeL = homeScore < awayScore;
-        if ((i===0 && awayL) || (i===1 && homeL)) tr.classList.add("loser");
-      }
-
-      const abbr = ABBREVIATIONS[t.team.name] || t.team.abbreviation || "";
-      const tdT  = document.createElement("td");
-      tdT.className = "team-cell";
-      const img  = document.createElement("img");
-      img.src      = this.getLogoUrl(abbr);
-      img.alt      = abbr;
-      img.className= "logo-cell";
-      img.onerror  = () => img.style.display = 'none';
-      tdT.appendChild(img);
-
-      const sp    = document.createElement("span");
-      sp.className = "abbr";
-      sp.innerText = abbr;
-      if (this._isHighlighted(abbr)) sp.classList.add("team-highlight");
-      if (isFin) sp.classList.add("final");
-      tdT.appendChild(sp);
-      tr.appendChild(tdT);
-
-      const runVal = show ? t.score : "";
-      const hitVal = show
-        ? (i===0 ? (lines.away?.hits ?? "") : (lines.home?.hits ?? ""))
-        : "";
-      const errVal = show
-        ? (t.errors != null ? t.errors
-            : (i===0 ? (lines.away?.errors ?? "") : (lines.home?.errors ?? "")))
-        : "";
-
-      [runVal, hitVal, errVal].forEach(val => {
-        const td = document.createElement("td");
-        td.className = live ? "rhe-cell live" : "rhe-cell";
-        td.innerText = val;
-        tr.appendChild(td);
-      });
-
-      table.appendChild(tr);
-    });
-
-    return table;
-  },
-
-  _isHighlighted(abbr) {
-    const h = this.config.highlightedTeams;
-    if (Array.isArray(h)) return h.includes(abbr);
-    if (typeof h === "string") return h.toUpperCase() === abbr.toUpperCase();
-    return false;
   },
 
   getLogoUrl(abbr) {
