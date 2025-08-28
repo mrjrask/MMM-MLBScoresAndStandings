@@ -381,27 +381,25 @@ Module.register("MMM-MLBScoresAndStandings", {
     return { teamRecords: withWCGB };
   },
 
-_formatGB(num) {
-  if (num == null) return "-";
-  if (typeof num === "string") {
-    if (num === "-" || num.trim() === "") return "-";
-    const f = parseFloat(num);
-    if (!isNaN(f)) num = f; else return "-";
-  }
-  if (Math.abs(num) < 1e-6) return "--";
-
-  const m = Math.floor(num + 1e-9);
-  const r = num - m;
-
-  if (Math.abs(r - 0.5) < 1e-6) {
-    // Wrap 1/2 in <span class="fraction">
-    if (m === 0) return `<span class="fraction">1/2</span>`;
-    return `${m}<span class="fraction">1/2</span>`;
-  }
-
-  if (Math.abs(r) < 1e-6) return `${m}`;
-  return num.toFixed(1).replace(/\.0$/, "");
-},
+  _formatGB(num) {
+    if (num == null) return "-";
+    if (typeof num === "string") {
+      if (num === "-" || num.trim() === "") return "-";
+      const f = parseFloat(num);
+      if (!isNaN(f)) num = f; else return "-";
+    }
+    if (Math.abs(num) < 1e-6) return "--";
+    const m = Math.floor(num + 1e-9);
+    const r = num - m;
+    if (Math.abs(r - 0.5) < 1e-6) {
+      // render half as small span (no superscript, just smaller)
+      return (m === 0)
+        ? `<span class="fraction">1/2</span>`
+        : `${m}<span class="fraction">1/2</span>`;
+    }
+    if (Math.abs(r) < 1e-6) return `${m}`;
+    return num.toFixed(1).replace(/\.0$/, "");
+  },
 
   _formatENum(val) {
     if (val == null) return "-";
@@ -414,7 +412,7 @@ _formatGB(num) {
   createStandingsTable(group, opts = { isWildCard: false }) {
     const isWildCard = !!opts.isWildCard;
     const table = document.createElement("table");
-    table.className = "mlb-standings";
+    table.className = isWildCard ? "mlb-standings mlb-standings--wc" : "mlb-standings mlb-standings--div";
 
     // Division: ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
     // WildCard: ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
@@ -487,7 +485,7 @@ _formatGB(num) {
         tdEDiv.innerText = this._formatENum(rec?.eliminationNumber);
         tr.appendChild(tdEDiv);
 
-        // WCGB, E# (wild card, label is just "E#" per request)
+        // WCGB, E# (wild card E#)
         const tdWC = document.createElement("td");
         tdWC.innerHTML = this._formatGB(rec?.wildCardGamesBack ?? "-");
         tr.appendChild(tdWC);
