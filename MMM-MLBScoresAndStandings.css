@@ -215,7 +215,7 @@
 .MMM-MLBScoresAndStandings .mlb-standings--div td:nth-child(5),
 .MMM-MLBScoresAndStandings .mlb-standings--div th:nth-child(7),
 .MMM-MLBScoresAndStandings .mlb-standings--div td:nth-child(7) {
-  border-right-width: 2px;
+  border-right-width: 4px;
   border-right-color: #444;
   border-right-style: solid;
 }
@@ -234,7 +234,7 @@
 .MMM-MLBScoresAndStandings .mlb-standings--wc td:nth-child(3),
 .MMM-MLBScoresAndStandings .mlb-standings--wc th:nth-child(5),
 .MMM-MLBScoresAndStandings .mlb-standings--wc td:nth-child(5) {
-  border-right-width: 2px;
+  border-right-width: 4px;
   border-right-color: #444;
   border-right-style: solid;
 }
