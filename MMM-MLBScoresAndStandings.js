@@ -46,8 +46,8 @@ Module.register("MMM-MLBScoresAndStandings", {
     highlightedTeams:               [],
     showTitle:                      true,
 
-    // Cap module width (handy in middle_center)
-    maxWidth:                       "640px" // number (px) or CSS size string
+    // Wider default to avoid last-column clipping in middle_center
+    maxWidth:                       "720px" // number (px) or CSS size string
   },
 
   getHeader() {
@@ -79,7 +79,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     this._scheduleRotate();
   },
 
-  _toCssSize(v, fallback = "640px") {
+  _toCssSize(v, fallback = "720px") {
     if (v == null) return fallback;
     if (typeof v === "number") return `${v}px`;
     const s = String(v).trim();
@@ -89,7 +89,7 @@ Module.register("MMM-MLBScoresAndStandings", {
 
   // Ensure header uses same maxWidth as body (scoped to this module only)
   _injectHeaderWidthStyle() {
-    const cap = this._toCssSize(this.config.maxWidth, "640px");
+    const cap = this._toCssSize(this.config.maxWidth, "720px");
     if (this._headerStyleInjectedFor === cap) return;
 
     const styleId = `${this.identifier}-width-style`;
@@ -171,7 +171,7 @@ Module.register("MMM-MLBScoresAndStandings", {
 
     // cap width unless fullscreen_above
     if (this.data?.position !== "fullscreen_above") {
-      const cssSize = this._toCssSize(this.config.maxWidth, "640px");
+      const cssSize = this._toCssSize(this.config.maxWidth, "720px");
       wrapper.style.maxWidth = cssSize;
       wrapper.style.margin = "0 auto";
       wrapper.style.display = "block";
@@ -446,7 +446,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     const m = Math.floor(num + 1e-9);
     const r = num - m;
     if (Math.abs(r - 0.5) < 1e-6) {
-      // smaller 1/2 next to whole number
+      // smaller "1/2" next to whole number (no superscript)
       return (m === 0)
         ? `<span class="fraction">1/2</span>`
         : `${m}<span class="fraction">1/2</span>`;
@@ -473,22 +473,9 @@ Module.register("MMM-MLBScoresAndStandings", {
       : ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10", "Home", "Away"];
 
     const trH = document.createElement("tr");
-    headers.forEach((txt, idx) => {
+    headers.forEach((txt) => {
       const th = document.createElement("th");
       th.innerText = txt;
-      // mark header cells for width control
-      if (idx === 0) th.classList.add("team-col");
-      if (idx === 1) th.classList.add("rec-col");
-      if (!isWildCard && idx === 3) th.classList.add("gb-col");   // GB header
-      if (!isWildCard && idx === 5) th.classList.add("wcgb-col"); // WCGB header
-      if (isWildCard && idx === 3)  th.classList.add("wcgb-col"); // WCGB on WC table
-      // record-like columns
-      const mapIdxToClass = new Map(
-        isWildCard
-          ? [[6, "l10-col"], [7, "home-col"], [8, "away-col"]]
-          : [[8, "l10-col"], [9, "home-col"], [10, "away-col"]]
-      );
-      if (mapIdxToClass.has(idx)) th.classList.add(mapIdxToClass.get(idx));
       trH.appendChild(th);
     });
     table.appendChild(trH);
@@ -502,7 +489,7 @@ Module.register("MMM-MLBScoresAndStandings", {
 
       // Team (first column)
       const tdT = document.createElement("td");
-      tdT.className = "team-cell team-col";
+      tdT.className = "team-cell";
       const img = document.createElement("img");
       img.src = this.getLogoUrl(ab);
       img.alt = ab;
@@ -515,14 +502,13 @@ Module.register("MMM-MLBScoresAndStandings", {
       tdT.appendChild(sp);
       tr.appendChild(tdT);
 
-      // W-L (rec-col) and W%
+      // W-L and W%
       const lr = rec?.leagueRecord || {};
       const W  = parseInt(lr?.wins)   || 0;
       const L  = parseInt(lr?.losses) || 0;
       const pct = (W + L > 0) ? ((W / (W + L)).toFixed(3).replace(/^0/, "")) : "-";
 
       const tdRec = document.createElement("td");
-      tdRec.className = "rec-col";
       tdRec.innerText = `${W}-${L}`;
       tr.appendChild(tdRec);
 
@@ -536,7 +522,6 @@ Module.register("MMM-MLBScoresAndStandings", {
           ? rec._wcgbText
           : this._formatGB(rec?.wildCardGamesBack ?? "-");
         const tdWC = document.createElement("td");
-        tdWC.className = "wcgb-col";
         tdWC.innerHTML = wcgbHTML;
         tr.appendChild(tdWC);
 
@@ -547,7 +532,6 @@ Module.register("MMM-MLBScoresAndStandings", {
       } else {
         // GB, E# (division)
         const tdGB = document.createElement("td");
-        tdGB.className = "gb-col";
         tdGB.innerHTML = this._formatGB(rec?.divisionGamesBack ?? "-");
         tr.appendChild(tdGB);
 
@@ -557,7 +541,6 @@ Module.register("MMM-MLBScoresAndStandings", {
 
         // WCGB, E# (wild card E#)
         const tdWC = document.createElement("td");
-        tdWC.className = "wcgb-col";
         tdWC.innerHTML = this._formatGB(rec?.wildCardGamesBack ?? "-");
         tr.appendChild(tdWC);
 
@@ -571,23 +554,20 @@ Module.register("MMM-MLBScoresAndStandings", {
       tdStreak.innerText = rec?.streak?.streakCode || "-";
       tr.appendChild(tdStreak);
 
-      // L10, Home, Away — with fixed widths and nowrap
+      // L10, Home, Away
       const s10 = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "lastten");
       const home = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "home");
       const away = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "away");
 
       const tdL10 = document.createElement("td");
-      tdL10.className = "l10-col";
       tdL10.innerText = s10 ? `${s10.wins}-${s10.losses}` : "-";
       tr.appendChild(tdL10);
 
       const tdHome = document.createElement("td");
-      tdHome.className = "home-col";
       tdHome.innerText = home ? `${home.wins}-${home.losses}` : "-";
       tr.appendChild(tdHome);
 
       const tdAway = document.createElement("td");
-      tdAway.className = "away-col";
       tdAway.innerText = away ? `${away.wins}-${away.losses}` : "-";
       tr.appendChild(tdAway);
 
