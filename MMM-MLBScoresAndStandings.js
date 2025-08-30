@@ -87,7 +87,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     return s;
   },
 
-  // NEW: ensure header uses same maxWidth as body (scoped to this module only)
+  // Ensure header uses same maxWidth as body (scoped to this module only)
   _injectHeaderWidthStyle() {
     const cap = this._toCssSize(this.config.maxWidth, "640px");
     if (this._headerStyleInjectedFor === cap) return;
@@ -476,6 +476,8 @@ Module.register("MMM-MLBScoresAndStandings", {
     headers.forEach((txt, idx) => {
       const th = document.createElement("th");
       th.innerText = txt;
+      // NEW: mark first column + width-sync tags
+      if (idx === 0) th.classList.add("team-col");
       if (!isWildCard && idx === 3) th.classList.add("gb-col");   // GB header
       if (!isWildCard && idx === 5) th.classList.add("wcgb-col"); // WCGB header
       if (isWildCard && idx === 3)  th.classList.add("wcgb-col"); // WCGB on WC table
@@ -490,9 +492,9 @@ Module.register("MMM-MLBScoresAndStandings", {
       const ab = ABBREVIATIONS[rec?.team?.name] || rec?.team?.abbreviation || "";
       if (this._isHighlighted(ab)) tr.classList.add("team-highlight");
 
-      // Team
+      // Team (first column) — add team-col for width rule
       const tdT = document.createElement("td");
-      tdT.className = "team-cell";
+      tdT.className = "team-cell team-col";
       const img = document.createElement("img");
       img.src = this.getLogoUrl(ab);
       img.alt = ab;
