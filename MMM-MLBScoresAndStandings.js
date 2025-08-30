@@ -44,7 +44,10 @@ Module.register("MMM-MLBScoresAndStandings", {
     rotateIntervalStandingsSingle:   7 * 1000,
     timeZone:               "America/Chicago",
     highlightedTeams:               [],
-    showTitle:                      true
+    showTitle:                      true,
+
+    // NEW: cap module width (helpful in middle_center)
+    maxWidth:                       "640px" // number (px) or CSS size string
   },
 
   getHeader() {
@@ -71,6 +74,15 @@ Module.register("MMM-MLBScoresAndStandings", {
       Math.min(this.config.updateIntervalScores, this.config.updateIntervalStandings));
 
     this._scheduleRotate();
+  },
+
+  _toCssSize(v, fallback = "640px") {
+    if (v == null) return fallback;
+    if (typeof v === "number") return `${v}px`;
+    const s = String(v).trim();
+    // if it's a pure number like "640", treat as px
+    if (/^\d+$/.test(s)) return `${s}px`;
+    return s; // assume valid CSS length (px, rem, %, etc.)
   },
 
   _scheduleRotate() {
@@ -124,6 +136,17 @@ Module.register("MMM-MLBScoresAndStandings", {
     const wrapper = document.createElement("div");
     const showingGames = this.currentScreen < this.totalGamePages;
     wrapper.className = showingGames ? "scores-screen" : "standings-screen";
+
+    // NEW: cap width unless fullscreen_above
+    if (this.data?.position !== "fullscreen_above") {
+      const cssSize = this._toCssSize(this.config.maxWidth, "640px");
+      wrapper.style.maxWidth = cssSize;
+      wrapper.style.margin = "0 auto";          // center within region
+      wrapper.style.display = "block";          // ensure centering applies
+      wrapper.style.width = "100%";             // grid/table fill within cap
+      // optional: prevent crazy overflow
+      wrapper.style.overflow = "hidden";
+    }
 
     if (showingGames && !this.loadedGames)      return this._noData("Loading games...");
     if (!showingGames && !this.loadedStandings) return this._noData("Loading standings...");
@@ -421,9 +444,13 @@ Module.register("MMM-MLBScoresAndStandings", {
       : ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10", "Home", "Away"];
 
     const trH = document.createElement("tr");
-    headers.forEach(txt => {
+    headers.forEach((txt, idx) => {
       const th = document.createElement("th");
       th.innerText = txt;
+      // tag width-sync columns
+      if (!isWildCard && idx === 3) th.classList.add("gb-col");     // GB header
+      if (!isWildCard && idx === 5) th.classList.add("wcgb-col");   // WCGB header
+      if (isWildCard && idx === 3)  th.classList.add("wcgb-col");   // WCGB header on WC table
       trH.appendChild(th);
     });
     table.appendChild(trH);
@@ -468,6 +495,7 @@ Module.register("MMM-MLBScoresAndStandings", {
           ? rec._wcgbText
           : this._formatGB(rec?.wildCardGamesBack ?? "-");
         const tdWC = document.createElement("td");
+        tdWC.className = "wcgb-col";
         tdWC.innerHTML = wcgbHTML;
         tr.appendChild(tdWC);
 
@@ -478,6 +506,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       } else {
         // GB, E# (division)
         const tdGB = document.createElement("td");
+        tdGB.className = "gb-col";
         tdGB.innerHTML = this._formatGB(rec?.divisionGamesBack ?? "-");
         tr.appendChild(tdGB);
 
@@ -487,6 +516,7 @@ Module.register("MMM-MLBScoresAndStandings", {
 
         // WCGB, E# (wild card E#)
         const tdWC = document.createElement("td");
+        tdWC.className = "wcgb-col";
         tdWC.innerHTML = this._formatGB(rec?.wildCardGamesBack ?? "-");
         tr.appendChild(tdWC);
 
