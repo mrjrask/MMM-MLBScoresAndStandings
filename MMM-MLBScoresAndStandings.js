@@ -476,11 +476,19 @@ Module.register("MMM-MLBScoresAndStandings", {
     headers.forEach((txt, idx) => {
       const th = document.createElement("th");
       th.innerText = txt;
-      // NEW: mark first column + width-sync tags
+      // mark header cells for width control
       if (idx === 0) th.classList.add("team-col");
+      if (idx === 1) th.classList.add("rec-col");
       if (!isWildCard && idx === 3) th.classList.add("gb-col");   // GB header
       if (!isWildCard && idx === 5) th.classList.add("wcgb-col"); // WCGB header
       if (isWildCard && idx === 3)  th.classList.add("wcgb-col"); // WCGB on WC table
+      // record-like columns
+      const mapIdxToClass = new Map(
+        isWildCard
+          ? [[6, "l10-col"], [7, "home-col"], [8, "away-col"]]
+          : [[8, "l10-col"], [9, "home-col"], [10, "away-col"]]
+      );
+      if (mapIdxToClass.has(idx)) th.classList.add(mapIdxToClass.get(idx));
       trH.appendChild(th);
     });
     table.appendChild(trH);
@@ -492,7 +500,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       const ab = ABBREVIATIONS[rec?.team?.name] || rec?.team?.abbreviation || "";
       if (this._isHighlighted(ab)) tr.classList.add("team-highlight");
 
-      // Team (first column) — add team-col for width rule
+      // Team (first column)
       const tdT = document.createElement("td");
       tdT.className = "team-cell team-col";
       const img = document.createElement("img");
@@ -507,16 +515,20 @@ Module.register("MMM-MLBScoresAndStandings", {
       tdT.appendChild(sp);
       tr.appendChild(tdT);
 
-      // W-L, W%
+      // W-L (rec-col) and W%
       const lr = rec?.leagueRecord || {};
       const W  = parseInt(lr?.wins)   || 0;
       const L  = parseInt(lr?.losses) || 0;
       const pct = (W + L > 0) ? ((W / (W + L)).toFixed(3).replace(/^0/, "")) : "-";
-      [`${W}-${L}`, pct].forEach(v => {
-        const td = document.createElement("td");
-        td.innerText = v;
-        tr.appendChild(td);
-      });
+
+      const tdRec = document.createElement("td");
+      tdRec.className = "rec-col";
+      tdRec.innerText = `${W}-${L}`;
+      tr.appendChild(tdRec);
+
+      const tdPct = document.createElement("td");
+      tdPct.innerText = pct;
+      tr.appendChild(tdPct);
 
       if (isWildCard) {
         // WCGB, E#(WC)
@@ -554,21 +566,30 @@ Module.register("MMM-MLBScoresAndStandings", {
         tr.appendChild(tdEWC);
       }
 
-      // Streak, L10, Home, Away
+      // Streak
+      const tdStreak = document.createElement("td");
+      tdStreak.innerText = rec?.streak?.streakCode || "-";
+      tr.appendChild(tdStreak);
+
+      // L10, Home, Away — with fixed widths and nowrap
       const s10 = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "lastten");
       const home = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "home");
       const away = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "away");
 
-      [
-        rec?.streak?.streakCode || "-",
-        s10 ? `${s10.wins}-${s10.losses}` : "-",
-        home ? `${home.wins}-${home.losses}` : "-",
-        away ? `${away.wins}-${away.losses}` : "-"
-      ].forEach(v => {
-        const td = document.createElement("td");
-        td.innerText = v;
-        tr.appendChild(td);
-      });
+      const tdL10 = document.createElement("td");
+      tdL10.className = "l10-col";
+      tdL10.innerText = s10 ? `${s10.wins}-${s10.losses}` : "-";
+      tr.appendChild(tdL10);
+
+      const tdHome = document.createElement("td");
+      tdHome.className = "home-col";
+      tdHome.innerText = home ? `${home.wins}-${home.losses}` : "-";
+      tr.appendChild(tdHome);
+
+      const tdAway = document.createElement("td");
+      tdAway.className = "away-col";
+      tdAway.innerText = away ? `${away.wins}-${away.losses}` : "-";
+      tr.appendChild(tdAway);
 
       table.appendChild(tr);
     });
