@@ -27,8 +27,9 @@
   --logo-size-game: 1.4em;
   --logo-size-stand: 1.2em;
 
-  /* NEW: make the first column in standings wide enough for logo + 4-letter abbr */
-  --width-team-col-stand: 3.8em;  /* tweak this if needed */
+  /* Column widths (standings) */
+  --width-team-col-stand: 6.4em;     /* you set this to 3.8em; keep tweaking here */
+  --width-record-col-stand: 3.2em;   /* NEW: W-L, L10, Home, Away */
 }
 
 /*--------------------------------------------------
@@ -195,6 +196,7 @@
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-standings-headers);
+  white-space: nowrap;
 }
 
 /* Standings table data cells */
@@ -205,9 +207,10 @@
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-standings-values);
+  white-space: nowrap;
 }
 
-/* Team cell and first column rules (NO WRAP) */
+/* Team cell and first column rules */
 .mlb-standings .team-cell {
   display: flex;
   align-items: center;
@@ -216,10 +219,22 @@
   white-space: nowrap;
 }
 
-/* NEW: lock the width of the FIRST column to fit logo + 4-letter abbr (e.g., CUBS) */
+/* Lock width of FIRST column (logo + abbr) */
 .mlb-standings th.team-col,
 .mlb-standings td.team-col {
   width: var(--width-team-col-stand);
+}
+
+/* NEW: Lock widths for W-L, L10, Home, Away */
+.mlb-standings th.rec-col,
+.mlb-standings td.rec-col,
+.mlb-standings th.l10-col,
+.mlb-standings td.l10-col,
+.mlb-standings th.home-col,
+.mlb-standings td.home-col,
+.mlb-standings th.away-col,
+.mlb-standings td.away-col {
+  width: var(--width-record-col-stand);
 }
 
 /* Team logo size in standings */
