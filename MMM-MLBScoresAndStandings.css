@@ -21,11 +21,14 @@
 
   /* Cell dimensions */
   --height-row-game: 1.4em;
-  --height-row-stand: 1.3em;  /* slightly tighter default */
+  --height-row-stand: 1.6em;
   --width-status: 3em;
   --width-rhe: 1.2em;
   --logo-size-game: 1.4em;
-  --logo-size-stand: 1.1em;
+  --logo-size-stand: 1.2em;
+
+  /* NEW: make the first column in standings wide enough for logo + 4-letter abbr */
+  --width-team-col-stand: 6.4em;  /* tweak this if needed */
 }
 
 /*--------------------------------------------------
@@ -42,39 +45,39 @@
 /*--------------------------------------------------
   Module Header
 --------------------------------------------------*/
-.MMM-MLBScoresAndStandings .module-header {
+.module-header {
   font-family: 'Times Square', Arial, sans-serif;
   font-size: 1.2em;
   font-weight: bold;
   margin: 0;
 }
 
-.MMM-MLBScoresAndStandings.scores-screen .module-header + hr {
+.scores-screen .module-header + hr {
   border: none;
   border-bottom: 1px solid #999;
   margin: 4px 0 8px;
 }
-.MMM-MLBScoresAndStandings.standings-screen .module-header + hr {
+.standings-screen .module-header + hr {
   display: none;
 }
 
 /* Division titles use Times Square */
 .MMM-MLBScoresAndStandings .division-title {
   font-family: 'Times Square', Arial, sans-serif;
-  font-size: 1.1em;
+  font-size: var(--font-size-standings-headers);
   margin: 0;
 }
 
 /*--------------------------------------------------
   Scoreboard Grid
 --------------------------------------------------*/
-.MMM-MLBScoresAndStandings .games-columns {
+.games-columns {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   justify-items: center;
 }
-.MMM-MLBScoresAndStandings .game-col {
+.game-col {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -83,38 +86,46 @@
 /*--------------------------------------------------
   Box Score Table
 --------------------------------------------------*/
-.MMM-MLBScoresAndStandings .game-boxscore {
+.game-boxscore {
   border-collapse: collapse;
   border: 1px solid #444;
   margin-bottom: 8px;
 }
-.MMM-MLBScoresAndStandings .game-boxscore tr {
+
+/* Boxscore table rows */
+.game-boxscore tr {
   height: var(--height-row-game);
 }
-.MMM-MLBScoresAndStandings .game-boxscore th,
-.MMM-MLBScoresAndStandings .game-boxscore td {
+
+/* Boxscore table headers & data */
+.game-boxscore th,
+.game-boxscore td {
   border: 1px solid #444;
   padding: var(--pad-abbr);
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
 }
-.MMM-MLBScoresAndStandings .game-boxscore .team-cell {
+
+/* Team abbreviation + logo */
+.game-boxscore .team-cell {
   display: flex;
   align-items: center;
   gap: 4px;
   padding: var(--pad-abbr);
+  white-space: nowrap;
 }
-.MMM-MLBScoresAndStandings .game-boxscore .logo-cell {
+.game-boxscore .logo-cell {
   width: var(--logo-size-game);
   height: var(--logo-size-game);
   object-fit: contain;
 }
-.MMM-MLBScoresAndStandings .game-boxscore .abbr {
+.game-boxscore .abbr {
   font-size: var(--font-size-abbr);
+  white-space: nowrap;
 }
 
 /* Status (game time/inning) */
-.MMM-MLBScoresAndStandings .status-cell {
+.status-cell {
   width: var(--width-status);
   text-align: center;
   font-family: 'Times Square', Arial, sans-serif;
@@ -124,7 +135,7 @@
 }
 
 /* R/H/E header */
-.MMM-MLBScoresAndStandings .rhe-header {
+.rhe-header {
   width: var(--width-rhe);
   text-align: center;
   font-family: 'Times Square', Arial, sans-serif;
@@ -133,7 +144,7 @@
 }
 
 /* R/H/E values */
-.MMM-MLBScoresAndStandings .rhe-cell {
+.rhe-cell {
   width: var(--width-rhe);
   text-align: center;
   font-family: 'Times Square', Arial, sans-serif;
@@ -142,112 +153,101 @@
 }
 
 /* Live vs. final coloring */
-.MMM-MLBScoresAndStandings .status-cell.live,
-.MMM-MLBScoresAndStandings .rhe-cell.live {
+.status-cell.live,
+.rhe-cell.live {
   color: #FFD242 !important;
 }
-.MMM-MLBScoresAndStandings .status-cell:not(.live),
-.MMM-MLBScoresAndStandings .rhe-cell:not(.live) {
+.status-cell:not(.live),
+.rhe-cell:not(.live) {
   color: #FFF;
 }
 
 /* Highlighted team override */
-.MMM-MLBScoresAndStandings .game-boxscore .abbr.team-highlight,
-.MMM-MLBScoresAndStandings .mlb-standings tr.team-highlight td {
+.game-boxscore .abbr.team-highlight,
+.mlb-standings tr.team-highlight td {
   color: #FFD242 !important;
 }
 
 /* Dim losing team */
-.MMM-MLBScoresAndStandings .game-boxscore tr.loser .abbr {
+.game-boxscore tr.loser .abbr {
   opacity: 0.6;
 }
 
 /*--------------------------------------------------
   Standings Table
 --------------------------------------------------*/
-.MMM-MLBScoresAndStandings .mlb-standings {
+.mlb-standings {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 10px;
 }
-.MMM-MLBScoresAndStandings .mlb-standings tr {
+
+/* Standings table rows */
+.mlb-standings tr {
   height: var(--height-row-stand);
 }
 
-/* Standings headers & cells */
-.MMM-MLBScoresAndStandings .mlb-standings th,
-.MMM-MLBScoresAndStandings .mlb-standings td {
+/* Standings table headers */
+.mlb-standings th {
   border: 1px solid #444;
   padding: var(--pad-standings);
   text-align: center;
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
-}
-.MMM-MLBScoresAndStandings .mlb-standings th {
   font-size: var(--font-size-standings-headers);
 }
-.MMM-MLBScoresAndStandings .mlb-standings td {
+
+/* Standings table data cells */
+.mlb-standings td {
+  border: 1px solid #444;
+  padding: var(--pad-standings);
+  text-align: center;
+  vertical-align: middle;
+  font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-standings-values);
 }
 
-.MMM-MLBScoresAndStandings .mlb-standings .team-cell {
+/* Team cell and first column rules (NO WRAP) */
+.mlb-standings .team-cell {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  justify-content: flex-start;
+  white-space: nowrap;
 }
-.MMM-MLBScoresAndStandings .mlb-standings .logo-cell {
+
+/* NEW: lock the width of the FIRST column to fit logo + 4-letter abbr (e.g., CUBS) */
+.mlb-standings th.team-col,
+.mlb-standings td.team-col {
+  width: var(--width-team-col-stand);
+}
+
+/* Team logo size in standings */
+.mlb-standings .logo-cell {
   width: var(--logo-size-stand);
   height: var(--logo-size-stand);
   object-fit: contain;
 }
 
-/* Smaller 1/2 fraction */
-.MMM-MLBScoresAndStandings .fraction {
-  font-size: var(--font-size-fraction, 0.6em);
-  vertical-align: super; /* small lift without true superscript */
+/* Fraction styling (for 1/2) */
+.mlb-standings .fraction {
+  font-size: var(--font-size-fraction) !important;
+  line-height: 1;
+  display: inline-block;
+  transform: translateY(-0.2em);
 }
 
-/* ---- Bold separators BETWEEN specific columns ---- */
-/* Division screens: after W%(3), after E#(5), after WC E#(7) */
-.MMM-MLBScoresAndStandings .mlb-standings--div th:nth-child(3),
-.MMM-MLBScoresAndStandings .mlb-standings--div td:nth-child(3),
-.MMM-MLBScoresAndStandings .mlb-standings--div th:nth-child(5),
-.MMM-MLBScoresAndStandings .mlb-standings--div td:nth-child(5),
-.MMM-MLBScoresAndStandings .mlb-standings--div th:nth-child(7),
-.MMM-MLBScoresAndStandings .mlb-standings--div td:nth-child(7) {
-  border-right-width: 4px;
-  border-right-color: #444;
-  border-right-style: solid;
-}
-/* zero out the left border of the next column so it doesn't look like 3px */
-.MMM-MLBScoresAndStandings .mlb-standings--div th:nth-child(4),
-.MMM-MLBScoresAndStandings .mlb-standings--div td:nth-child(4),
-.MMM-MLBScoresAndStandings .mlb-standings--div th:nth-child(6),
-.MMM-MLBScoresAndStandings .mlb-standings--div td:nth-child(6),
-.MMM-MLBScoresAndStandings .mlb-standings--div th:nth-child(8),
-.MMM-MLBScoresAndStandings .mlb-standings--div td:nth-child(8) {
-  border-left: 0;
-}
-
-/* Wild Card screens: after W%(3), after E#(5) */
-.MMM-MLBScoresAndStandings .mlb-standings--wc th:nth-child(3),
-.MMM-MLBScoresAndStandings .mlb-standings--wc td:nth-child(3),
-.MMM-MLBScoresAndStandings .mlb-standings--wc th:nth-child(5),
-.MMM-MLBScoresAndStandings .mlb-standings--wc td:nth-child(5) {
-  border-right-width: 4px;
-  border-right-color: #444;
-  border-right-style: solid;
-}
-/* zero out next column's left border to avoid a double-thick look */
-.MMM-MLBScoresAndStandings .mlb-standings--wc th:nth-child(4),
-.MMM-MLBScoresAndStandings .mlb-standings--wc td:nth-child(4),
-.MMM-MLBScoresAndStandings .mlb-standings--wc th:nth-child(6),
-.MMM-MLBScoresAndStandings .mlb-standings--wc td:nth-child(6) {
-  border-left: 0;
+/* Keep GB and WCGB columns same width across screens */
+.module.MMM-MLBScoresAndStandings .mlb-standings th.gb-col,
+.module.MMM-MLBScoresAndStandings .mlb-standings td.gb-col,
+.module.MMM-MLBScoresAndStandings .mlb-standings th.wcgb-col,
+.module.MMM-MLBScoresAndStandings .mlb-standings td.wcgb-col {
+  width: 3.2em;     /* adjust to taste */
+  text-align: center;
 }
 
 /* Fullscreen layout */
-.MMM-MLBScoresAndStandings.fullscreen_above .mlb-fullscreen-center {
+.fullscreen_above .mlb-fullscreen-center {
   display: flex;
   flex-direction: column;
   justify-content: center;
