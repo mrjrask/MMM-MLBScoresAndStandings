@@ -46,7 +46,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     highlightedTeams:               [],
     showTitle:                      true,
 
-    // NEW: cap module width (helpful in middle_center)
+    // Cap module width (handy in middle_center)
     maxWidth:                       "640px" // number (px) or CSS size string
   },
 
@@ -69,6 +69,9 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.currentScreen   = 0;
     this.rotateTimer     = null;
 
+    // for header width injection
+    this._headerStyleInjectedFor = null;
+
     this.sendSocketNotification("INIT", this.config);
     setInterval(() => this.sendSocketNotification("INIT", this.config),
       Math.min(this.config.updateIntervalScores, this.config.updateIntervalStandings));
@@ -80,9 +83,35 @@ Module.register("MMM-MLBScoresAndStandings", {
     if (v == null) return fallback;
     if (typeof v === "number") return `${v}px`;
     const s = String(v).trim();
-    // if it's a pure number like "640", treat as px
     if (/^\d+$/.test(s)) return `${s}px`;
-    return s; // assume valid CSS length (px, rem, %, etc.)
+    return s;
+  },
+
+  // NEW: ensure header uses same maxWidth as body (scoped to this module only)
+  _injectHeaderWidthStyle() {
+    const cap = this._toCssSize(this.config.maxWidth, "640px");
+    if (this._headerStyleInjectedFor === cap) return;
+
+    const styleId = `${this.identifier}-width-style`;
+    let el = document.getElementById(styleId);
+    const css = `
+      #${this.identifier} .module-header {
+        max-width: ${cap};
+        margin: 0 auto;
+        display: block;
+      }
+    `;
+
+    if (!el) {
+      el = document.createElement("style");
+      el.id = styleId;
+      el.type = "text/css";
+      el.textContent = css;
+      document.head.appendChild(el);
+    } else {
+      el.textContent = css;
+    }
+    this._headerStyleInjectedFor = cap;
   },
 
   _scheduleRotate() {
@@ -133,18 +162,20 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   getDom() {
+    // make sure header width gets capped too
+    this._injectHeaderWidthStyle();
+
     const wrapper = document.createElement("div");
     const showingGames = this.currentScreen < this.totalGamePages;
     wrapper.className = showingGames ? "scores-screen" : "standings-screen";
 
-    // NEW: cap width unless fullscreen_above
+    // cap width unless fullscreen_above
     if (this.data?.position !== "fullscreen_above") {
       const cssSize = this._toCssSize(this.config.maxWidth, "640px");
       wrapper.style.maxWidth = cssSize;
-      wrapper.style.margin = "0 auto";          // center within region
-      wrapper.style.display = "block";          // ensure centering applies
-      wrapper.style.width = "100%";             // grid/table fill within cap
-      // optional: prevent crazy overflow
+      wrapper.style.margin = "0 auto";
+      wrapper.style.display = "block";
+      wrapper.style.width = "100%";
       wrapper.style.overflow = "hidden";
     }
 
@@ -415,7 +446,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     const m = Math.floor(num + 1e-9);
     const r = num - m;
     if (Math.abs(r - 0.5) < 1e-6) {
-      // render half as small span (no superscript, just smaller)
+      // smaller 1/2 next to whole number
       return (m === 0)
         ? `<span class="fraction">1/2</span>`
         : `${m}<span class="fraction">1/2</span>`;
@@ -437,8 +468,6 @@ Module.register("MMM-MLBScoresAndStandings", {
     const table = document.createElement("table");
     table.className = isWildCard ? "mlb-standings mlb-standings--wc" : "mlb-standings mlb-standings--div";
 
-    // Division: ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
-    // WildCard: ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
     const headers = isWildCard
       ? ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
       : ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10", "Home", "Away"];
@@ -447,10 +476,9 @@ Module.register("MMM-MLBScoresAndStandings", {
     headers.forEach((txt, idx) => {
       const th = document.createElement("th");
       th.innerText = txt;
-      // tag width-sync columns
-      if (!isWildCard && idx === 3) th.classList.add("gb-col");     // GB header
-      if (!isWildCard && idx === 5) th.classList.add("wcgb-col");   // WCGB header
-      if (isWildCard && idx === 3)  th.classList.add("wcgb-col");   // WCGB header on WC table
+      if (!isWildCard && idx === 3) th.classList.add("gb-col");   // GB header
+      if (!isWildCard && idx === 5) th.classList.add("wcgb-col"); // WCGB header
+      if (isWildCard && idx === 3)  th.classList.add("wcgb-col"); // WCGB on WC table
       trH.appendChild(th);
     });
     table.appendChild(trH);
@@ -462,7 +490,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       const ab = ABBREVIATIONS[rec?.team?.name] || rec?.team?.abbreviation || "";
       if (this._isHighlighted(ab)) tr.classList.add("team-highlight");
 
-      // Team cell
+      // Team
       const tdT = document.createElement("td");
       tdT.className = "team-cell";
       const img = document.createElement("img");
@@ -471,21 +499,20 @@ Module.register("MMM-MLBScoresAndStandings", {
       img.className = "logo-cell";
       img.onerror = () => img.style.display = "none";
       tdT.appendChild(img);
-
       const sp = document.createElement("span");
       sp.className = "abbr";
       sp.innerText = ab;
       tdT.appendChild(sp);
       tr.appendChild(tdT);
 
-      // W-L, Pct
+      // W-L, W%
       const lr = rec?.leagueRecord || {};
       const W  = parseInt(lr?.wins)   || 0;
       const L  = parseInt(lr?.losses) || 0;
       const pct = (W + L > 0) ? ((W / (W + L)).toFixed(3).replace(/^0/, "")) : "-";
-      [`${W}-${L}`, pct].forEach(val => {
+      [`${W}-${L}`, pct].forEach(v => {
         const td = document.createElement("td");
-        td.innerText = val;
+        td.innerText = v;
         tr.appendChild(td);
       });
 
@@ -535,9 +562,9 @@ Module.register("MMM-MLBScoresAndStandings", {
         s10 ? `${s10.wins}-${s10.losses}` : "-",
         home ? `${home.wins}-${home.losses}` : "-",
         away ? `${away.wins}-${away.losses}` : "-"
-      ].forEach(val => {
+      ].forEach(v => {
         const td = document.createElement("td");
-        td.innerText = val;
+        td.innerText = v;
         tr.appendChild(td);
       });
 
