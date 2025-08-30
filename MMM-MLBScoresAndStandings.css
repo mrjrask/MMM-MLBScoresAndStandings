@@ -28,7 +28,7 @@
   --logo-size-stand: 1.2em;
 
   /* Column widths (standings) */
-  --width-team-col-stand: 6.4em;     /* you set this to 3.8em; keep tweaking here */
+  --width-team-col-stand: 3.8em;     /* you set this to 3.8em; keep tweaking here */
   --width-record-col-stand: 3.2em;   /* NEW: W-L, L10, Home, Away */
 }
 
