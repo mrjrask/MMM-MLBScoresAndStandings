@@ -28,7 +28,7 @@
   --logo-size-stand: 1.2em;
 
   /* NEW: make the first column in standings wide enough for logo + 4-letter abbr */
-  --width-team-col-stand: 2.4em;  /* tweak this if needed */
+  --width-team-col-stand: 2.8em;  /* tweak this if needed */
 }
 
 /*--------------------------------------------------
