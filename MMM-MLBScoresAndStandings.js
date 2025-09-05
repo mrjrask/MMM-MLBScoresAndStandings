@@ -46,11 +46,11 @@ Module.register("MMM-MLBScoresAndStandings", {
     highlightedTeams:                 [],
     showTitle:                        true,
 
-    // Show/hide Home/Away splits on standings (we now preserve width even when hidden)
+    // Toggle Home/Away columns (when off, columns are removed entirely)
     showHomeAwaySplits:               true,
 
-    // Cap width so it looks good in middle_center
-    maxWidth:                      "720px"
+    // Cap width so it looks good in middle_center (a tad wider to avoid clipping)
+    maxWidth:                      "800px"
   },
 
   getHeader() {
@@ -81,7 +81,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     this._scheduleRotate();
   },
 
-  _toCssSize(v, fallback = "720px") {
+  _toCssSize(v, fallback = "800px") {
     if (v == null) return fallback;
     if (typeof v === "number") return `${v}px`;
     const s = String(v).trim();
@@ -91,7 +91,7 @@ Module.register("MMM-MLBScoresAndStandings", {
 
   // Keep the header the same capped width as the body
   _injectHeaderWidthStyle() {
-    const cap = this._toCssSize(this.config.maxWidth, "720px");
+    const cap = this._toCssSize(this.config.maxWidth, "800px");
     if (this._headerStyleInjectedFor === cap) return;
 
     const styleId = `${this.identifier}-width-style`;
@@ -171,7 +171,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     wrapper.className = showingGames ? "scores-screen" : "standings-screen";
 
     if (this.data?.position !== "fullscreen_above") {
-      const cssSize = this._toCssSize(this.config.maxWidth, "720px");
+      const cssSize = this._toCssSize(this.config.maxWidth, "800px");
       wrapper.style.maxWidth = cssSize;
       wrapper.style.margin = "0 auto";
       wrapper.style.display = "block";
@@ -463,19 +463,19 @@ Module.register("MMM-MLBScoresAndStandings", {
     return String(val);
   },
 
-  // KEY CHANGE: always include Home/Away columns to preserve widths;
-  // when config.showHomeAwaySplits === false, we just hide their content via CSS class.
+  // When showHomeAwaySplits=false, we DO NOT render the two columns at all.
+  // We also add thicker vertical separators to the appropriate TDs, not just THs.
   createStandingsTable(group, opts = { isWildCard: false }) {
     const isWildCard = !!opts.isWildCard;
-    const hideSplits = !this.config.showHomeAwaySplits;
+    const showSplits = !!this.config.showHomeAwaySplits;
 
     const table = document.createElement("table");
     table.className = isWildCard ? "mlb-standings mlb-standings--wc" : "mlb-standings mlb-standings--div";
 
-    // Always include Home/Away so widths stay fixed
     const headers = isWildCard
-      ? ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
-      : ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10", "Home", "Away"];
+      ? ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10"]
+      : ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10"];
+    if (showSplits) headers.push("Home", "Away");
 
     const trH = document.createElement("tr");
     headers.forEach((txt, idx) => {
@@ -486,12 +486,12 @@ Module.register("MMM-MLBScoresAndStandings", {
       if (idx === 0) th.classList.add("team-col");
       if (txt === "W-L") th.classList.add("rec-col");
       if (txt === "L10") th.classList.add("l10-col");
-      if (txt === "Home") { th.classList.add("home-col"); if (hideSplits) th.classList.add("col--off"); }
-      if (txt === "Away") { th.classList.add("away-col"); if (hideSplits) th.classList.add("col--off"); }
+      if (txt === "Home") th.classList.add("home-col");
+      if (txt === "Away") th.classList.add("away-col");
       if (txt === "GB") th.classList.add("gb-col");
       if (txt === "WCGB") th.classList.add("wcgb-col");
 
-      // heavier separators
+      // heavier separators (TH)
       if (!isWildCard) {
         if (txt === "W%") th.classList.add("sep-right");
         if (txt === "E#") th.classList.add("sep-right");     // between E# and WCGB
@@ -540,6 +540,7 @@ Module.register("MMM-MLBScoresAndStandings", {
 
       const tdPct = document.createElement("td");
       tdPct.innerText = pct;
+      tdPct.classList.add("sep-right"); // match TH thick rule after W%
       tr.appendChild(tdPct);
 
       if (isWildCard) {
@@ -552,9 +553,9 @@ Module.register("MMM-MLBScoresAndStandings", {
         tdWC.innerHTML = wcgbHTML;
         tr.appendChild(tdWC);
 
-        const eWC = this._formatENum(rec?.wildCardEliminationNumber);
         const tdE = document.createElement("td");
-        tdE.innerText = eWC;
+        tdE.innerText = this._formatENum(rec?.wildCardEliminationNumber);
+        tdE.classList.add("sep-right"); // thick line after WCE#
         tr.appendChild(tdE);
       } else {
         // GB, E# (division)
@@ -565,12 +566,14 @@ Module.register("MMM-MLBScoresAndStandings", {
 
         const tdEDiv = document.createElement("td");
         tdEDiv.innerText = this._formatENum(rec?.eliminationNumber);
+        tdEDiv.classList.add("sep-right"); // thick line after E#
         tr.appendChild(tdEDiv);
 
         // WCGB, E# (wild card E#)
         const tdWC = document.createElement("td");
         tdWC.className = "wcgb-col";
         tdWC.innerHTML = this._formatGB(rec?.wildCardGamesBack ?? "-");
+        tdWC.classList.add("sep-right"); // thick line after WCGB (before WCE#)
         tr.appendChild(tdWC);
 
         const tdEWC = document.createElement("td");
@@ -590,21 +593,21 @@ Module.register("MMM-MLBScoresAndStandings", {
       tdL10.innerText = s10 ? `${s10.wins}-${s10.losses}` : "-";
       tr.appendChild(tdL10);
 
-      // Home/Away — always create to preserve width; hide content via .col--off when disabled
-      const home = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "home");
-      const away = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "away");
+      // Home/Away (only render when enabled)
+      if (showSplits) {
+        const home = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "home");
+        const away = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "away");
 
-      const tdHome = document.createElement("td");
-      tdHome.className = "home-col";
-      if (hideSplits) tdHome.classList.add("col--off");
-      tdHome.innerText = home ? `${home.wins}-${home.losses}` : "-";
-      tr.appendChild(tdHome);
+        const tdHome = document.createElement("td");
+        tdHome.className = "home-col";
+        tdHome.innerText = home ? `${home.wins}-${home.losses}` : "-";
+        tr.appendChild(tdHome);
 
-      const tdAway = document.createElement("td");
-      tdAway.className = "away-col";
-      if (hideSplits) tdAway.classList.add("col--off");
-      tdAway.innerText = away ? `${away.wins}-${away.losses}` : "-";
-      tr.appendChild(tdAway);
+        const tdAway = document.createElement("td");
+        tdAway.className = "away-col";
+        tdAway.innerText = away ? `${away.wins}-${away.losses}` : "-";
+        tr.appendChild(tdAway);
+      }
 
       table.appendChild(tr);
     });
