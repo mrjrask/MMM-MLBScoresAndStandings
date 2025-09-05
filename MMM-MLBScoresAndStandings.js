@@ -14,7 +14,7 @@ const ABBREVIATIONS = {
   "Athletics": "ATH","Seattle Mariners": "SEA","Texas Rangers": "TEX"
 };
 
-// Division pairs (2 per page) then Wild Card pages (1 per page)
+// Division pairs (2 per page), then Wild Card pages (1 per page)
 const DIV_PAIRS = [
   [204, 201], // NL East & AL East
   [205, 202], // NL Central & AL Central
@@ -32,25 +32,25 @@ const DIVISION_LABELS = {
 
 Module.register("MMM-MLBScoresAndStandings", {
   defaults: {
-    updateIntervalScores:          60 * 1000,
-    updateIntervalStandings:     15 * 60 * 1000,
-    gamesPerPage:                    8,
-    logoType:                    "color",
+    updateIntervalScores:            60 * 1000,
+    updateIntervalStandings:       15 * 60 * 1000,
+    gamesPerPage:                      8,
+    logoType:                      "color",
     rotateIntervalScores:           15 * 1000,
     rotateIntervalEast:              7 * 1000,
     rotateIntervalCentral:          12 * 1000,
     rotateIntervalWest:              7 * 1000,
-    standingsPerPage:                2,
+    standingsPerPage:                  2,
     rotateIntervalStandingsSingle:   7 * 1000,
     timeZone:               "America/Chicago",
-    highlightedTeams:               [],
-    showTitle:                      true,
+    highlightedTeams:                 [],
+    showTitle:                        true,
 
-    // NEW: show/hide Home/Away splits on standings
-    showHomeAwaySplits:             true,
+    // Show/hide Home/Away splits on standings
+    showHomeAwaySplits:               true,
 
-    // Wider default to avoid last-column clipping in middle_center
-    maxWidth:                       "720px" // number (px) or CSS size string
+    // Cap width so it looks good in middle_center
+    maxWidth:                      "720px"
   },
 
   getHeader() {
@@ -63,7 +63,7 @@ Module.register("MMM-MLBScoresAndStandings", {
 
   start() {
     this.games           = [];
-    this.recordGroups    = []; // six division objects from helper
+    this.recordGroups    = []; // six division records from helper
     this.loadedGames     = false;
     this.loadedStandings = false;
 
@@ -72,7 +72,6 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.currentScreen   = 0;
     this.rotateTimer     = null;
 
-    // for header width injection
     this._headerStyleInjectedFor = null;
 
     this.sendSocketNotification("INIT", this.config);
@@ -90,7 +89,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     return s;
   },
 
-  // Ensure header uses same maxWidth as body (scoped to this module only)
+  // Keep the header the same capped width as the body
   _injectHeaderWidthStyle() {
     const cap = this._toCssSize(this.config.maxWidth, "720px");
     if (this._headerStyleInjectedFor === cap) return;
@@ -165,14 +164,12 @@ Module.register("MMM-MLBScoresAndStandings", {
   },
 
   getDom() {
-    // make sure header width gets capped too
     this._injectHeaderWidthStyle();
 
     const wrapper = document.createElement("div");
     const showingGames = this.currentScreen < this.totalGamePages;
     wrapper.className = showingGames ? "scores-screen" : "standings-screen";
 
-    // cap width unless fullscreen_above
     if (this.data?.position !== "fullscreen_above") {
       const cssSize = this._toCssSize(this.config.maxWidth, "720px");
       wrapper.style.maxWidth = cssSize;
@@ -182,8 +179,8 @@ Module.register("MMM-MLBScoresAndStandings", {
       wrapper.style.overflow = "hidden";
     }
 
-    if (showingGames && !this.loadedGames)      return this._noData("Loading games...");
-    if (!showingGames && !this.loadedStandings) return this._noData("Loading standings...");
+    if (showingGames && !this.loadedGames)       return this._noData("Loading games...");
+    if (!showingGames && !this.loadedStandings)  return this._noData("Loading standings...");
     if (showingGames && this.games.length === 0) return this._noData("No games to display.");
     if (!showingGames && this.recordGroups.length === 0) return this._noData("Standings unavailable.");
 
@@ -226,7 +223,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     const homeScore = game?.teams?.home?.score;
     const ls        = game?.linescore || {};
     const state     = game?.status?.abstractGameState || "";
-    a const det       = game?.status?.detailedState || "";
+    const det       = game?.status?.detailedState || "";
     const innings   = ls?.innings || [];
 
     const isSuspended = /Suspended/i.test(det) || state === "Suspended";
@@ -449,7 +446,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     const m = Math.floor(num + 1e-9);
     const r = num - m;
     if (Math.abs(r - 0.5) < 1e-6) {
-      // smaller "1/2" next to whole number (no superscript)
+      // smaller "1/2" next to the whole number (no superscript)
       return (m === 0)
         ? `<span class="fraction">1/2</span>`
         : `${m}<span class="fraction">1/2</span>`;
@@ -473,7 +470,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     const table = document.createElement("table");
     table.className = isWildCard ? "mlb-standings mlb-standings--wc" : "mlb-standings mlb-standings--div";
 
-    // Build headers dynamically (so Home/Away are optional)
+    // Headers (Home/Away optional)
     const headers = isWildCard
       ? ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10"]
       : ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10"];
@@ -485,7 +482,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       const th = document.createElement("th");
       th.innerText = txt;
 
-      // add classes by label for width control in CSS
+      // width helper classes
       if (idx === 0) th.classList.add("team-col");
       if (txt === "W-L") th.classList.add("rec-col");
       if (txt === "L10") th.classList.add("l10-col");
@@ -493,6 +490,16 @@ Module.register("MMM-MLBScoresAndStandings", {
       if (txt === "Away") th.classList.add("away-col");
       if (txt === "GB") th.classList.add("gb-col");
       if (txt === "WCGB") th.classList.add("wcgb-col");
+
+      // heavier separators
+      if (!isWildCard) {
+        if (txt === "W%") th.classList.add("sep-right");
+        if (txt === "E#") th.classList.add("sep-right");       // between E# and WCGB
+        if (txt === "WCGB") th.classList.add("sep-right");     // between WCE# and Streak (next th)
+      } else {
+        if (txt === "W%") th.classList.add("sep-right");       // between W% and WCGB
+        if (txt === "WCGB") th.classList.add("sep-right");     // between WCE# and Streak (next th)
+      }
 
       trH.appendChild(th);
     });
@@ -505,7 +512,7 @@ Module.register("MMM-MLBScoresAndStandings", {
       const ab = ABBREVIATIONS[rec?.team?.name] || rec?.team?.abbreviation || "";
       if (this._isHighlighted(ab)) tr.classList.add("team-highlight");
 
-      // Team (first column)
+      // Team
       const tdT = document.createElement("td");
       tdT.className = "team-cell team-col";
       const img = document.createElement("img");
