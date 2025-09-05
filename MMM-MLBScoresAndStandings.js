@@ -46,7 +46,7 @@ Module.register("MMM-MLBScoresAndStandings", {
     highlightedTeams:                 [],
     showTitle:                        true,
 
-    // Show/hide Home/Away splits on standings
+    // Show/hide Home/Away splits on standings (we now preserve width even when hidden)
     showHomeAwaySplits:               true,
 
     // Cap width so it looks good in middle_center
@@ -463,19 +463,19 @@ Module.register("MMM-MLBScoresAndStandings", {
     return String(val);
   },
 
+  // KEY CHANGE: always include Home/Away columns to preserve widths;
+  // when config.showHomeAwaySplits === false, we just hide their content via CSS class.
   createStandingsTable(group, opts = { isWildCard: false }) {
     const isWildCard = !!opts.isWildCard;
-    const showSplits = !!this.config.showHomeAwaySplits;
+    const hideSplits = !this.config.showHomeAwaySplits;
 
     const table = document.createElement("table");
     table.className = isWildCard ? "mlb-standings mlb-standings--wc" : "mlb-standings mlb-standings--div";
 
-    // Headers (Home/Away optional)
+    // Always include Home/Away so widths stay fixed
     const headers = isWildCard
-      ? ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10"]
-      : ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10"];
-
-    if (showSplits) headers.push("Home", "Away");
+      ? ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10", "Home", "Away"]
+      : ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10", "Home", "Away"];
 
     const trH = document.createElement("tr");
     headers.forEach((txt, idx) => {
@@ -486,19 +486,19 @@ Module.register("MMM-MLBScoresAndStandings", {
       if (idx === 0) th.classList.add("team-col");
       if (txt === "W-L") th.classList.add("rec-col");
       if (txt === "L10") th.classList.add("l10-col");
-      if (txt === "Home") th.classList.add("home-col");
-      if (txt === "Away") th.classList.add("away-col");
+      if (txt === "Home") { th.classList.add("home-col"); if (hideSplits) th.classList.add("col--off"); }
+      if (txt === "Away") { th.classList.add("away-col"); if (hideSplits) th.classList.add("col--off"); }
       if (txt === "GB") th.classList.add("gb-col");
       if (txt === "WCGB") th.classList.add("wcgb-col");
 
       // heavier separators
       if (!isWildCard) {
         if (txt === "W%") th.classList.add("sep-right");
-        if (txt === "E#") th.classList.add("sep-right");       // between E# and WCGB
-        if (txt === "WCGB") th.classList.add("sep-right");     // between WCE# and Streak (next th)
+        if (txt === "E#") th.classList.add("sep-right");     // between E# and WCGB
+        if (txt === "WCGB") th.classList.add("sep-right");   // between WCE# and Streak
       } else {
-        if (txt === "W%") th.classList.add("sep-right");       // between W% and WCGB
-        if (txt === "WCGB") th.classList.add("sep-right");     // between WCE# and Streak (next th)
+        if (txt === "W%") th.classList.add("sep-right");     // between W% and WCGB
+        if (txt === "WCGB") th.classList.add("sep-right");   // between WCE# and Streak
       }
 
       trH.appendChild(th);
@@ -590,20 +590,21 @@ Module.register("MMM-MLBScoresAndStandings", {
       tdL10.innerText = s10 ? `${s10.wins}-${s10.losses}` : "-";
       tr.appendChild(tdL10);
 
-      if (showSplits) {
-        const home = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "home");
-        const away = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "away");
+      // Home/Away — always create to preserve width; hide content via .col--off when disabled
+      const home = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "home");
+      const away = (rec?.records?.splitRecords || []).find(s => (s?.type || "").toLowerCase() === "away");
 
-        const tdHome = document.createElement("td");
-        tdHome.className = "home-col";
-        tdHome.innerText = home ? `${home.wins}-${home.losses}` : "-";
-        tr.appendChild(tdHome);
+      const tdHome = document.createElement("td");
+      tdHome.className = "home-col";
+      if (hideSplits) tdHome.classList.add("col--off");
+      tdHome.innerText = home ? `${home.wins}-${home.losses}` : "-";
+      tr.appendChild(tdHome);
 
-        const tdAway = document.createElement("td");
-        tdAway.className = "away-col";
-        tdAway.innerText = away ? `${away.wins}-${away.losses}` : "-";
-        tr.appendChild(tdAway);
-      }
+      const tdAway = document.createElement("td");
+      tdAway.className = "away-col";
+      if (hideSplits) tdAway.classList.add("col--off");
+      tdAway.innerText = away ? `${away.wins}-${away.losses}` : "-";
+      tr.appendChild(tdAway);
 
       table.appendChild(tr);
     });
