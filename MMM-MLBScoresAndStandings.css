@@ -46,10 +46,10 @@
 }
 
 /*--------------------------------------------------
-  Module Header (keep MM default via custom.css override if desired)
+  Module Header: use DEFAULT MM font (inherit)
 --------------------------------------------------*/
 .module-header {
-  font-family: 'Times Square', Arial, sans-serif;
+  font-family: inherit;
   font-size: 1.2em;
   font-weight: bold;
   margin: 0;
@@ -199,7 +199,7 @@
   font-size: var(--font-size-standings-values);
 }
 
-/* Division title font */
+/* Division title font (Times Square) */
 .standings-division .division-title {
   font-family: 'Times Square', Arial, sans-serif;
   font-size: 1.2em;
@@ -218,7 +218,7 @@
   object-fit: contain;
 }
 
-/* Fraction styling for 1/2 */
+/* Fraction styling for 1/2 (smaller, inline) */
 .mlb-standings .fraction {
   font-size: var(--font-size-fraction) !important;
   vertical-align: baseline;
@@ -239,14 +239,8 @@
   width: var(--width-record-col-stand);
 }
 
-/* Thicker vertical separators (you set these to 4px earlier) */
+/* Thicker vertical separators across full column (you preferred ~4px) */
 .mlb-standings th.sep-right, .mlb-standings td.sep-right { border-right-width: 4px; }
-
-/* KEY: hide content but preserve width & borders for Home/Away when disabled */
-.mlb-standings th.col--off, .mlb-standings td.col--off {
-  color: transparent !important;
-  /* Keep borders visible */
-}
 
 /* Fullscreen layout */
 .fullscreen_above .mlb-fullscreen-center {
