@@ -9,7 +9,7 @@
   --font-size-status: 1.0em;
   --font-size-rhe-values: 1.7em;
   --font-size-rhe-headers: 1.2em;
-  --font-size-standings-headers: 1.0em; 
+  --font-size-standings-headers: 1.0em;
   --font-size-standings-values:  1.3em;
   --font-size-fraction: 0.6em;
 
@@ -21,15 +21,17 @@
 
   /* Cell dimensions */
   --height-row-game: 1.4em;
-  --height-row-stand: 1.6em;
+  --height-row-stand: 1.4em;
   --width-status: 3em;
   --width-rhe: 1.2em;
   --logo-size-game: 1.4em;
   --logo-size-stand: 1.2em;
 
-  /* Column widths (standings) */
-  --width-team-col-stand: 3.8em;     /* you set this to 3.8em; keep tweaking here */
-  --width-record-col-stand: 3.2em;   /* NEW: W-L, L10, Home, Away */
+  /* Standings column widths */
+  --width-team-col-stand: 3.8em;   /* fits logo + CUBS */
+  --width-record-col-stand: 3.2em; /* record/L10/Home/Away cells */
+  --width-gb-col: 3.0em;           /* match WCGB width */
+  --width-wcgb-col: 3.0em;
 }
 
 /*--------------------------------------------------
@@ -44,7 +46,7 @@
 }
 
 /*--------------------------------------------------
-  Module Header
+  Module Header (keep MM default via custom.css override if desired)
 --------------------------------------------------*/
 .module-header {
   font-family: 'Times Square', Arial, sans-serif;
@@ -60,13 +62,6 @@
 }
 .standings-screen .module-header + hr {
   display: none;
-}
-
-/* Division titles use Times Square */
-.MMM-MLBScoresAndStandings .division-title {
-  font-family: 'Times Square', Arial, sans-serif;
-  font-size: var(--font-size-standings-headers);
-  margin: 0;
 }
 
 /*--------------------------------------------------
@@ -113,7 +108,6 @@
   align-items: center;
   gap: 4px;
   padding: var(--pad-abbr);
-  white-space: nowrap;
 }
 .game-boxscore .logo-cell {
   width: var(--logo-size-game);
@@ -122,7 +116,6 @@
 }
 .game-boxscore .abbr {
   font-size: var(--font-size-abbr);
-  white-space: nowrap;
 }
 
 /* Status (game time/inning) */
@@ -188,7 +181,7 @@
   height: var(--height-row-stand);
 }
 
-/* Standings table headers */
+/* Standings headers vs values */
 .mlb-standings th {
   border: 1px solid #444;
   padding: var(--pad-standings);
@@ -196,10 +189,7 @@
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-standings-headers);
-  white-space: nowrap;
 }
-
-/* Standings table data cells */
 .mlb-standings td {
   border: 1px solid #444;
   padding: var(--pad-standings);
@@ -207,58 +197,55 @@
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-standings-values);
-  white-space: nowrap;
 }
 
-/* Team cell and first column rules */
+/* Division title font */
+.standings-division .division-title {
+  font-family: 'Times Square', Arial, sans-serif;
+  font-size: 1.2em;
+  margin: 0;
+}
+
+/* Team cell */
 .mlb-standings .team-cell {
   display: flex;
   align-items: center;
-  gap: 6px;
-  justify-content: flex-start;
-  white-space: nowrap;
+  gap: 4px;
 }
-
-/* Lock width of FIRST column (logo + abbr) */
-.mlb-standings th.team-col,
-.mlb-standings td.team-col {
-  width: var(--width-team-col-stand);
-}
-
-/* NEW: Lock widths for W-L, L10, Home, Away */
-.mlb-standings th.rec-col,
-.mlb-standings td.rec-col,
-.mlb-standings th.l10-col,
-.mlb-standings td.l10-col,
-.mlb-standings th.home-col,
-.mlb-standings td.home-col,
-.mlb-standings th.away-col,
-.mlb-standings td.away-col {
-  width: var(--width-record-col-stand);
-}
-
-/* Team logo size in standings */
 .mlb-standings .logo-cell {
   width: var(--logo-size-stand);
   height: var(--logo-size-stand);
   object-fit: contain;
 }
 
-/* Fraction styling (for 1/2) */
+/* Fraction styling for 1/2 */
 .mlb-standings .fraction {
   font-size: var(--font-size-fraction) !important;
-  line-height: 1;
-  display: inline-block;
-  transform: translateY(-0.2em);
+  vertical-align: baseline;
 }
 
-/* Keep GB and WCGB columns same width across screens */
-.module.MMM-MLBScoresAndStandings .mlb-standings th.gb-col,
-.module.MMM-MLBScoresAndStandings .mlb-standings td.gb-col,
-.module.MMM-MLBScoresAndStandings .mlb-standings th.wcgb-col,
-.module.MMM-MLBScoresAndStandings .mlb-standings td.wcgb-col {
-  width: 3.2em;     /* adjust to taste */
-  text-align: center;
+/* Ensure GB and WCGB widths match */
+.mlb-standings th.gb-col,   .mlb-standings td.gb-col   { width: var(--width-gb-col); }
+.mlb-standings th.wcgb-col, .mlb-standings td.wcgb-col { width: var(--width-wcgb-col); }
+
+/* Team column width */
+.mlb-standings th.team-col, .mlb-standings td.team-col { width: var(--width-team-col-stand); }
+
+/* Record/splits column widths */
+.mlb-standings th.rec-col,  .mlb-standings td.rec-col,
+.mlb-standings th.l10-col,  .mlb-standings td.l10-col,
+.mlb-standings th.home-col, .mlb-standings td.home-col,
+.mlb-standings th.away-col, .mlb-standings td.away-col {
+  width: var(--width-record-col-stand);
+}
+
+/* Thicker vertical separators (you set these to 4px earlier) */
+.mlb-standings th.sep-right, .mlb-standings td.sep-right { border-right-width: 4px; }
+
+/* KEY: hide content but preserve width & borders for Home/Away when disabled */
+.mlb-standings th.col--off, .mlb-standings td.col--off {
+  color: transparent !important;
+  /* Keep borders visible */
 }
 
 /* Fullscreen layout */
