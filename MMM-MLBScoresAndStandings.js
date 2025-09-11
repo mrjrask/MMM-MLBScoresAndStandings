@@ -40,16 +40,14 @@ Module.register("MMM-MLBScoresAndStandings", {
     rotateIntervalEast:              7 * 1000,
     rotateIntervalCentral:          12 * 1000,
     rotateIntervalWest:              7 * 1000,
-    standingsPerPage:                  2,
-    rotateIntervalStandingsSingle:   7 * 1000,
     timeZone:               "America/Chicago",
     highlightedTeams:                 [],
     showTitle:                        true,
 
-    // Toggle Home/Away columns (when off, columns are removed entirely)
+    // Standings view options
     showHomeAwaySplits:               true,
 
-    // Cap width so it looks good in middle_center (a tad wider to avoid clipping)
+    // Cap width so it looks good in middle_center
     maxWidth:                      "800px"
   },
 
@@ -67,8 +65,9 @@ Module.register("MMM-MLBScoresAndStandings", {
     this.loadedGames     = false;
     this.loadedStandings = false;
 
+    // pages: N game pages + 3 division pages (pair) + 2 wild card pages
     this.totalGamePages  = 1;
-    this.totalStandPages = DIV_PAIRS.length + WILD_CARD_ORDER.length; // 3 + 2
+    this.totalStandPages = DIV_PAIRS.length + WILD_CARD_ORDER.length;
     this.currentScreen   = 0;
     this.rotateTimer     = null;
 
@@ -89,7 +88,6 @@ Module.register("MMM-MLBScoresAndStandings", {
     return s;
   },
 
-  // Keep the header the same capped width as the body
   _injectHeaderWidthStyle() {
     const cap = this._toCssSize(this.config.maxWidth, "800px");
     if (this._headerStyleInjectedFor === cap) return;
@@ -446,7 +444,6 @@ Module.register("MMM-MLBScoresAndStandings", {
     const m = Math.floor(num + 1e-9);
     const r = num - m;
     if (Math.abs(r - 0.5) < 1e-6) {
-      // smaller "1/2" next to the whole number (no superscript)
       return (m === 0)
         ? `<span class="fraction">1/2</span>`
         : `${m}<span class="fraction">1/2</span>`;
@@ -463,8 +460,16 @@ Module.register("MMM-MLBScoresAndStandings", {
     return String(val);
   },
 
-  // When showHomeAwaySplits=false, we DO NOT render the two columns at all.
-  // We also add thicker vertical separators to the appropriate TDs, not just THs.
+  // Build a header cell with label, class, and optional thick right border
+  _appendHeaderCell(tr, label, cls, sepRight = false) {
+    const th = document.createElement("th");
+    th.innerText = label;
+    if (cls) th.classList.add(cls);
+    if (sepRight) th.classList.add("sep-right");
+    tr.appendChild(th);
+  },
+
+  // When showHomeAwaySplits=false, Home/Away columns are omitted entirely.
   createStandingsTable(group, opts = { isWildCard: false }) {
     const isWildCard = !!opts.isWildCard;
     const showSplits = !!this.config.showHomeAwaySplits;
@@ -472,49 +477,50 @@ Module.register("MMM-MLBScoresAndStandings", {
     const table = document.createElement("table");
     table.className = isWildCard ? "mlb-standings mlb-standings--wc" : "mlb-standings mlb-standings--div";
 
-    const headers = isWildCard
-      ? ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10"]
-      : ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10"];
-    if (showSplits) headers.push("Home", "Away");
-
+    // ----- HEADERS -----
     const trH = document.createElement("tr");
-    headers.forEach((txt, idx) => {
-      const th = document.createElement("th");
-      th.innerText = txt;
-
-      // width helper classes
-      if (idx === 0) th.classList.add("team-col");
-      if (txt === "W-L") th.classList.add("rec-col");
-      if (txt === "L10") th.classList.add("l10-col");
-      if (txt === "Home") th.classList.add("home-col");
-      if (txt === "Away") th.classList.add("away-col");
-      if (txt === "GB") th.classList.add("gb-col");
-      if (txt === "WCGB") th.classList.add("wcgb-col");
-
-      // heavier separators (TH)
-      if (!isWildCard) {
-        if (txt === "W%") th.classList.add("sep-right");
-        if (txt === "E#") th.classList.add("sep-right");     // between E# and WCGB
-        if (txt === "WCGB") th.classList.add("sep-right");   // between WCE# and Streak
-      } else {
-        if (txt === "W%") th.classList.add("sep-right");     // between W% and WCGB
-        if (txt === "WCGB") th.classList.add("sep-right");   // between WCE# and Streak
+    if (isWildCard) {
+      // ["", "W-L", "W%", "WCGB", "E#", "Streak", "L10", [Home, Away]]
+      this._appendHeaderCell(trH, "",    "team-col");
+      this._appendHeaderCell(trH, "W-L", "wl-col");
+      this._appendHeaderCell(trH, "W%",  "pct-col", true); // thick after W%
+      this._appendHeaderCell(trH, "WCGB","wcgb-col");
+      this._appendHeaderCell(trH, "E#",  "wce-col", true); // thick after WCE#
+      this._appendHeaderCell(trH, "Streak","streak-col");
+      this._appendHeaderCell(trH, "L10", "l10-col");
+      if (showSplits) {
+        this._appendHeaderCell(trH, "Home","home-col");
+        this._appendHeaderCell(trH, "Away","away-col");
       }
-
-      trH.appendChild(th);
-    });
+    } else {
+      // ["", "W-L", "W%", "GB", "E#", "WCGB", "E#", "Streak", "L10", [Home, Away]]
+      this._appendHeaderCell(trH, "",    "team-col");
+      this._appendHeaderCell(trH, "W-L", "wl-col");
+      this._appendHeaderCell(trH, "W%",  "pct-col", true); // thick after W%
+      this._appendHeaderCell(trH, "GB",  "gb-col");
+      this._appendHeaderCell(trH, "E#",  "e-col",  true);  // thick between E# and WCGB
+      this._appendHeaderCell(trH, "WCGB","wcgb-col");
+      this._appendHeaderCell(trH, "E#",  "wce-col", true); // thick between WCE# and Streak
+      this._appendHeaderCell(trH, "Streak","streak-col");
+      this._appendHeaderCell(trH, "L10", "l10-col");
+      if (showSplits) {
+        this._appendHeaderCell(trH, "Home","home-col");
+        this._appendHeaderCell(trH, "Away","away-col");
+      }
+    }
     table.appendChild(trH);
 
+    // ----- ROWS -----
     (group?.teamRecords || []).forEach((rec, i) => {
       const tr = document.createElement("tr");
-      if (isWildCard && i === 3) tr.style.borderTop = "2px solid #FFD242";
+      if (isWildCard && i === 3) tr.style.borderTop = "2px solid #FFD242"; // line after top 3
 
       const ab = ABBREVIATIONS[rec?.team?.name] || rec?.team?.abbreviation || "";
       if (this._isHighlighted(ab)) tr.classList.add("team-highlight");
 
       // Team
       const tdT = document.createElement("td");
-      tdT.className = "team-cell team-col";
+      tdT.className = "team-col team-cell";
       const img = document.createElement("img");
       img.src = this.getLogoUrl(ab);
       img.alt = ab;
@@ -527,35 +533,34 @@ Module.register("MMM-MLBScoresAndStandings", {
       tdT.appendChild(sp);
       tr.appendChild(tdT);
 
-      // W-L and W%
+      // W-L, W%
       const lr = rec?.leagueRecord || {};
       const W  = parseInt(lr?.wins)   || 0;
       const L  = parseInt(lr?.losses) || 0;
       const pct = (W + L > 0) ? ((W / (W + L)).toFixed(3).replace(/^0/, "")) : "-";
 
-      const tdRec = document.createElement("td");
-      tdRec.className = "rec-col";
-      tdRec.innerText = `${W}-${L}`;
-      tr.appendChild(tdRec);
+      const tdWL = document.createElement("td");
+      tdWL.className = "wl-col";
+      tdWL.innerText = `${W}-${L}`;
+      tr.appendChild(tdWL);
 
       const tdPct = document.createElement("td");
+      tdPct.className = "pct-col sep-right"; // thick after W%
       tdPct.innerText = pct;
-      tdPct.classList.add("sep-right"); // match TH thick rule after W%
       tr.appendChild(tdPct);
 
       if (isWildCard) {
-        // WCGB, E#(WC)
-        const wcgbHTML = typeof rec._wcgbText === "string"
-          ? rec._wcgbText
-          : this._formatGB(rec?.wildCardGamesBack ?? "-");
+        // WCGB, E#(wildcard)
         const tdWC = document.createElement("td");
         tdWC.className = "wcgb-col";
-        tdWC.innerHTML = wcgbHTML;
+        tdWC.innerHTML = (typeof rec._wcgbText === "string")
+          ? rec._wcgbText
+          : this._formatGB(rec?.wildCardGamesBack ?? "-");
         tr.appendChild(tdWC);
 
         const tdE = document.createElement("td");
+        tdE.className = "wce-col sep-right"; // thick after WCE#
         tdE.innerText = this._formatENum(rec?.wildCardEliminationNumber);
-        tdE.classList.add("sep-right"); // thick line after WCE#
         tr.appendChild(tdE);
       } else {
         // GB, E# (division)
@@ -565,24 +570,25 @@ Module.register("MMM-MLBScoresAndStandings", {
         tr.appendChild(tdGB);
 
         const tdEDiv = document.createElement("td");
+        tdEDiv.className = "e-col sep-right"; // thick after E#
         tdEDiv.innerText = this._formatENum(rec?.eliminationNumber);
-        tdEDiv.classList.add("sep-right"); // thick line after E#
         tr.appendChild(tdEDiv);
 
-        // WCGB, E# (wild card E#)
+        // WCGB, E# (wildcard)
         const tdWC = document.createElement("td");
         tdWC.className = "wcgb-col";
         tdWC.innerHTML = this._formatGB(rec?.wildCardGamesBack ?? "-");
-        tdWC.classList.add("sep-right"); // thick line after WCGB (before WCE#)
         tr.appendChild(tdWC);
 
         const tdEWC = document.createElement("td");
+        tdEWC.className = "wce-col sep-right"; // thick after WCE#
         tdEWC.innerText = this._formatENum(rec?.wildCardEliminationNumber);
         tr.appendChild(tdEWC);
       }
 
       // Streak
       const tdStreak = document.createElement("td");
+      tdStreak.className = "streak-col";
       tdStreak.innerText = rec?.streak?.streakCode || "-";
       tr.appendChild(tdStreak);
 
