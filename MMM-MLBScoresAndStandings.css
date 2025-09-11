@@ -9,7 +9,7 @@
   --font-size-status: 1.0em;
   --font-size-rhe-values: 1.7em;
   --font-size-rhe-headers: 1.2em;
-  --font-size-standings-headers: 1.0em;
+  --font-size-standings-headers: 1.0em; 
   --font-size-standings-values:  1.3em;
   --font-size-fraction: 0.6em;
 
@@ -17,21 +17,29 @@
   --pad-abbr: 0 6px;
   --pad-status: 0 6px;
   --pad-rhe: 0 6px;
-  --pad-standings: 3px 5px;
+  --pad-standings: 3px 6px;
 
-  /* Cell dimensions */
+  /* Row heights */
   --height-row-game: 1.4em;
   --height-row-stand: 1.4em;
-  --width-status: 3em;
-  --width-rhe: 1.2em;
+
+  /* Logo sizes */
   --logo-size-game: 1.4em;
   --logo-size-stand: 1.2em;
 
-  /* Standings column widths */
-  --width-team-col-stand: 3.8em;   /* fits logo + CUBS */
-  --width-record-col-stand: 3.2em; /* record/L10/Home/Away cells */
-  --width-gb-col: 3.0em;           /* match WCGB width */
-  --width-wcgb-col: 3.0em;
+  /* ---------- INDIVIDUAL STANDINGS COLUMN WIDTHS ---------- */
+  /* Division & Wild Card share the same class names below */
+  --width-stand-team:   3.8em; /* team logo + abbr (fits CUBS) */
+  --width-stand-wl:     3.2em; /* W-L */
+  --width-stand-pct:    2.8em; /* W% */
+  --width-stand-gb:     3.0em; /* GB */
+  --width-stand-e:      2.6em; /* E# (division) */
+  --width-stand-wcgb:   3.0em; /* WCGB (keep same as GB for symmetry) */
+  --width-stand-wce:    2.6em; /* E# (wildcard) */
+  --width-stand-streak: 3.2em; /* Streak */
+  --width-stand-l10:    3.2em; /* L10 */
+  --width-stand-home:   3.2em; /* Home split */
+  --width-stand-away:   3.2em; /* Away split */
 }
 
 /*--------------------------------------------------
@@ -88,23 +96,22 @@
   margin-bottom: 8px;
 }
 
-/* Boxscore table rows */
-.game-boxscore tr {
-  height: var(--height-row-game);
-}
+/* Boxscore rows */
+.game-boxscore tr { height: var(--height-row-game); }
 
-/* Boxscore table headers & data */
+/* Boxscore headers/data */
 .game-boxscore th,
 .game-boxscore td {
   border: 1px solid #444;
   padding: var(--pad-abbr);
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
+  white-space: nowrap;
 }
 
-/* Team abbreviation + logo */
+/* Team cell */
 .game-boxscore .team-cell {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: var(--pad-abbr);
@@ -114,13 +121,10 @@
   height: var(--logo-size-game);
   object-fit: contain;
 }
-.game-boxscore .abbr {
-  font-size: var(--font-size-abbr);
-}
+.game-boxscore .abbr { font-size: var(--font-size-abbr); }
 
-/* Status (game time/inning) */
+/* Status (time/inning) */
 .status-cell {
-  width: var(--width-status);
   text-align: center;
   font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-status);
@@ -128,18 +132,14 @@
   white-space: nowrap;
 }
 
-/* R/H/E header */
+/* R/H/E headers & values */
 .rhe-header {
-  width: var(--width-rhe);
   text-align: center;
   font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-rhe-headers);
   font-weight: normal;
 }
-
-/* R/H/E values */
 .rhe-cell {
-  width: var(--width-rhe);
   text-align: center;
   font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-rhe-values);
@@ -147,25 +147,15 @@
 }
 
 /* Live vs. final coloring */
-.status-cell.live,
-.rhe-cell.live {
-  color: #FFD242 !important;
-}
-.status-cell:not(.live),
-.rhe-cell:not(.live) {
-  color: #FFF;
-}
+.status-cell.live, .rhe-cell.live { color: #FFD242 !important; }
+.status-cell:not(.live), .rhe-cell:not(.live) { color: #FFF; }
 
-/* Highlighted team override */
+/* Highlighted team */
 .game-boxscore .abbr.team-highlight,
-.mlb-standings tr.team-highlight td {
-  color: #FFD242 !important;
-}
+.mlb-standings tr.team-highlight td { color: #FFD242 !important; }
 
 /* Dim losing team */
-.game-boxscore tr.loser .abbr {
-  opacity: 0.6;
-}
+.game-boxscore tr.loser .abbr { opacity: 0.6; }
 
 /*--------------------------------------------------
   Standings Table
@@ -176,12 +166,10 @@
   margin-bottom: 10px;
 }
 
-/* Standings table rows */
-.mlb-standings tr {
-  height: var(--height-row-stand);
-}
+/* Standings rows */
+.mlb-standings tr { height: var(--height-row-stand); }
 
-/* Standings headers vs values */
+/* Headers vs values */
 .mlb-standings th {
   border: 1px solid #444;
   padding: var(--pad-standings);
@@ -189,6 +177,7 @@
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-standings-headers);
+  white-space: nowrap;
 }
 .mlb-standings td {
   border: 1px solid #444;
@@ -197,18 +186,19 @@
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-standings-values);
+  white-space: nowrap;
 }
 
-/* Division title font (Times Square) */
+/* Division title (Times Square) */
 .standings-division .division-title {
   font-family: 'Times Square', Arial, sans-serif;
   font-size: 1.2em;
   margin: 0;
 }
 
-/* Team cell */
+/* Team cell inside standings */
 .mlb-standings .team-cell {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
 }
@@ -218,28 +208,29 @@
   object-fit: contain;
 }
 
-/* Fraction styling for 1/2 (smaller, inline) */
+/* Fraction styling for 1/2 (smaller inline) */
 .mlb-standings .fraction {
   font-size: var(--font-size-fraction) !important;
   vertical-align: baseline;
 }
 
-/* Ensure GB and WCGB widths match */
-.mlb-standings th.gb-col,   .mlb-standings td.gb-col   { width: var(--width-gb-col); }
-.mlb-standings th.wcgb-col, .mlb-standings td.wcgb-col { width: var(--width-wcgb-col); }
+/* ---------- PER-COLUMN WIDTHS (easy to adjust) ---------- */
+.mlb-standings th.team-col, .mlb-standings td.team-col { width: var(--width-stand-team); }
+.mlb-standings th.wl-col,   .mlb-standings td.wl-col   { width: var(--width-stand-wl); }
+.mlb-standings th.pct-col,  .mlb-standings td.pct-col  { width: var(--width-stand-pct); }
 
-/* Team column width */
-.mlb-standings th.team-col, .mlb-standings td.team-col { width: var(--width-team-col-stand); }
+.mlb-standings th.gb-col,   .mlb-standings td.gb-col   { width: var(--width-stand-gb); }
+.mlb-standings th.e-col,    .mlb-standings td.e-col    { width: var(--width-stand-e); }
 
-/* Record/splits column widths */
-.mlb-standings th.rec-col,  .mlb-standings td.rec-col,
-.mlb-standings th.l10-col,  .mlb-standings td.l10-col,
-.mlb-standings th.home-col, .mlb-standings td.home-col,
-.mlb-standings th.away-col, .mlb-standings td.away-col {
-  width: var(--width-record-col-stand);
-}
+.mlb-standings th.wcgb-col, .mlb-standings td.wcgb-col { width: var(--width-stand-wcgb); }
+.mlb-standings th.wce-col,  .mlb-standings td.wce-col  { width: var(--width-stand-wce); }
 
-/* Thicker vertical separators across full column (you preferred ~4px) */
+.mlb-standings th.streak-col, .mlb-standings td.streak-col { width: var(--width-stand-streak); }
+.mlb-standings th.l10-col,    .mlb-standings td.l10-col    { width: var(--width-stand-l10); }
+.mlb-standings th.home-col,   .mlb-standings td.home-col   { width: var(--width-stand-home); }
+.mlb-standings th.away-col,   .mlb-standings td.away-col   { width: var(--width-stand-away); }
+
+/* Thicker vertical separators across the whole column */
 .mlb-standings th.sep-right, .mlb-standings td.sep-right { border-right-width: 4px; }
 
 /* Fullscreen layout */
