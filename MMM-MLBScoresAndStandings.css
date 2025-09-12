@@ -17,17 +17,17 @@
   --box-square-visual: calc(var(--box-square) - 2px + var(--box-square-adjust));
 
   /* Fixed column widths */
-  --box-col-first: 2.2em;  /* status header width + team (logo+abbr) row width */
+  --box-col-first: 2.0em;  /* status header width + team (logo+abbr) row width */
   /* NOTE: R/H/E columns ignore the three vars below and use --box-square-visual */
-  --box-col-r:     2.2em;
-  --box-col-h:     2.2em;
-  --box-col-e:     2.2em;
+  --box-col-r:     2.0em;
+  --box-col-h:     2.0em;
+  --box-col-e:     2.0em;
 
   /* Box score type sizes (all independent of row height) */
   --box-abbr-size:        1.6em;
   --box-status-size:      1.0em;
   --box-rhe-header-size:  1.2em;
-  --box-rhe-value-size:   1.9em; /* <- independent; change freely */
+  --box-rhe-value-size:   1.6em; /* <- independent; change freely */
 
   /* Box score visuals */
   --box-logo-size: 1.4em;
