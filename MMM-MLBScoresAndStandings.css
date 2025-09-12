@@ -6,19 +6,19 @@
 :root {
   /* ===== Box Score (static) ===== */
   --box-header-height: 1.6em;
-  --box-row-height:    1.6em;
+  --box-row-height:    2.2em;
 
   /* Fixed column widths */
-  --box-col-first: 7.6em;  /* status header width + team (logo+abbr) row width */
+  --box-col-first: 4.0em;  /* status header width + team (logo+abbr) row width */
   --box-col-r:     2.2em;
   --box-col-h:     2.2em;
   --box-col-e:     2.2em;
 
   /* Box score type sizes */
-  --box-abbr-size:        1.4em;
+  --box-abbr-size:        1.6em;
   --box-status-size:      1.0em;
   --box-rhe-header-size:  1.2em;
-  --box-rhe-value-size:   1.7em;
+  --box-rhe-value-size:   1.9em;
 
   /* Box score visuals */
   --box-logo-size: 1.4em;
@@ -38,17 +38,17 @@
   --logo-size-stand: 1.2em;
 
   /* Individual standings column widths */
-  --width-stand-team:   3.8em; /* fits CUBS + logo */
-  --width-stand-wl:     3.2em; /* W-L */
-  --width-stand-pct:    2.8em; /* W% */
-  --width-stand-gb:     3.0em; /* GB */
-  --width-stand-e:      2.6em; /* E# (division) */
-  --width-stand-wcgb:   3.0em; /* WCGB */
-  --width-stand-wce:    2.6em; /* E# (wildcard) */
-  --width-stand-streak: 3.2em; /* Streak */
-  --width-stand-l10:    3.2em; /* L10 */
-  --width-stand-home:   3.2em; /* Home split */
-  --width-stand-away:   3.2em; /* Away split */
+  --width-stand-team:   3.4em; /* fits CUBS + logo */
+  --width-stand-wl:     3.0em; /* W-L */
+  --width-stand-pct:    2.6em; /* W% */
+  --width-stand-gb:     2.2em; /* GB */
+  --width-stand-e:      2.2em; /* E# (division) */
+  --width-stand-wcgb:   2.2em; /* WCGB */
+  --width-stand-wce:    2.2em; /* E# (wildcard) */
+  --width-stand-streak: 3.0em; /* Streak */
+  --width-stand-l10:    3.0em; /* L10 */
+  --width-stand-home:   3.0em; /* Home split */
+  --width-stand-away:   3.0em; /* Away split */
 }
 
 /*--------------------------------------------------
