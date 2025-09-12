@@ -48,16 +48,16 @@
 
   /* Individual standings column widths */
   --width-stand-team:   3.4em; /* fits CUBS + logo */
-  --width-stand-wl:     3.0em; /* W-L */
+  --width-stand-wl:     2.8em; /* W-L */
   --width-stand-pct:    2.6em; /* W% */
-  --width-stand-gb:     2.2em; /* GB */
-  --width-stand-e:      2.2em; /* E# (division) */
-  --width-stand-wcgb:   2.2em; /* WCGB */
-  --width-stand-wce:    2.2em; /* E# (wildcard) */
-  --width-stand-streak: 3.0em; /* Streak */
-  --width-stand-l10:    3.0em; /* L10 */
-  --width-stand-home:   3.0em; /* Home split */
-  --width-stand-away:   3.0em; /* Away split */
+  --width-stand-gb:     2.0em; /* GB */
+  --width-stand-e:      2.0em; /* E# (division) */
+  --width-stand-wcgb:   2.0em; /* WCGB */
+  --width-stand-wce:    2.0em; /* E# (wildcard) */
+  --width-stand-streak: 2.8em; /* Streak */
+  --width-stand-l10:    2.8em; /* L10 */
+  --width-stand-home:   2.8em; /* Home split */
+  --width-stand-away:   2.8em; /* Away split */
 }
 
 /*--------------------------------------------------
