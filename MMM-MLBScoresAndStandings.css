@@ -17,7 +17,7 @@
   --box-square-visual: calc(var(--box-square) - 2px + var(--box-square-adjust));
 
   /* Fixed column widths */
-  --box-col-first: 2.8em;  /* status header width + team (logo+abbr) row width */
+  --box-col-first: 2.2em;  /* status header width + team (logo+abbr) row width */
   /* NOTE: R/H/E columns ignore the three vars below and use --box-square-visual */
   --box-col-r:     2.2em;
   --box-col-h:     2.2em;
