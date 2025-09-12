@@ -6,7 +6,7 @@
 :root {
   /* ===== Box Score (static) ===== */
   --box-header-height: 1.6em;
-  --box-row-height:    1.9em;
+  --box-row-height:    1.5em;
 
   /* R/H/E perfect-square size (tie to row height by default) */
   --box-square:        var(--box-row-height);
