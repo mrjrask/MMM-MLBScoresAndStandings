@@ -8,12 +8,17 @@
   --box-header-height: 1.6em;
   --box-row-height:    1.2em;
 
-  /* R/H/E perfect-square size (tie to row height by default) */
+  /* Square size for R/H/E (tie to row height by default) */
   --box-square:        var(--box-row-height);
+
+  /* Optional visual compensation so borders don’t make squares look wide.
+     If you still see rectangles, tweak this by -1px or -2px. */
+  --box-square-adjust: 0px;
+  --box-square-visual: calc(var(--box-square) - 2px + var(--box-square-adjust));
 
   /* Fixed column widths */
   --box-col-first: 2.8em;  /* status header width + team (logo+abbr) row width */
-  /* NOTE: R/H/E columns ignore the three vars below and use --box-square instead for perfect squares. */
+  /* NOTE: R/H/E columns ignore the three vars below and use --box-square-visual */
   --box-col-r:     2.2em;
   --box-col-h:     2.2em;
   --box-col-e:     2.2em;
@@ -22,7 +27,7 @@
   --box-abbr-size:        1.6em;
   --box-status-size:      1.0em;
   --box-rhe-header-size:  1.2em;
-  --box-rhe-value-size:   1.9em;
+  --box-rhe-value-size:   1.9em; /* will be capped to ~row height automatically below */
 
   /* Box score visuals */
   --box-logo-size: 1.4em;
@@ -106,15 +111,15 @@
   border-collapse: collapse;
   border: var(--box-border);
   margin-bottom: 8px;
-  /* First column + three square columns */
-  width: calc(var(--box-col-first) + (3 * var(--box-square)));
+  /* First column + three square columns (use visual width to counter border) */
+  width: calc(var(--box-col-first) + (3 * var(--box-square-visual)));
 }
 
 /* Column widths via colgroup */
 .game-boxscore col.col-first { width: var(--box-col-first); }
 .game-boxscore col.col-r,
 .game-boxscore col.col-h,
-.game-boxscore col.col-e     { width: var(--box-square); }
+.game-boxscore col.col-e     { width: var(--box-square-visual); }
 
 /* Header & row heights */
 .game-boxscore thead tr { height: var(--box-header-height); }
@@ -155,10 +160,11 @@
 /* R/H/E headers & values — force perfect squares */
 .game-boxscore .rhe-header,
 .game-boxscore .rhe-cell {
-  padding: 0 !important;              /* no padding so width == height */
+  padding: 0 !important;      /* no padding so width == height */
   text-align: center;
 }
 
+/* Header squares (or rectangles if you want header taller) */
 .game-boxscore thead .rhe-header {
   height: var(--box-header-height);
   line-height: var(--box-header-height);
@@ -166,10 +172,13 @@
   font-weight: normal;
 }
 
+/* Body squares */
 .game-boxscore tbody .rhe-cell {
   height: var(--box-row-height);
   line-height: var(--box-row-height);
+  /* Cap the value font so tiny rows don’t overflow */
   font-size: var(--box-rhe-value-size);
+  font-size: min(var(--box-rhe-value-size), calc(var(--box-row-height) * 0.95));
 }
 
 /* Live vs. non-live colors */
