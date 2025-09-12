@@ -6,7 +6,7 @@
 :root {
   /* ===== Box Score (static) ===== */
   --box-header-height: 1.6em;
-  --box-row-height:    1.0em;
+  --box-row-height:    1.2em;
 
   /* Square size for R/H/E (tie to row height by default) */
   --box-square:        var(--box-row-height);
@@ -23,11 +23,11 @@
   --box-col-h:     2.2em;
   --box-col-e:     2.2em;
 
-  /* Box score type sizes */
+  /* Box score type sizes (all independent of row height) */
   --box-abbr-size:        1.6em;
   --box-status-size:      1.0em;
   --box-rhe-header-size:  1.2em;
-  --box-rhe-value-size:   1.9em; /* will be capped to ~row height automatically below */
+  --box-rhe-value-size:   1.9em; /* <- independent; change freely */
 
   /* Box score visuals */
   --box-logo-size: 1.4em;
@@ -48,16 +48,16 @@
 
   /* Individual standings column widths */
   --width-stand-team:   3.4em; /* fits CUBS + logo */
-  --width-stand-wl:     2.8em; /* W-L */
+  --width-stand-wl:     3.0em; /* W-L */
   --width-stand-pct:    2.6em; /* W% */
-  --width-stand-gb:     2.0em; /* GB */
-  --width-stand-e:      2.0em; /* E# (division) */
-  --width-stand-wcgb:   2.0em; /* WCGB */
-  --width-stand-wce:    2.0em; /* E# (wildcard) */
-  --width-stand-streak: 2.8em; /* Streak */
-  --width-stand-l10:    2.8em; /* L10 */
-  --width-stand-home:   2.8em; /* Home split */
-  --width-stand-away:   2.8em; /* Away split */
+  --width-stand-gb:     2.2em; /* GB */
+  --width-stand-e:      2.2em; /* E# (division) */
+  --width-stand-wcgb:   2.2em; /* WCGB */
+  --width-stand-wce:    2.2em; /* E# (wildcard) */
+  --width-stand-streak: 3.0em; /* Streak */
+  --width-stand-l10:    3.0em; /* L10 */
+  --width-stand-home:   3.0em; /* Home split */
+  --width-stand-away:   3.0em; /* Away split */
 }
 
 /*--------------------------------------------------
@@ -157,18 +157,18 @@
 /* Status (time/inning) in header */
 .game-boxscore .status-cell { font-size: var(--box-status-size); }
 
-/* R/H/E headers & values — force perfect squares */
+/* R/H/E headers & values — perfect squares, independent font size */
 .game-boxscore .rhe-header,
 .game-boxscore .rhe-cell {
   padding: 0 !important;      /* no padding so width == height */
   text-align: center;
 }
 
-/* Header squares (or rectangles if you want header taller) */
+/* Header squares (can be taller than rows if you want) */
 .game-boxscore thead .rhe-header {
   height: var(--box-header-height);
   line-height: var(--box-header-height);
-  font-size: var(--box-rhe-header-size);
+  font-size: var(--box-rhe-header-size); /* independent */
   font-weight: normal;
 }
 
@@ -176,9 +176,8 @@
 .game-boxscore tbody .rhe-cell {
   height: var(--box-row-height);
   line-height: var(--box-row-height);
-  /* Cap the value font so tiny rows don’t overflow */
-  font-size: var(--box-rhe-value-size);
-  font-size: min(var(--box-rhe-value-size), calc(var(--box-row-height) * 0.95));
+  font-size: var(--box-rhe-value-size);  /* <- independent of row height */
+  overflow: hidden;                       /* keep inside the square if huge */
 }
 
 /* Live vs. non-live colors */
