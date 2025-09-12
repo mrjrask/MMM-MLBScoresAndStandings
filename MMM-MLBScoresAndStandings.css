@@ -12,7 +12,7 @@
   --box-square:        var(--box-row-height);
 
   /* Fixed column widths */
-  --box-col-first: 4.0em;  /* status header width + team (logo+abbr) row width */
+  --box-col-first: 2.8em;  /* status header width + team (logo+abbr) row width */
   /* NOTE: R/H/E columns ignore the three vars below and use --box-square instead for perfect squares. */
   --box-col-r:     2.2em;
   --box-col-h:     2.2em;
