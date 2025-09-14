@@ -5,34 +5,25 @@
 --------------------------------------------------*/
 :root {
   /* ===== Box Score (static) ===== */
-  --box-header-height: 1.6em;
-  --box-row-height:    1.2em;
+  --box-header-height: 1.6em;  /* only affects status header text */
+  --box-row-height:    1.2em;  /* your visual row height */
 
-  /* Square size for R/H/E (tie to row height by default) */
+  /* Size used to make R/H/E perfect squares (width == height) */
   --box-square:        var(--box-row-height);
 
-  /* Optional visual compensation so borders don’t make squares look wide.
-     If you still see rectangles, tweak this by -1px or -2px. */
-  --box-square-adjust: 0px;
-  --box-square-visual: calc(var(--box-square) - 2px + var(--box-square-adjust));
-
-  /* Fixed column widths */
+  /* First (non-square) column width */
   --box-col-first: 2.0em;  /* status header width + team (logo+abbr) row width */
-  /* NOTE: R/H/E columns ignore the three vars below and use --box-square-visual */
-  --box-col-r:     2.0em;
-  --box-col-h:     2.0em;
-  --box-col-e:     2.0em;
 
-  /* Box score type sizes (all independent of row height) */
+  /* (R/H/E dedicated fonts—fully independent of square size) */
   --box-abbr-size:        1.6em;
   --box-status-size:      1.0em;
   --box-rhe-header-size:  1.2em;
-  --box-rhe-value-size:   1.6em; /* <- independent; change freely */
+  --box-rhe-value-size:   1.6em;
 
   /* Box score visuals */
   --box-logo-size: 1.4em;
-  --box-pad-inline: 6px;
-  --box-pad-block:  0px;
+  --box-pad-inline: 6px;   /* applies to first column only */
+  --box-pad-block:  0px;   /* applies to first column only */
   --box-border: 1px solid #444;
   --box-live:   #FFD242;
   --box-text:   #FFF;
@@ -111,41 +102,51 @@
   border-collapse: collapse;
   border: var(--box-border);
   margin-bottom: 8px;
-  /* First column + three square columns (use visual width to counter border) */
-  width: calc(var(--box-col-first) + (3 * var(--box-square-visual)));
+  /* First column + three square columns */
+  width: calc(var(--box-col-first) + (3 * var(--box-square)));
 }
 
 /* Column widths via colgroup */
 .game-boxscore col.col-first { width: var(--box-col-first); }
 .game-boxscore col.col-r,
 .game-boxscore col.col-h,
-.game-boxscore col.col-e     { width: var(--box-square-visual); }
+.game-boxscore col.col-e     { width: var(--box-square); }
 
-/* Header & row heights */
-.game-boxscore thead tr { height: var(--box-header-height); }
-.game-boxscore tbody tr { height: var(--box-row-height); }
+/* We don't force row heights at the <tr> level—cells control height */
+.game-boxscore thead tr,
+.game-boxscore tbody tr { height: auto; }
 
 .game-boxscore th,
 .game-boxscore td {
   border: var(--box-border);
-  padding: var(--box-pad-block) var(--box-pad-inline);
+  padding: 0;                           /* default 0; first column adds its own */
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
   white-space: nowrap;
   color: var(--box-text);
-  box-sizing: border-box;
+  box-sizing: border-box;               /* include borders in width/height */
 }
 
-/* First column */
+/* ===== First column (status header / team rows) ===== */
 .game-boxscore .col-first { text-align: center; }
 
-/* Team cell (logo + abbr) */
+/* Header: status text gets its own line height (not square) */
+.game-boxscore thead .status-cell {
+  height: var(--box-header-height);
+  line-height: var(--box-header-height);
+  font-size: var(--box-status-size);
+  padding: var(--box-pad-block) var(--box-pad-inline);
+}
+
+/* Body: team cell is sized to the same square height to align the row */
 .game-boxscore .team-cell {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
   width: 100%;
+  height: var(--box-square);            /* matches R/H/E square height */
+  padding: var(--box-pad-block) var(--box-pad-inline);
 }
 .game-boxscore .logo-cell {
   width: var(--box-logo-size);
@@ -154,30 +155,26 @@
 }
 .game-boxscore .abbr { font-size: var(--box-abbr-size); }
 
-/* Status (time/inning) in header */
-.game-boxscore .status-cell { font-size: var(--box-status-size); }
-
-/* R/H/E headers & values — perfect squares, independent font size */
+/* ===== R/H/E cells: perfect squares ===== */
 .game-boxscore .rhe-header,
 .game-boxscore .rhe-cell {
-  padding: 0 !important;      /* no padding so width == height */
+  width: var(--box-square);
+  height: var(--box-square);
+  line-height: var(--box-square);
   text-align: center;
+  padding: 0 !important;                /* ensure square geometry */
 }
 
-/* Header squares (can be taller than rows if you want) */
-.game-boxscore thead .rhe-header {
-  height: var(--box-header-height);
-  line-height: var(--box-header-height);
-  font-size: var(--box-rhe-header-size); /* independent */
+/* Header fonts */
+.game-boxscore .rhe-header {
+  font-size: var(--box-rhe-header-size);
   font-weight: normal;
 }
 
-/* Body squares */
-.game-boxscore tbody .rhe-cell {
-  height: var(--box-row-height);
-  line-height: var(--box-row-height);
-  font-size: var(--box-rhe-value-size);  /* <- independent of row height */
-  overflow: hidden;                       /* keep inside the square if huge */
+/* Body fonts */
+.game-boxscore .rhe-cell {
+  font-size: var(--box-rhe-value-size); /* independent of square size */
+  overflow: hidden;                      /* keep big numbers inside the box */
 }
 
 /* Live vs. non-live colors */
