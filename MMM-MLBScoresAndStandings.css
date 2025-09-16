@@ -5,14 +5,16 @@
 --------------------------------------------------*/
 :root {
   /* ===== Box Score (static) ===== */
-  --box-header-height: 1.6em;  /* only affects Status header cell */
-  --box-row-height:    1.2em;  /* visual row height in the BODY */
+  --box-row-height:    1.6em;  /* visual row height in the BODY */
 
   /* R/H/E squares (width == height) */
   --box-square:        var(--box-row-height);
 
+  /* Header matches R/H/E square height */
+  --box-header-height: var(--box-square);
+
   /* First (non-square) column width */
-  --box-col-first:     2.0em;  /* Status header width + Team cell width */
+  --box-col-first:     6.0em;  /* Status header width + Team cell width */
 
   /* Box score type sizes (independent of row height) */
   --box-abbr-size:        1.6em;
@@ -149,6 +151,9 @@
   line-height: var(--box-header-height);
   font-size: var(--box-status-size);
   padding: var(--box-pad-block) var(--box-pad-inline); /* only header gets padding */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .game-boxscore thead .rhe-header {
   font-size: var(--box-rhe-header-size);
