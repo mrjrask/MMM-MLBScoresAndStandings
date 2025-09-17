@@ -14,17 +14,17 @@
   --box-header-height: var(--box-square);
 
   /* First (non-square) column width */
-  --box-col-first:     4.2em;  /* Status header width + Team cell width */
+  --box-col-first:     4.0em;  /* Status header width + Team cell width */
 
   /* Box score type sizes (independent of row height) */
   --box-abbr-size:        1.6em;
   --box-status-size:      1.0em;
   --box-rhe-header-size:  1.2em;
-  --box-rhe-value-size:   1.9em;
+  --box-rhe-value-size:   1.6em;
 
   /* Box score visuals */
   --box-logo-size: 1.4em;
-  --box-pad-inline: 6px;  /* used in first column only */
+  --box-pad-inline: 2px;  /* used in first column only */
   --box-pad-block:  0px;  /* used in first column only */
   --box-border: 1px solid #444;
   --box-live:   #FFD242;
