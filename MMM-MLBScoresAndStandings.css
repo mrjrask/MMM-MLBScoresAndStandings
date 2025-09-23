@@ -5,18 +5,19 @@
 --------------------------------------------------*/
 :root {
   /* ===== Box Score (static) ===== */
-  --box-row-height:    1.6em;  /* visual row height in the BODY */
+  --box-header-height: 1.6em;  /* Status header text cell height */
+  --box-row-height:    1.2em;  /* BODY visual row height */
 
   /* R/H/E squares (width == height) */
   --box-square:        var(--box-row-height);
 
-  /* Header matches R/H/E square height */
-  --box-header-height: var(--box-square);
+  /* First (non-square) column width — raised to fit logo + CUBS comfortably */
+  --box-col-first:     4.2em;
 
-  /* First (non-square) column width */
-  --box-col-first:     4.0em;  /* Status header width + Team cell width */
+  /* OPTIONAL total width buffer to avoid last-column clipping on some GPUs */
+  --box-width-buffer:  0.3em;
 
-  /* Box score type sizes (independent of row height) */
+  /* Box score type sizes (independent of row/box size) */
   --box-abbr-size:        1.6em;
   --box-status-size:      1.0em;
   --box-rhe-header-size:  1.2em;
@@ -24,13 +25,13 @@
 
   /* Box score visuals */
   --box-logo-size: 1.4em;
-  --box-pad-inline: 2px;  /* used in first column only */
+  --box-pad-inline: 6px;  /* used in first column only */
   --box-pad-block:  0px;  /* used in first column only */
   --box-border: 1px solid #444;
   --box-live:   #FFD242;
   --box-text:   #FFF;
 
-  /* ===== Standings ===== */
+  /* ===== Standings (unchanged here) ===== */
   --font-size-standings-headers: 1.0em;
   --font-size-standings-values:  1.3em;
   --font-size-fraction:          0.6em;
@@ -97,29 +98,30 @@
 }
 
 /*--------------------------------------------------
-  BOX SCORE: STATIC LAYOUT (NO colgroup NEEDED)
+  BOX SCORE: STATIC LAYOUT (no colgroup required)
 --------------------------------------------------*/
 .game-boxscore {
   table-layout: fixed;
   border-collapse: collapse;
   border: var(--box-border);
   margin-bottom: 8px;
-  /* First column + three square columns */
-  width: calc(var(--box-col-first) + (3 * var(--box-square)));
+  /* First column + three square columns + optional width buffer */
+  width: calc(var(--box-col-first) + (3 * var(--box-square)) + var(--box-width-buffer));
 }
 
 .game-boxscore th,
 .game-boxscore td {
   border: var(--box-border);
-  padding: 0;                           /* squares need zero padding */
+  padding: 0;                           /* R/H/E need zero padding to be perfect squares */
   vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
   white-space: nowrap;
   color: var(--box-text);
-  box-sizing: border-box;
+  box-sizing: border-box;               /* include borders in width/height */
+  text-align: center;                   /* center by default; team cell overrides via flex */
 }
 
-/* ===== WIDTHS via nth-child (works with your current markup) ===== */
+/* ===== Column widths via nth-child (matches your markup) ===== */
 /* Header row: [1]=Status, [2]=R, [3]=H, [4]=E */
 .game-boxscore thead th:nth-child(1) { width: var(--box-col-first); }
 .game-boxscore thead th:nth-child(2),
@@ -132,42 +134,40 @@
 .game-boxscore tbody td:nth-child(3),
 .game-boxscore tbody td:nth-child(4) { width: var(--box-square); }
 
-/* ===== HEIGHTS to enforce the square geometry ===== */
+/* ===== Heights to enforce square geometry ===== */
 /* Body row height is exactly the square size */
 .game-boxscore tbody tr { height: var(--box-square); }
 
-/* R/H/E cells are true squares: width set above, height/line-height here */
+/* R/H/E cells are true squares (width set above, height/line-height here) */
 .game-boxscore .rhe-header,
 .game-boxscore .rhe-cell {
   height: var(--box-square);
   line-height: var(--box-square);
-  text-align: center;
-  /* no padding, box-sizing:border-box already set on cells */
 }
 
-/* Header: Status cell has its own height; R/H/E remain square */
-.game-boxscore thead .status-cell {
-  height: var(--box-header-height);
-  line-height: var(--box-header-height);
-  font-size: var(--box-status-size);
-  padding: var(--box-pad-block) var(--box-pad-inline); /* only header gets padding */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+/* Make header R/H/E also square so header columns align perfectly with body */
 .game-boxscore thead .rhe-header {
   font-size: var(--box-rhe-header-size);
   font-weight: normal;
 }
 
-/* Body: Team cell uses flex to center content vertically within the row */
+/* Status header cell remains independent height */
+.game-boxscore thead .status-cell {
+  height: var(--box-header-height);
+  line-height: var(--box-header-height);
+  font-size: var(--box-status-size);
+  padding: var(--box-pad-block) var(--box-pad-inline); /* only header/status uses padding */
+  text-align: center;
+}
+
+/* ===== Team cell (logo + abbr) in body — vertically centered ===== */
 .game-boxscore tbody td:nth-child(1) {
-  height: var(--box-square);            /* match the row/square height */
+  height: var(--box-square);            /* match row/square height */
 }
 .game-boxscore .team-cell {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center;                  /* vertical centering */
+  justify-content: center;              /* horizontal centering */
   gap: 4px;
   width: 100%;
   height: 100%;                         /* fill the cell height */
@@ -178,12 +178,15 @@
   height: var(--box-logo-size);
   object-fit: contain;
 }
-.game-boxscore .abbr { font-size: var(--box-abbr-size); }
+.game-boxscore .abbr {
+  font-size: var(--box-abbr-size);
+  line-height: 1;                       /* avoids pushing cell taller */
+}
 
 /* R/H/E value font size (independent of square size) */
 .game-boxscore .rhe-cell {
   font-size: var(--box-rhe-value-size);
-  overflow: hidden; /* if you make the font very large, keep it clipped nicely */
+  overflow: hidden;                     /* clip if you crank the font up */
 }
 
 /* Live vs. non-live colors */
@@ -198,7 +201,7 @@
 .game-boxscore tr.loser .abbr { opacity: 0.6; }
 
 /*--------------------------------------------------
-  STANDINGS
+  STANDINGS (left as-is from your current working state)
 --------------------------------------------------*/
 .mlb-standings {
   width: 100%;
@@ -265,7 +268,7 @@
 .mlb-standings th.home-col,  .mlb-standings td.home-col  { width: var(--width-stand-home); }
 .mlb-standings th.away-col,  .mlb-standings td.away-col  { width: var(--width-stand-away); }
 
-/* Thicker vertical separators (if desired) */
+/* Optional thicker vertical separators */
 .mlb-standings th.sep-right, .mlb-standings td.sep-right { border-right-width: 4px; }
 
 /* Fullscreen centering helper */
