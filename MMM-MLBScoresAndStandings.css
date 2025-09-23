@@ -9,7 +9,7 @@
   --box-square:        1.2em;   /* TRUE square size for R/H/E (width == height) */
 
   /* First (non-square) column width — roomy for "Final/12" and logo+CUBS */
-  --box-col-first:     4.2em;
+  --box-col-first:     3.0em;
 
   /* Prevents last-col clipping on some GPUs */
   --box-width-buffer:  0.3em;
