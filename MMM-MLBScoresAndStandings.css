@@ -12,7 +12,7 @@
   --box-square:        var(--box-row-height);
 
   /* First (non-square) column width — raised to fit logo + CUBS comfortably */
-  --box-col-first:     4.2em;
+  --box-col-first:     3.0em;
 
   /* OPTIONAL total width buffer to avoid last-column clipping on some GPUs */
   --box-width-buffer:  0.3em;
