@@ -7,8 +7,12 @@
   /* ===== Box Score (static) ===== */
   --box-header-height: 1.6em;   /* Status header text cell height */
   --box-square:        1.2em;   /* TRUE square size for R/H/E (width == height) */
-  --box-col-first:     3.0em;   /* Status header + Team column width */
-  --box-width-buffer:  0.3em;   /* Prevents last-col clipping on some GPUs */
+
+  /* First (non-square) column width — roomy for "Final/12" and logo+CUBS */
+  --box-col-first:     4.2em;
+
+  /* Prevents last-col clipping on some GPUs */
+  --box-width-buffer:  0.3em;
 
   /* Independent font sizes (do NOT affect square size) */
   --box-abbr-size:        1.6em;
@@ -128,6 +132,9 @@
   line-height: var(--box-header-height);
   font-size: var(--box-status-size);
   padding: var(--box-pad-block) var(--box-pad-inline); /* header text breathing room */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .game-boxscore thead .rhe-header {
   font-size: var(--box-rhe-header-size);
