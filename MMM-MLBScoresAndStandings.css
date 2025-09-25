@@ -6,10 +6,10 @@
 :root {
   /* ===== Box Score (static) ===== */
   --box-header-height: 1.6em;   /* Status header text cell height */
-  --box-square:        1.2em;   /* TRUE square size for R/H/E (width == height) */
+  --box-square:        1.35em;  /* TRUE square size for R/H/E (width == height) */
 
   /* First (non-square) column width — roomy for "Final/12" and logo+CUBS */
-  --box-col-first:     3.0em;
+  --box-col-first:     3.8em;
 
   /* Prevents last-col clipping on some GPUs */
   --box-width-buffer:  0.3em;
@@ -112,18 +112,31 @@
 .game-boxscore thead th:nth-child(4) { width: var(--box-square); }
 
 /* Body rows: [1] Team, [2] R, [3] H, [4] E */
-.game-boxscore tbody td:nth-child(1) { width: var(--box-col-first); }
+.game-boxscore tbody td:nth-child(1) {
+  width: var(--box-col-first);
+  height: var(--box-square);
+}
 .game-boxscore tbody td:nth-child(2),
 .game-boxscore tbody td:nth-child(3),
 .game-boxscore tbody td:nth-child(4) { width: var(--box-square); }
 
-/* BODY: enforce squares by height + line-height */
+/* BODY: enforce squares with explicit aspect ratio */
 .game-boxscore tbody tr { height: var(--box-square); }
 .game-boxscore tbody td:nth-child(2),
 .game-boxscore tbody td:nth-child(3),
 .game-boxscore tbody td:nth-child(4) {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
   height: var(--box-square);
-  line-height: var(--box-square); /* vertical centering for numbers */
+}
+
+.game-boxscore thead th:nth-child(2),
+.game-boxscore thead th:nth-child(3),
+.game-boxscore thead th:nth-child(4) {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
 }
 
 /* HEADER: status height is independent; R/H/E align via widths */
