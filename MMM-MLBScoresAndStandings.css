@@ -5,25 +5,25 @@
 --------------------------------------------------*/
 :root {
   /* ===== Box Score (static) ===== */
-  --box-header-height: 1.6em;   /* Status header text cell height */
-  --box-square:        1.35em;  /* TRUE square size for R/H/E (width == height) */
+  --box-header-height: 2.2em;   /* Status header text cell height */
+  --box-square:        2.4em;   /* TRUE square size for R/H/E (width == height) */
 
   /* First (non-square) column width — roomy for "Final/12" and logo+CUBS */
-  --box-col-first:     3.8em;
+  --box-col-first:     6.6em;
 
   /* Prevents last-col clipping on some GPUs */
   --box-width-buffer:  0.3em;
 
   /* Independent font sizes (do NOT affect square size) */
-  --box-abbr-size:        1.6em;
-  --box-status-size:      1.0em;
-  --box-rhe-header-size:  1.2em;
-  --box-rhe-value-size:   1.6em;
+  --box-abbr-size:        2.3em;
+  --box-status-size:      1.3em;
+  --box-rhe-header-size:  1.3em;
+  --box-rhe-value-size:   2.3em;
 
   /* Box visuals */
-  --box-logo-size: 1.4em;
-  --box-pad-inline: 6px;  /* used only in the team/status cells */
-  --box-pad-block:  0px;
+  --box-logo-size: 2.0em;
+  --box-pad-inline: 10px;  /* used only in the team/status cells */
+  --box-pad-block:  2px;
   --box-border: 1px solid #444;
   --box-live:   #FFD242;
   --box-text:   #FFF;
