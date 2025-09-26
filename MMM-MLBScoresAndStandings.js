@@ -202,23 +202,40 @@
       var start = this.currentScreen * this.config.gamesPerPage;
       var games = this.games.slice(start, start + this.config.gamesPerPage);
 
-      var wrapper = document.createElement("div");
-      wrapper.className = "games-columns";
+      var matrix = document.createElement("table");
+      matrix.className = "games-matrix";
 
-      var half = Math.ceil(games.length / 2);
-      var left = games.slice(0, half);
-      var right = games.slice(half);
+      var tbody = document.createElement("tbody");
 
-      var cols = [left, right];
-      for (var c = 0; c < cols.length; c++) {
-        var colDiv = document.createElement("div");
-        colDiv.className = "game-col";
-        for (var i = 0; i < cols[c].length; i++) {
-          colDiv.appendChild(this.createGameBox(cols[c][i]));
+      var columns = 2;
+      var perPage = this.config.gamesPerPage || 8;
+      var rows = Math.max(1, Math.ceil(perPage / columns));
+      var totalSlots = rows * columns;
+
+      for (var slot = 0; slot < totalSlots; slot += columns) {
+        var row = document.createElement("tr");
+
+        for (var col = 0; col < columns; col++) {
+          var cell = document.createElement("td");
+          cell.className = "games-matrix-cell";
+
+          var idx = slot + col;
+          var game = games[idx];
+
+          if (game) {
+            cell.appendChild(this.createGameBox(game));
+          } else {
+            cell.classList.add("empty");
+          }
+
+          row.appendChild(cell);
         }
-        wrapper.appendChild(colDiv);
+
+        tbody.appendChild(row);
       }
-      return wrapper;
+
+      matrix.appendChild(tbody);
+      return matrix;
     },
 
     // STATIC 4-COLUMN BOX SCORE (status/team, R, H, E)
