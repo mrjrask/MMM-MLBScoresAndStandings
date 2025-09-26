@@ -77,8 +77,15 @@
 /*--------------------------------------------------
   Scoreboard Grid
 --------------------------------------------------*/
-.games-columns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; justify-items: center; }
-.game-col { display: flex; flex-direction: column; gap: 6px; }
+.games-matrix {
+  border-collapse: separate;
+  border-spacing: 8px;
+  margin: 0 auto;
+}
+
+.games-matrix-cell {
+  vertical-align: top;
+}
 
 /*--------------------------------------------------
   BOX SCORE: STATIC LAYOUT (nth-child widths + fixed heights)
