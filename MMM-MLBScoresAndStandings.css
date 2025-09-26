@@ -8,7 +8,7 @@
   --box-square:        2.05em;  /* TRUE square size for R/H/E (width == height) */
 
   /* First (non-square) column width — roomy for "Final/12" and logo+CUBS */
-  --box-col-first:     5.4em;
+  --box-col-first:     3.0em;
 
   /* Prevents last-col clipping on some GPUs */
   --box-width-buffer:  0.4em;
@@ -20,7 +20,7 @@
   --box-rhe-value-size:   2.05em;
 
   /* Box visuals */
-  --box-logo-size: 1.75em;
+  --box-logo-size: 1.35em;
   --box-pad-inline: 8px;  /* used only in the team/status cells */
   --box-pad-block:  2px;
   --box-border: 1px solid #444;
@@ -47,7 +47,19 @@
   --width-stand-streak: 3.0em;
   --width-stand-l10:    3.0em;
   --width-stand-home:   3.0em;
-@@ -96,69 +96,72 @@
+.game-boxscore {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: calc(var(--box-col-first) + (3 * var(--box-square)) + var(--box-width-buffer));
+}
+
+.game-boxscore col.col-first { width: var(--box-col-first); }
+.game-boxscore col.col-r,
+.game-boxscore col.col-h,
+.game-boxscore col.col-e {
+  width: var(--box-square);
+}
+
 .game-boxscore td {
   border: var(--box-border);
   padding: 0;                 /* IMPORTANT: squares need zero padding */
@@ -120,3 +132,16 @@
   justify-content: center;          /* horizontal centering */
   gap: 4px;
   width: 100%;
+}
+
+.game-boxscore .team-cell .logo-cell {
+  width: var(--box-logo-size);
+  height: var(--box-logo-size);
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.game-boxscore .team-cell .abbr {
+  font-size: var(--box-abbr-size);
+  line-height: 1;
+}
