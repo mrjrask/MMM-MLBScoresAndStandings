@@ -5,29 +5,33 @@
 --------------------------------------------------*/
 :root {
   /* ===== Box Score (static) ===== */
-  --box-header-height: 1.6em;   /* Status header text cell height */
-  --box-square:        1.35em;  /* TRUE square size for R/H/E (width == height) */
+  --box-header-height: 2.2em;    /* Status header text cell height */
+  --box-square:        2.2em;    /* TRUE square size for R/H/E (width == height) */
 
-  /* First (non-square) column width — roomy for "Final/12" and logo+CUBS */
-  --box-col-first:     3.8em;
+  /* First (non-square) column width — roomy for status + logo/abbr */
+  --box-col-first:     8.2em;
 
   /* Prevents last-col clipping on some GPUs */
-  --box-width-buffer:  0.3em;
+  --box-width-buffer:  0.6em;
 
   /* Independent font sizes (do NOT affect square size) */
-  --box-abbr-size:        1.6em;
-  --box-status-size:      1.0em;
-  --box-rhe-header-size:  1.2em;
-  --box-rhe-value-size:   1.6em;
+  --box-abbr-size:        2.0em;
+  --box-status-size:      1.2em;
+  --box-rhe-header-size:  1.1em;
+  --box-rhe-value-size:   2.2em;
 
   /* Box visuals */
-  --box-logo-size: 1.4em;
-  --box-pad-inline: 6px;  /* used only in the team/status cells */
-  --box-pad-block:  0px;
-  --box-border: 1px solid #444;
+  --box-logo-size: 2.4em;
+  --box-pad-inline: 12px;  /* used only in the team/status cells */
+  --box-pad-block:  4px;
+  --box-border: 1px solid #3a3a3a;
+  --box-border-outer: 2px solid #707070;
+  --box-radius: 10px;
   --box-live:   #FFD242;
   --box-text:   #FFF;
-  --box-slot-height: calc(var(--box-header-height) + (2 * var(--box-square)) + 6px);
+  --box-muted:  #8c8c8c;
+  --box-background: #000;
+  --box-slot-height: calc(var(--box-header-height) + (2 * var(--box-square)) + 10px);
 
   /* ===== Standings ===== */
   --font-size-standings-headers: 1.0em;
@@ -78,9 +82,10 @@
 /*--------------------------------------------------
   Scoreboard Grid
 --------------------------------------------------*/
+
 .games-matrix {
   border-collapse: separate;
-  border-spacing: 12px 10px;
+  border-spacing: 18px 18px;
   margin: 0 auto;
   table-layout: fixed;
   width: 100%;
@@ -98,6 +103,10 @@
   display: inline-block;
   width: calc(var(--box-col-first) + (3 * var(--box-square)) + var(--box-width-buffer));
   height: var(--box-slot-height);
+  border-radius: var(--box-radius);
+  border: var(--box-border-outer);
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.6);
 }
 
 .games-matrix-cell > .game-boxscore {
@@ -110,8 +119,12 @@
 .game-boxscore {
   table-layout: fixed;
   border-collapse: collapse;
-  border: var(--box-border);
-  margin-bottom: 8px;
+  border: var(--box-border-outer);
+  background: var(--box-background);
+  border-radius: var(--box-radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.45);
   /* first column + 3 * squares + small buffer */
   width: calc(var(--box-col-first) + (3 * var(--box-square)) + var(--box-width-buffer));
 }
@@ -126,6 +139,17 @@
   color: var(--box-text);
   box-sizing: border-box;     /* include borders in assigned width/height */
   text-align: center;
+  background: rgba(8, 8, 8, 0.95);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.85);
+}
+
+.game-boxscore thead th {
+  background: rgba(18, 18, 18, 0.95);
+}
+
+.game-boxscore tbody td:nth-child(1) {
+  background: rgba(12, 12, 12, 0.95);
+  text-align: left;
 }
 
 /* Column widths (header + body) */
@@ -172,39 +196,96 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
+  letter-spacing: 0.05em;
 }
 .game-boxscore thead .rhe-header {
   font-size: var(--box-rhe-header-size);
   font-weight: normal;
   /* height may differ from square; width matches columns below */
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--box-muted);
 }
 
 /* Team cell (logo + abbr) centered */
 .game-boxscore .team-cell {
   display: flex;
   align-items: center;              /* vertical centering */
-  justify-content: center;          /* horizontal centering */
-  gap: 4px;
+  justify-content: flex-start;      /* scoreboard style left-align */
+  gap: 10px;
   width: 100%;
   height: 100%;
   padding: var(--box-pad-block) var(--box-pad-inline);
 }
-.game-boxscore .logo-cell { width: var(--box-logo-size); height: var(--box-logo-size); object-fit: contain; }
-.game-boxscore .abbr { font-size: var(--box-abbr-size); line-height: 1; }
+.game-boxscore .logo-cell {
+  width: var(--box-logo-size);
+  height: var(--box-logo-size);
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.6));
+  flex-shrink: 0;
+}
+.game-boxscore .abbr {
+  font-size: var(--box-abbr-size);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-shrink: 1;
+}
+.game-boxscore .abbr.final {
+  letter-spacing: 0.12em;
+}
 
 /* R/H/E value size is independent of square size */
-.game-boxscore .rhe-cell { font-size: var(--box-rhe-value-size); overflow: hidden; }
+.game-boxscore .rhe-cell {
+  font-size: var(--box-rhe-value-size);
+  overflow: hidden;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+}
 
 /* Live vs. non-live colors */
 .game-boxscore .status-cell.live,
 .game-boxscore .rhe-cell.live { color: var(--box-live) !important; }
+
+.game-boxscore.is-live {
+  border-color: #c3941a;
+  box-shadow: 0 0 18px rgba(255, 210, 66, 0.25);
+}
+
+.game-boxscore.is-preview {
+  border-color: #505050;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.game-boxscore.is-final .status-cell,
+.game-boxscore.is-final .abbr { color: var(--box-text); }
+
+.game-boxscore.is-preview .status-cell { color: var(--box-muted); }
+
+.game-boxscore.is-warmup .status-cell { color: var(--box-live); }
+
+.game-boxscore.is-postponed .status-cell,
+.game-boxscore.is-postponed .abbr,
+.game-boxscore.is-suspended .status-cell,
+.game-boxscore.is-suspended .abbr {
+  color: var(--box-muted);
+}
+
+.game-boxscore.is-postponed,
+.game-boxscore.is-suspended {
+  border-color: #4a4a4a;
+  box-shadow: none;
+}
 
 /* Highlighted team (game + standings) */
 .game-boxscore .abbr.team-highlight,
 .mlb-standings tr.team-highlight td { color: var(--box-live) !important; }
 
 /* Dim losing team */
-.game-boxscore tr.loser .abbr { opacity: 0.6; }
+.game-boxscore tr.loser .abbr { opacity: 0.55; }
+.game-boxscore tr.loser .rhe-cell { opacity: 0.55; }
 
 /*--------------------------------------------------
   STANDINGS
