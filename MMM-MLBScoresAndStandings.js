@@ -215,7 +215,11 @@
           cell.className = "games-matrix-cell";
 
           var game = games[i + col];
-          if (game) cell.appendChild(this.createGameBox(game));
+          if (game) {
+            cell.appendChild(this.createGameBox(game));
+          } else {
+            cell.classList.add("empty");
+          }
 
           row.appendChild(cell);
         }
@@ -256,6 +260,13 @@
       var isFin       = state === "Final";
       var live        = !isPrev && !isFin && !isPost && !isWarmup && !isSuspended;
       var showVals    = !isPrev && !isPost && !isSuspended;
+
+      if (isFin) table.classList.add("is-final");
+      else if (live) table.classList.add("is-live");
+      else if (isPrev) table.classList.add("is-preview");
+      else if (isPost) table.classList.add("is-postponed");
+      else if (isSuspended) table.classList.add("is-suspended");
+      else if (isWarmup) table.classList.add("is-warmup");
 
       var statusText;
       if (isSuspended)       statusText = "Suspended";
