@@ -7,51 +7,41 @@
   /* Global scale that can be overridden per-module */
   --box-scale: 1;
 
-  /* ===== Box Score (static) ===== */
-  --box-header-height-base: 1.75em;
-  --box-square-base:        1.7em;    /* TRUE square size for R/H/E (width == height) */
-  --box-col-first-base:     6.0em;    /* First (non-square) column width */
-  --box-width-buffer-base:  0.45em;   /* Prevents last-col clipping on some GPUs */
+  /* ===== Scoreboard ===== */
+  --scoreboard-card-width-base:      320px;
+  --scoreboard-pad-block-base:        10px;
+  --scoreboard-pad-inline-base:       14px;
+  --scoreboard-gap-base:               8px;
+  --scoreboard-status-font-base:      18px;
+  --scoreboard-label-font-base:       12px;
+  --scoreboard-team-font-base:        28px;
+  --scoreboard-value-font-base:       32px;
+  --scoreboard-metric-width-base:     56px;
+  --scoreboard-placeholder-height-base: 184px;
 
-  /* Independent font sizes (do NOT affect square size) */
-  --box-abbr-size-base:        1.5em;
-  --box-status-size-base:      1.0em;
-  --box-rhe-header-size-base:  0.95em;
-  --box-rhe-value-size-base:   1.7em;
+  --scoreboard-card-width:    calc(var(--scoreboard-card-width-base) * var(--box-scale));
+  --scoreboard-pad-block:     calc(var(--scoreboard-pad-block-base) * var(--box-scale));
+  --scoreboard-pad-inline:    calc(var(--scoreboard-pad-inline-base) * var(--box-scale));
+  --scoreboard-gap:           calc(var(--scoreboard-gap-base) * var(--box-scale));
+  --scoreboard-status-font:   calc(var(--scoreboard-status-font-base) * var(--box-scale));
+  --scoreboard-label-font:    calc(var(--scoreboard-label-font-base) * var(--box-scale));
+  --scoreboard-team-font:     calc(var(--scoreboard-team-font-base) * var(--box-scale));
+  --scoreboard-value-font:    calc(var(--scoreboard-value-font-base) * var(--box-scale));
+  --scoreboard-metric-width:  calc(var(--scoreboard-metric-width-base) * var(--box-scale));
+  --scoreboard-placeholder-height: calc(var(--scoreboard-placeholder-height-base) * var(--box-scale));
 
-  /* Box visuals */
-  --box-logo-size-base:    1.85em;
-  --box-pad-inline-base:   8px;       /* used only in the team/status cells */
-  --box-pad-block-base:    3px;
-  --box-slot-extra-base:   8px;
-  --box-team-gap-base:     6px;
-  --box-margin-bottom-base: 8px;
+  --scoreboard-border-color: #4c4c4c;
+  --scoreboard-border-live:  #c3941a;
+  --scoreboard-card-radius:  12px;
+  --scoreboard-card-shadow:  0 6px 12px rgba(0, 0, 0, 0.45);
+  --scoreboard-background:   rgba(10, 10, 10, 0.95);
+  --scoreboard-header-bg:    rgba(18, 18, 18, 0.95);
+  --scoreboard-text:         #ffffff;
+  --scoreboard-muted:        #8c8c8c;
+  --scoreboard-value-color:  #ffd242;
+
   --matrix-gap-base:       12px;
-
-  --box-border:        1px solid #3a3a3a;
-  --box-border-outer:  2px solid #707070;
-  --box-radius:        10px;
-  --box-live:          #FFD242;
-  --box-text:          #FFF;
-  --box-muted:         #8c8c8c;
-  --box-background:    #000;
-
-  /* Derived box score sizing */
-  --box-header-height: calc(var(--box-header-height-base) * var(--box-scale));
-  --box-square:        calc(var(--box-square-base) * var(--box-scale));
-  --box-col-first:     calc(var(--box-col-first-base) * var(--box-scale));
-  --box-width-buffer:  calc(var(--box-width-buffer-base) * var(--box-scale));
-  --box-abbr-size:        calc(var(--box-abbr-size-base) * var(--box-scale));
-  --box-status-size:      calc(var(--box-status-size-base) * var(--box-scale));
-  --box-rhe-header-size:  calc(var(--box-rhe-header-size-base) * var(--box-scale));
-  --box-rhe-value-size:   calc(var(--box-rhe-value-size-base) * var(--box-scale));
-  --box-logo-size:        calc(var(--box-logo-size-base) * var(--box-scale));
-  --box-pad-inline:       calc(var(--box-pad-inline-base) * var(--box-scale));
-  --box-pad-block:        calc(var(--box-pad-block-base) * var(--box-scale));
-  --box-team-gap:         calc(var(--box-team-gap-base) * var(--box-scale));
-  --box-margin-bottom:    calc(var(--box-margin-bottom-base) * var(--box-scale));
   --matrix-gap:           calc(var(--matrix-gap-base) * var(--box-scale));
-  --box-slot-height: calc(var(--box-header-height) + (2 * var(--box-square)) + (var(--box-slot-extra-base) * var(--box-scale)));
 
   /* ===== Standings ===== */
   --font-size-standings-headers-base: 0.9em;
@@ -126,206 +116,163 @@
 .games-matrix {
   border-collapse: separate;
   border-spacing: var(--matrix-gap) var(--matrix-gap);
-  margin: 0 auto;
-  table-layout: fixed;
-  width: 100%;
+  margin: 0;
+  table-layout: auto;
+  width: auto;
 }
 
 .games-matrix-cell {
   vertical-align: top;
-  width: var(--games-matrix-col-width, 25%);
-  text-align: center;
   padding: 0;
+  text-align: left;
+  width: var(--scoreboard-card-width);
 }
 
 .games-matrix-cell.empty::before {
   content: "";
   display: inline-block;
-  width: calc(var(--box-col-first) + (3 * var(--box-square)) + var(--box-width-buffer));
-  height: var(--box-slot-height);
-  border-radius: var(--box-radius);
-  border: var(--box-border-outer);
+  width: var(--scoreboard-card-width);
+  height: var(--scoreboard-placeholder-height);
+  border-radius: var(--scoreboard-card-radius);
+  border: 2px solid var(--scoreboard-border-color);
   background: rgba(0, 0, 0, 0.55);
   box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.6);
 }
 
-.games-matrix-cell > .game-boxscore {
-  margin: 0 auto;
+.games-matrix-cell > .scoreboard-card {
+  margin: 0;
 }
 
 /*--------------------------------------------------
-  BOX SCORE: STATIC LAYOUT (nth-child widths + fixed heights)
+  SCOREBOARD CARD
 --------------------------------------------------*/
-.game-boxscore {
-  table-layout: fixed;
-  border-collapse: collapse;
-  border: var(--box-border-outer);
-  background: var(--box-background);
-  border-radius: var(--box-radius);
+.scoreboard-card {
+  width: var(--scoreboard-card-width);
+  max-width: 100%;
+  border: 2px solid var(--scoreboard-border-color);
+  border-radius: var(--scoreboard-card-radius);
   overflow: hidden;
-  margin-bottom: var(--box-margin-bottom);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.45);
-  /* first column + 3 * squares + small buffer */
-  width: calc(var(--box-col-first) + (3 * var(--box-square)) + var(--box-width-buffer));
-}
-
-.game-boxscore th,
-.game-boxscore td {
-  border: var(--box-border);
-  padding: 0;                 /* IMPORTANT: squares need zero padding */
-  vertical-align: middle;
+  background: var(--scoreboard-background);
+  box-shadow: var(--scoreboard-card-shadow);
+  display: flex;
+  flex-direction: column;
   font-family: 'Times Square', Arial, sans-serif;
-  white-space: nowrap;
-  color: var(--box-text);
-  box-sizing: border-box;     /* include borders in assigned width/height */
-  text-align: center;
-  background: rgba(8, 8, 8, 0.95);
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.85);
+  color: var(--scoreboard-text);
 }
 
-.game-boxscore thead th {
-  background: rgba(18, 18, 18, 0.95);
-}
-
-.game-boxscore tbody td:nth-child(1) {
-  background: rgba(12, 12, 12, 0.95);
-  text-align: left;
-}
-
-/* Column widths (header + body) */
-/* Header row: [1] Status, [2] R, [3] H, [4] E */
-.game-boxscore thead th:nth-child(1) { width: var(--box-col-first); }
-.game-boxscore thead th:nth-child(2),
-.game-boxscore thead th:nth-child(3),
-.game-boxscore thead th:nth-child(4) { width: var(--box-square); }
-
-/* Body rows: [1] Team, [2] R, [3] H, [4] E */
-.game-boxscore tbody td:nth-child(1) {
-  width: var(--box-col-first);
-  height: var(--box-square);
-}
-.game-boxscore tbody td:nth-child(2),
-.game-boxscore tbody td:nth-child(3),
-.game-boxscore tbody td:nth-child(4) { width: var(--box-square); }
-
-/* BODY: enforce squares with explicit aspect ratio */
-.game-boxscore tbody tr { height: var(--box-square); }
-.game-boxscore tbody td:nth-child(2),
-.game-boxscore tbody td:nth-child(3),
-.game-boxscore tbody td:nth-child(4) {
+.scoreboard-card .scoreboard-header,
+.scoreboard-card .scoreboard-row {
   display: grid;
-  place-items: center;
-  aspect-ratio: 1 / 1;
-  height: var(--box-square);
+  grid-template-columns: 1fr repeat(3, var(--scoreboard-metric-width));
+  align-items: center;
+  column-gap: var(--scoreboard-gap);
 }
 
-.game-boxscore thead th:nth-child(2),
-.game-boxscore thead th:nth-child(3),
-.game-boxscore thead th:nth-child(4) {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 1 / 1;
+.scoreboard-card .scoreboard-header {
+  background: var(--scoreboard-header-bg);
+  padding: var(--scoreboard-pad-block) var(--scoreboard-pad-inline);
 }
 
-/* HEADER: status height is independent; R/H/E align via widths */
-.game-boxscore thead .status-cell {
-  height: var(--box-header-height);
-  line-height: var(--box-header-height);
-  font-size: var(--box-status-size);
-  padding: var(--box-pad-block) var(--box-pad-inline); /* header text breathing room */
+.scoreboard-card .scoreboard-status {
+  font-size: var(--scoreboard-status-font);
+  letter-spacing: 0.08em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: left;
-  letter-spacing: 0.05em;
+  font-weight: 600;
 }
-.game-boxscore thead .rhe-header {
-  font-size: var(--box-rhe-header-size);
-  font-weight: normal;
-  /* height may differ from square; width matches columns below */
+
+.scoreboard-card .scoreboard-status.live {
+  color: var(--scoreboard-value-color);
+}
+
+.scoreboard-card .scoreboard-label {
+  font-size: var(--scoreboard-label-font);
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--box-muted);
-}
-
-/* Team cell (logo + abbr) centered */
-.game-boxscore .team-cell {
-  display: flex;
-  align-items: center;              /* vertical centering */
-  justify-content: flex-start;      /* scoreboard style left-align */
-  gap: var(--box-team-gap);
-  width: 100%;
-  height: 100%;
-  padding: var(--box-pad-block) var(--box-pad-inline);
-}
-.game-boxscore .logo-cell {
-  width: var(--box-logo-size);
-  height: var(--box-logo-size);
-  object-fit: contain;
-  filter: drop-shadow(0 0 4px rgba(0,0,0,0.6));
-  flex-shrink: 0;
-}
-.game-boxscore .abbr {
-  font-size: var(--box-abbr-size);
-  line-height: 1;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  flex-shrink: 1;
-}
-.game-boxscore .abbr.final {
-  letter-spacing: 0.12em;
-}
-
-/* R/H/E value size is independent of square size */
-.game-boxscore .rhe-cell {
-  font-size: var(--box-rhe-value-size);
-  overflow: hidden;
+  text-align: center;
+  color: var(--scoreboard-muted);
   font-weight: 600;
-  letter-spacing: 0.05em;
-  font-variant-numeric: tabular-nums;
 }
 
-/* Live vs. non-live colors */
-.game-boxscore .status-cell.live,
-.game-boxscore .rhe-cell.live { color: var(--box-live) !important; }
+.scoreboard-card .scoreboard-body {
+  background: rgba(8, 8, 8, 0.95);
+  display: flex;
+  flex-direction: column;
+}
 
-.game-boxscore.is-live {
-  border-color: #c3941a;
+.scoreboard-card .scoreboard-row {
+  padding: var(--scoreboard-pad-block) var(--scoreboard-pad-inline);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.scoreboard-card .scoreboard-row:first-child {
+  border-top: none;
+}
+
+.scoreboard-card .scoreboard-team {
+  font-size: var(--scoreboard-team-font);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.scoreboard-card .scoreboard-value {
+  font-size: var(--scoreboard-value-font);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--scoreboard-value-color);
+  line-height: 1;
+  font-weight: 700;
+}
+
+.scoreboard-card.is-live {
+  border-color: var(--scoreboard-border-live);
   box-shadow: 0 0 18px rgba(255, 210, 66, 0.25);
 }
 
-.game-boxscore.is-preview {
+.scoreboard-card.is-preview {
   border-color: #505050;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
-.game-boxscore.is-final .status-cell,
-.game-boxscore.is-final .abbr { color: var(--box-text); }
-
-.game-boxscore.is-preview .status-cell { color: var(--box-muted); }
-
-.game-boxscore.is-warmup .status-cell { color: var(--box-live); }
-
-.game-boxscore.is-postponed .status-cell,
-.game-boxscore.is-postponed .abbr,
-.game-boxscore.is-suspended .status-cell,
-.game-boxscore.is-suspended .abbr {
-  color: var(--box-muted);
+.scoreboard-card.is-preview .scoreboard-status {
+  color: var(--scoreboard-muted);
 }
 
-.game-boxscore.is-postponed,
-.game-boxscore.is-suspended {
+.scoreboard-card.is-preview .scoreboard-value {
+  color: var(--scoreboard-muted);
+}
+
+.scoreboard-card.is-postponed,
+.scoreboard-card.is-suspended {
   border-color: #4a4a4a;
   box-shadow: none;
 }
 
-/* Highlighted team (game + standings) */
-.game-boxscore .abbr.team-highlight,
-.mlb-standings tr.team-highlight td { color: var(--box-live) !important; }
+.scoreboard-card.is-postponed .scoreboard-status,
+.scoreboard-card.is-postponed .scoreboard-value,
+.scoreboard-card.is-suspended .scoreboard-status,
+.scoreboard-card.is-suspended .scoreboard-value {
+  color: var(--scoreboard-muted);
+}
 
-/* Dim losing team */
-.game-boxscore tr.loser .abbr { opacity: 0.55; }
-.game-boxscore tr.loser .rhe-cell { opacity: 0.55; }
+.scoreboard-card.is-warmup .scoreboard-status {
+  color: var(--scoreboard-value-color);
+}
+
+.scoreboard-card .scoreboard-row.loser .scoreboard-team {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.scoreboard-card .scoreboard-row.loser .scoreboard-value {
+  color: rgba(255, 210, 66, 0.55);
+}
+
+/* Highlighted team (scoreboard + standings) */
+.scoreboard-card .team-highlight,
+.scoreboard-card .team-highlight ~ .scoreboard-value,
+.mlb-standings tr.team-highlight td { color: var(--scoreboard-value-color) !important; }
 
 /*--------------------------------------------------
   STANDINGS
