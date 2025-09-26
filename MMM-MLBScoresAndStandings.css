@@ -5,24 +5,24 @@
 --------------------------------------------------*/
 :root {
   /* ===== Box Score (static) ===== */
-  --box-header-height: 2.2em;   /* Status header text cell height */
-  --box-square:        2.4em;   /* TRUE square size for R/H/E (width == height) */
+  --box-header-height: 1.9em;   /* Status header text cell height */
+  --box-square:        2.05em;  /* TRUE square size for R/H/E (width == height) */
 
   /* First (non-square) column width — roomy for "Final/12" and logo+CUBS */
-  --box-col-first:     6.6em;
+  --box-col-first:     5.4em;
 
   /* Prevents last-col clipping on some GPUs */
-  --box-width-buffer:  0.3em;
+  --box-width-buffer:  0.4em;
 
   /* Independent font sizes (do NOT affect square size) */
-  --box-abbr-size:        2.3em;
-  --box-status-size:      1.3em;
-  --box-rhe-header-size:  1.3em;
-  --box-rhe-value-size:   2.3em;
+  --box-abbr-size:        2.0em;
+  --box-status-size:      1.2em;
+  --box-rhe-header-size:  1.25em;
+  --box-rhe-value-size:   2.05em;
 
   /* Box visuals */
-  --box-logo-size: 2.0em;
-  --box-pad-inline: 10px;  /* used only in the team/status cells */
+  --box-logo-size: 1.75em;
+  --box-pad-inline: 8px;  /* used only in the team/status cells */
   --box-pad-block:  2px;
   --box-border: 1px solid #444;
   --box-live:   #FFD242;
@@ -118,25 +118,28 @@
 }
 .game-boxscore tbody td:nth-child(2),
 .game-boxscore tbody td:nth-child(3),
-.game-boxscore tbody td:nth-child(4) { width: var(--box-square); }
+.game-boxscore tbody td:nth-child(4) {
+  width: var(--box-square);
+  height: var(--box-square);
+}
 
-/* BODY: enforce squares with explicit aspect ratio */
+/* BODY: enforce squares with centered content */
 .game-boxscore tbody tr { height: var(--box-square); }
 .game-boxscore tbody td:nth-child(2),
 .game-boxscore tbody td:nth-child(3),
 .game-boxscore tbody td:nth-child(4) {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 1 / 1;
-  height: var(--box-square);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .game-boxscore thead th:nth-child(2),
 .game-boxscore thead th:nth-child(3),
 .game-boxscore thead th:nth-child(4) {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 1 / 1;
+  height: var(--box-square);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* HEADER: status height is independent; R/H/E align via widths */
