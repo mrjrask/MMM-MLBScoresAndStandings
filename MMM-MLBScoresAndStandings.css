@@ -4,56 +4,96 @@
   GLOBAL VARIABLES (easy tweaking)
 --------------------------------------------------*/
 :root {
+  /* Global scale that can be overridden per-module */
+  --box-scale: 1;
+
   /* ===== Box Score (static) ===== */
-  --box-header-height: 2.2em;    /* Status header text cell height */
-  --box-square:        2.2em;    /* TRUE square size for R/H/E (width == height) */
-
-  /* First (non-square) column width — roomy for status + logo/abbr */
-  --box-col-first:     8.2em;
-
-  /* Prevents last-col clipping on some GPUs */
-  --box-width-buffer:  0.6em;
+  --box-header-height-base: 1.75em;
+  --box-square-base:        1.7em;    /* TRUE square size for R/H/E (width == height) */
+  --box-col-first-base:     6.0em;    /* First (non-square) column width */
+  --box-width-buffer-base:  0.45em;   /* Prevents last-col clipping on some GPUs */
 
   /* Independent font sizes (do NOT affect square size) */
-  --box-abbr-size:        2.0em;
-  --box-status-size:      1.2em;
-  --box-rhe-header-size:  1.1em;
-  --box-rhe-value-size:   2.2em;
+  --box-abbr-size-base:        1.5em;
+  --box-status-size-base:      1.0em;
+  --box-rhe-header-size-base:  0.95em;
+  --box-rhe-value-size-base:   1.7em;
 
   /* Box visuals */
-  --box-logo-size: 2.4em;
-  --box-pad-inline: 12px;  /* used only in the team/status cells */
-  --box-pad-block:  4px;
-  --box-border: 1px solid #3a3a3a;
-  --box-border-outer: 2px solid #707070;
-  --box-radius: 10px;
-  --box-live:   #FFD242;
-  --box-text:   #FFF;
-  --box-muted:  #8c8c8c;
-  --box-background: #000;
-  --box-slot-height: calc(var(--box-header-height) + (2 * var(--box-square)) + 10px);
+  --box-logo-size-base:    1.85em;
+  --box-pad-inline-base:   8px;       /* used only in the team/status cells */
+  --box-pad-block-base:    3px;
+  --box-slot-extra-base:   8px;
+  --box-team-gap-base:     6px;
+  --box-margin-bottom-base: 8px;
+  --matrix-gap-base:       12px;
+
+  --box-border:        1px solid #3a3a3a;
+  --box-border-outer:  2px solid #707070;
+  --box-radius:        10px;
+  --box-live:          #FFD242;
+  --box-text:          #FFF;
+  --box-muted:         #8c8c8c;
+  --box-background:    #000;
+
+  /* Derived box score sizing */
+  --box-header-height: calc(var(--box-header-height-base) * var(--box-scale));
+  --box-square:        calc(var(--box-square-base) * var(--box-scale));
+  --box-col-first:     calc(var(--box-col-first-base) * var(--box-scale));
+  --box-width-buffer:  calc(var(--box-width-buffer-base) * var(--box-scale));
+  --box-abbr-size:        calc(var(--box-abbr-size-base) * var(--box-scale));
+  --box-status-size:      calc(var(--box-status-size-base) * var(--box-scale));
+  --box-rhe-header-size:  calc(var(--box-rhe-header-size-base) * var(--box-scale));
+  --box-rhe-value-size:   calc(var(--box-rhe-value-size-base) * var(--box-scale));
+  --box-logo-size:        calc(var(--box-logo-size-base) * var(--box-scale));
+  --box-pad-inline:       calc(var(--box-pad-inline-base) * var(--box-scale));
+  --box-pad-block:        calc(var(--box-pad-block-base) * var(--box-scale));
+  --box-team-gap:         calc(var(--box-team-gap-base) * var(--box-scale));
+  --box-margin-bottom:    calc(var(--box-margin-bottom-base) * var(--box-scale));
+  --matrix-gap:           calc(var(--matrix-gap-base) * var(--box-scale));
+  --box-slot-height: calc(var(--box-header-height) + (2 * var(--box-square)) + (var(--box-slot-extra-base) * var(--box-scale)));
 
   /* ===== Standings ===== */
-  --font-size-standings-headers: 1.0em;
-  --font-size-standings-values:  1.3em;
-  --font-size-fraction:          0.6em;
+  --font-size-standings-headers-base: 0.9em;
+  --font-size-standings-values-base:  1.15em;
+  --font-size-fraction-base:          0.55em;
 
-  --pad-standings: 3px 6px;
-  --height-row-stand: 1.4em;
-  --logo-size-stand: 1.2em;
+  --pad-standings-block-base: 3px;
+  --pad-standings-inline-base: 5px;
+  --height-row-stand-base: 1.3em;
+  --logo-size-stand-base: 1.0em;
 
   /* Individual standings column widths */
-  --width-stand-team:   3.4em;
-  --width-stand-wl:     3.0em;
-  --width-stand-pct:    2.6em;
-  --width-stand-gb:     2.2em;
-  --width-stand-e:      2.2em;
-  --width-stand-wcgb:   2.2em;
-  --width-stand-wce:    2.2em;
-  --width-stand-streak: 3.0em;
-  --width-stand-l10:    3.0em;
-  --width-stand-home:   3.0em;
-  --width-stand-away:   3.0em;
+  --width-stand-team-base:   3.2em;
+  --width-stand-wl-base:     2.8em;
+  --width-stand-pct-base:    2.4em;
+  --width-stand-gb-base:     2.0em;
+  --width-stand-e-base:      2.0em;
+  --width-stand-wcgb-base:   2.0em;
+  --width-stand-wce-base:    2.0em;
+  --width-stand-streak-base: 2.6em;
+  --width-stand-l10-base:    2.6em;
+  --width-stand-home-base:   2.6em;
+  --width-stand-away-base:   2.6em;
+
+  --font-size-standings-headers: calc(var(--font-size-standings-headers-base) * var(--box-scale));
+  --font-size-standings-values:  calc(var(--font-size-standings-values-base) * var(--box-scale));
+  --font-size-fraction:          calc(var(--font-size-fraction-base) * var(--box-scale));
+  --pad-standings-block:        calc(var(--pad-standings-block-base) * var(--box-scale));
+  --pad-standings-inline:       calc(var(--pad-standings-inline-base) * var(--box-scale));
+  --height-row-stand:           calc(var(--height-row-stand-base) * var(--box-scale));
+  --logo-size-stand:            calc(var(--logo-size-stand-base) * var(--box-scale));
+  --width-stand-team:           calc(var(--width-stand-team-base) * var(--box-scale));
+  --width-stand-wl:             calc(var(--width-stand-wl-base) * var(--box-scale));
+  --width-stand-pct:            calc(var(--width-stand-pct-base) * var(--box-scale));
+  --width-stand-gb:             calc(var(--width-stand-gb-base) * var(--box-scale));
+  --width-stand-e:              calc(var(--width-stand-e-base) * var(--box-scale));
+  --width-stand-wcgb:           calc(var(--width-stand-wcgb-base) * var(--box-scale));
+  --width-stand-wce:            calc(var(--width-stand-wce-base) * var(--box-scale));
+  --width-stand-streak:         calc(var(--width-stand-streak-base) * var(--box-scale));
+  --width-stand-l10:            calc(var(--width-stand-l10-base) * var(--box-scale));
+  --width-stand-home:           calc(var(--width-stand-home-base) * var(--box-scale));
+  --width-stand-away:           calc(var(--width-stand-away-base) * var(--box-scale));
 }
 
 /*--------------------------------------------------
@@ -85,7 +125,7 @@
 
 .games-matrix {
   border-collapse: separate;
-  border-spacing: 18px 18px;
+  border-spacing: var(--matrix-gap) var(--matrix-gap);
   margin: 0 auto;
   table-layout: fixed;
   width: 100%;
@@ -123,7 +163,7 @@
   background: var(--box-background);
   border-radius: var(--box-radius);
   overflow: hidden;
-  margin-bottom: 12px;
+  margin-bottom: var(--box-margin-bottom);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.45);
   /* first column + 3 * squares + small buffer */
   width: calc(var(--box-col-first) + (3 * var(--box-square)) + var(--box-width-buffer));
@@ -213,7 +253,7 @@
   display: flex;
   align-items: center;              /* vertical centering */
   justify-content: flex-start;      /* scoreboard style left-align */
-  gap: 10px;
+  gap: var(--box-team-gap);
   width: 100%;
   height: 100%;
   padding: var(--box-pad-block) var(--box-pad-inline);
@@ -293,13 +333,13 @@
 .mlb-standings { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
 .mlb-standings tr { height: var(--height-row-stand); }
 .mlb-standings th {
-  border: 1px solid #444; padding: var(--pad-standings);
+  border: 1px solid #444; padding: var(--pad-standings-block) var(--pad-standings-inline);
   text-align: center; vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-standings-headers); white-space: nowrap;
 }
 .mlb-standings td {
-  border: 1px solid #444; padding: var(--pad-standings);
+  border: 1px solid #444; padding: var(--pad-standings-block) var(--pad-standings-inline);
   text-align: center; vertical-align: middle;
   font-family: 'Times Square', Arial, sans-serif;
   font-size: var(--font-size-standings-values); white-space: nowrap;

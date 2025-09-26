@@ -45,6 +45,7 @@
       gamesPerColumn:                  DEFAULT_GAMES_PER_COLUMN,
       gamesPerPage:                      null,
       logoType:                      "color",
+      layoutScale:                     1.0,
       rotateIntervalScores:           15 * 1000,
       rotateIntervalEast:              7 * 1000,
       rotateIntervalCentral:          12 * 1000,
@@ -82,6 +83,7 @@
       this._scoreboardColumns = DEFAULT_SCOREBOARD_COLUMNS;
       this._scoreboardRows    = DEFAULT_GAMES_PER_COLUMN;
       this._gamesPerPage      = this._scoreboardColumns * this._scoreboardRows;
+      this._layoutScale       = 1;
 
       // pages: N game pages + 3 division pages (pair) + 2 wild card pages
       this.totalGamePages  = 1;
@@ -152,6 +154,18 @@
       this._scoreboardColumns = columns;
       this._scoreboardRows    = perColumn;
       this._gamesPerPage      = Math.max(1, gamesPerPage);
+      this._layoutScale       = this._resolveLayoutScale();
+    },
+
+    _resolveLayoutScale: function () {
+      var raw = parseFloat(this.config.layoutScale);
+      var finite = (typeof Number.isFinite === "function") ? Number.isFinite(raw) : isFinite(raw);
+      if (!finite || raw <= 0) return 1;
+      var min = 0.6;
+      var max = 1.4;
+      if (raw < min) return min;
+      if (raw > max) return max;
+      return raw;
     },
 
     _scheduleRotate: function () {
@@ -209,6 +223,10 @@
       var wrapper = document.createElement("div");
       var showingGames = this.currentScreen < this.totalGamePages;
       wrapper.className = showingGames ? "scores-screen" : "standings-screen";
+
+      var scale = (typeof this._layoutScale === "number") ? this._layoutScale : this._resolveLayoutScale();
+      if (scale !== 1) wrapper.style.setProperty("--box-scale", scale);
+      else wrapper.style.removeProperty("--box-scale");
 
       if (this.data && this.data.position !== "fullscreen_above") {
         var cssSize = this._toCssSize(this.config.maxWidth, "800px");
