@@ -17,6 +17,11 @@
     "Athletics": "ATH","Seattle Mariners": "SEA","Texas Rangers": "TEX"
   };
 
+  // Scoreboard layout
+  var SCOREBOARD_COLUMNS = 4;
+  var SCOREBOARD_ROWS    = 3;
+  var GAMES_PER_PAGE     = SCOREBOARD_COLUMNS * SCOREBOARD_ROWS;
+
   // Division pairs (2 per page), then Wild Card pages (1 per page)
   var DIV_PAIRS = [
     [204, 201], // NL East & AL East
@@ -37,7 +42,7 @@
     defaults: {
       updateIntervalScores:            60 * 1000,
       updateIntervalStandings:       15 * 60 * 1000,
-      gamesPerPage:                      8,
+      gamesPerPage:                      GAMES_PER_PAGE,
       logoType:                      "color",
       rotateIntervalScores:           15 * 1000,
       rotateIntervalEast:              7 * 1000,
@@ -147,7 +152,7 @@
         if (notification === "GAMES") {
           this.loadedGames    = true;
           this.games          = Array.isArray(payload) ? payload : [];
-          this.totalGamePages = Math.max(1, Math.ceil(this.games.length / this.config.gamesPerPage));
+          this.totalGamePages = Math.max(1, Math.ceil(this.games.length / GAMES_PER_PAGE));
           this.updateDom();
         }
         if (notification === "STANDINGS") {
@@ -199,22 +204,23 @@
 
     // ----------------- SCOREBOARD -----------------
     _buildGames: function () {
-      var start = this.currentScreen * this.config.gamesPerPage;
-      var games = this.games.slice(start, start + this.config.gamesPerPage);
+      var start = this.currentScreen * GAMES_PER_PAGE;
+      var games = this.games.slice(start, start + GAMES_PER_PAGE);
 
       var matrix = document.createElement("table");
       matrix.className = "games-matrix";
 
       var tbody = document.createElement("tbody");
 
-      for (var i = 0; i < games.length; i += 2) {
+      for (var r = 0; r < SCOREBOARD_ROWS; r++) {
         var row = document.createElement("tr");
 
-        for (var col = 0; col < 2; col++) {
+        for (var c = 0; c < SCOREBOARD_COLUMNS; c++) {
           var cell = document.createElement("td");
           cell.className = "games-matrix-cell";
 
-          var game = games[i + col];
+          var index = r * SCOREBOARD_COLUMNS + c;
+          var game = games[index];
           if (game) {
             cell.appendChild(this.createGameBox(game));
           } else {

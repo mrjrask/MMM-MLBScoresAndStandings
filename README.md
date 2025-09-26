@@ -27,7 +27,7 @@ It rotates between game scoreboards and standings (division pairs and wild cards
 
 ## Features
 
-- **Scoreboard** in two balanced columns, `gamesPerPage` paginated.
+- **Scoreboard** uses a fixed 4 × 3 grid (12 slots) per page.
 - **Standings** cycle: NL/AL East, NL/AL Central, NL/AL West, NL Wild Card, AL Wild Card.
 - **Wild Card**: division leaders are excluded; WCGB computed vs. the 3rd WC team.
 - **“GB / WCGB / E#”**: `0` rendered as `--`; half-games show as `1/2` in smaller type.
@@ -83,7 +83,7 @@ Add to your `config/config.js`:
     updateIntervalStandings: 15 * 60 * 1000,
 
     // Scoreboard
-    gamesPerPage: 8,
+    gamesPerPage: 12,        // fixed 4 × 3 scoreboard (12 slots per page)
     logoType: "color",         // folder under ./logos/ e.g. logos/color/ATL.png
     rotateIntervalScores: 15 * 1000,
 
@@ -110,6 +110,7 @@ Add to your `config/config.js`:
 - **Header width** matches `maxWidth` and stays in the default MM font (Roboto Condensed).
 - **Highlighted teams** accept a single string `"CUBS"` or an array like `["CUBS","NYY"]`.
 - The rotation order is fixed as: *Scoreboard → (NL/AL East) → (NL/AL Central) → (NL/AL West) → NL WC → AL WC*.
+- The scoreboard always renders in a 4 × 3 grid (12 slots) per page; the config value is kept for clarity.
 
 ---
 
