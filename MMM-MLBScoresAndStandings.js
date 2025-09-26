@@ -289,22 +289,10 @@
       return matrix;
     },
 
-    // STATIC 4-COLUMN BOX SCORE (status/team, R, H, E)
+    // Refactored compact scoreboard card (status/team, R/H/E)
     createGameBox: function (game) {
-      var table = document.createElement("table");
-      table.className = "game-boxscore";
-      table.cellSpacing = 0;
-      table.cellPadding = 0;
-
-      // Fixed columns via <colgroup>
-      var colgroup = document.createElement("colgroup");
-      var colClasses = ["col-first", "col-r", "col-h", "col-e"];
-      for (var ci = 0; ci < colClasses.length; ci++) {
-        var c = document.createElement("col");
-        c.className = colClasses[ci];
-        colgroup.appendChild(c);
-      }
-      table.appendChild(colgroup);
+      var card = document.createElement("div");
+      card.className = "scoreboard-card";
 
       var ls      = (game && game.linescore) || {};
       var state   = (game && game.status && game.status.abstractGameState) || "";
@@ -319,12 +307,12 @@
       var live        = !isPrev && !isFin && !isPost && !isWarmup && !isSuspended;
       var showVals    = !isPrev && !isPost && !isSuspended;
 
-      if (isFin) table.classList.add("is-final");
-      else if (live) table.classList.add("is-live");
-      else if (isPrev) table.classList.add("is-preview");
-      else if (isPost) table.classList.add("is-postponed");
-      else if (isSuspended) table.classList.add("is-suspended");
-      else if (isWarmup) table.classList.add("is-warmup");
+      if (isFin) card.classList.add("is-final");
+      else if (live) card.classList.add("is-live");
+      else if (isPrev) card.classList.add("is-preview");
+      else if (isPost) card.classList.add("is-postponed");
+      else if (isSuspended) card.classList.add("is-suspended");
+      else if (isWarmup) card.classList.add("is-warmup");
 
       var statusText;
       if (isSuspended)       statusText = "Suspended";
@@ -345,90 +333,79 @@
         statusText = tmp || "In Progress";
       }
 
-      // THEAD (status + R/H/E)
-      var thead = document.createElement("thead");
-      var trH = document.createElement("tr");
+      var header = document.createElement("div");
+      header.className = "scoreboard-header";
 
-      var thS = document.createElement("th");
-      thS.className = "status-cell col-first" + (live ? " live" : "");
-      thS.innerText = statusText;
-      trH.appendChild(thS);
+      var statusEl = document.createElement("div");
+      statusEl.className = "scoreboard-status" + (live ? " live" : "");
+      statusEl.textContent = statusText;
+      header.appendChild(statusEl);
 
-      var labels = ["R","H","E"];
+      var labels = ["R", "H", "E"];
       for (var li = 0; li < labels.length; li++) {
-        var th = document.createElement("th");
-        th.className = "rhe-header";
-        th.innerText = labels[li];
-        trH.appendChild(th);
+        var label = document.createElement("div");
+        label.className = "scoreboard-label";
+        label.textContent = labels[li];
+        header.appendChild(label);
       }
-      thead.appendChild(trH);
-      table.appendChild(thead);
+      card.appendChild(header);
 
-      // TBODY (away + home)
-      var tbody = document.createElement("tbody");
+      var body = document.createElement("div");
+      body.className = "scoreboard-body";
+      card.appendChild(body);
+
       var away = game && game.teams && game.teams.away;
       var home = game && game.teams && game.teams.home;
       var awayScore = (away && typeof away.score !== "undefined") ? away.score : null;
       var homeScore = (home && typeof home.score !== "undefined") ? home.score : null;
       var lines = (ls && ls.teams) || {};
+      var linesAway = lines.away || {};
+      var linesHome = lines.home || {};
 
       var rows = [away, home];
       for (var ri = 0; ri < rows.length; ri++) {
         var t = rows[ri];
         if (!t || !t.team) continue;
-        var tr = document.createElement("tr");
 
-        if (isFin) {
-          var awayL = (awayScore != null && homeScore != null) ? (awayScore < homeScore) : false;
-          var homeL = (awayScore != null && homeScore != null) ? (homeScore < awayScore) : false;
-          if ((ri === 0 && awayL) || (ri === 1 && homeL)) tr.classList.add("loser");
+        var row = document.createElement("div");
+        row.className = "scoreboard-row" + (ri === 0 ? " away" : " home");
+
+        if (isFin && awayScore != null && homeScore != null && awayScore !== homeScore) {
+          var isWinner = (ri === 0) ? (awayScore > homeScore) : (homeScore > awayScore);
+          if (!isWinner) row.classList.add("loser");
         }
 
-        // First column: team (logo + abbr)
         var abbr = ABBREVIATIONS[t.team.name] || t.team.abbreviation || "";
-        var tdTeam = document.createElement("td");
-        tdTeam.className = "col-first";
+        var team = document.createElement("div");
+        team.className = "scoreboard-team";
+        team.textContent = abbr;
+        if (this._isHighlighted(abbr)) team.classList.add("team-highlight");
+        row.appendChild(team);
 
-        var teamWrap = document.createElement("div");
-        teamWrap.className = "team-cell";
-
-        var img = document.createElement("img");
-        img.src = this.getLogoUrl(abbr);
-        img.alt = abbr;
-        img.className = "logo-cell";
-        img.onerror = (function (imgEl) { return function () { imgEl.style.display = "none"; }; })(img);
-        teamWrap.appendChild(img);
-
-        var sp = document.createElement("span");
-        sp.className = "abbr";
-        sp.innerText = abbr;
-        if (this._isHighlighted(abbr)) sp.classList.add("team-highlight");
-        if (isFin) sp.classList.add("final");
-        teamWrap.appendChild(sp);
-
-        tdTeam.appendChild(teamWrap);
-        tr.appendChild(tdTeam);
-
-        // R / H / E
-        var runVal = showVals ? ((typeof t.score !== "undefined") ? t.score : "") : "";
-        var hitVal = showVals ? (ri === 0 ? (lines.away && lines.away.hits) : (lines.home && lines.home.hits)) : "";
+        var runVal = showVals ? ((typeof t.score !== "undefined") ? t.score : "") : null;
+        var hitVal = showVals ? (ri === 0 ? linesAway.hits : linesHome.hits) : null;
         var errVal = showVals ? (
           (typeof t.errors !== "undefined") ? t.errors
-            : (ri === 0 ? (lines.away && lines.away.errors) : (lines.home && lines.home.errors))
-        ) : "";
+            : (ri === 0 ? linesAway.errors : linesHome.errors)
+        ) : null;
 
         var vals = [runVal, hitVal, errVal];
         for (var vi = 0; vi < vals.length; vi++) {
-          var td = document.createElement("td");
-          td.className = "rhe-cell" + (live ? " live" : "");
-          td.innerText = (vals[vi] == null ? "" : vals[vi]);
-          tr.appendChild(td);
+          var value = document.createElement("div");
+          value.className = "scoreboard-value" + (live ? " live" : "");
+          if (showVals) {
+            var v = vals[vi];
+            value.textContent = (v == null || v === "") ? "" : v;
+          } else {
+            value.textContent = "—";
+          }
+          row.appendChild(value);
         }
 
-        tbody.appendChild(tr);
+        body.appendChild(row);
       }
-      table.appendChild(tbody);
-      return table;
+
+      return card;
     },
 
     // ----------------- STANDINGS -----------------
