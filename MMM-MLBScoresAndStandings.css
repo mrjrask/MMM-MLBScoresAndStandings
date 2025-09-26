@@ -27,6 +27,7 @@
   --box-border: 1px solid #444;
   --box-live:   #FFD242;
   --box-text:   #FFF;
+  --box-slot-height: calc(var(--box-header-height) + (2 * var(--box-square)) + 6px);
 
   /* ===== Standings ===== */
   --font-size-standings-headers: 1.0em;
@@ -79,12 +80,28 @@
 --------------------------------------------------*/
 .games-matrix {
   border-collapse: separate;
-  border-spacing: 8px;
+  border-spacing: 12px 10px;
   margin: 0 auto;
+  table-layout: fixed;
+  width: 100%;
 }
 
 .games-matrix-cell {
   vertical-align: top;
+  width: 50%;
+  text-align: center;
+  padding: 0;
+}
+
+.games-matrix-cell.empty::before {
+  content: "";
+  display: inline-block;
+  width: calc(var(--box-col-first) + (3 * var(--box-square)) + var(--box-width-buffer));
+  height: var(--box-slot-height);
+}
+
+.games-matrix-cell > .game-boxscore {
+  margin: 0 auto;
 }
 
 /*--------------------------------------------------
