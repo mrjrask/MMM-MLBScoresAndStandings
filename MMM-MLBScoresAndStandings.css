@@ -93,7 +93,7 @@
 
 .games-matrix-cell {
   vertical-align: top;
-  width: 25%;
+  width: var(--games-matrix-col-width, 25%);
   text-align: center;
   padding: 0;
 }

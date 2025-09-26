@@ -17,10 +17,9 @@
     "Athletics": "ATH","Seattle Mariners": "SEA","Texas Rangers": "TEX"
   };
 
-  // Scoreboard layout
-  var SCOREBOARD_COLUMNS = 4;
-  var SCOREBOARD_ROWS    = 3;
-  var GAMES_PER_PAGE     = SCOREBOARD_COLUMNS * SCOREBOARD_ROWS;
+  // Scoreboard layout defaults (can be overridden via config)
+  var DEFAULT_SCOREBOARD_COLUMNS    = 1;
+  var DEFAULT_GAMES_PER_COLUMN      = 4;
 
   // Division pairs (2 per page), then Wild Card pages (1 per page)
   var DIV_PAIRS = [
@@ -42,7 +41,9 @@
     defaults: {
       updateIntervalScores:            60 * 1000,
       updateIntervalStandings:       15 * 60 * 1000,
-      gamesPerPage:                      GAMES_PER_PAGE,
+      scoreboardColumns:               DEFAULT_SCOREBOARD_COLUMNS,
+      gamesPerColumn:                  DEFAULT_GAMES_PER_COLUMN,
+      gamesPerPage:                      null,
       logoType:                      "color",
       rotateIntervalScores:           15 * 1000,
       rotateIntervalEast:              7 * 1000,
@@ -78,12 +79,18 @@
       this.loadedGames     = false;
       this.loadedStandings = false;
 
+      this._scoreboardColumns = DEFAULT_SCOREBOARD_COLUMNS;
+      this._scoreboardRows    = DEFAULT_GAMES_PER_COLUMN;
+      this._gamesPerPage      = this._scoreboardColumns * this._scoreboardRows;
+
       // pages: N game pages + 3 division pages (pair) + 2 wild card pages
       this.totalGamePages  = 1;
       this.totalStandPages = DIV_PAIRS.length + WILD_CARD_ORDER.length;
       this.currentScreen   = 0;
       this.rotateTimer     = null;
       this._headerStyleInjectedFor = null;
+
+      this._syncScoreboardLayout();
 
       this.sendSocketNotification("INIT", this.config);
       var self = this;
@@ -124,6 +131,29 @@
       this._headerStyleInjectedFor = cap;
     },
 
+    _asPositiveInt: function (val, fallback) {
+      var num = parseInt(val, 10);
+      var finite = (typeof Number.isFinite === "function") ? Number.isFinite(num) : isFinite(num);
+      return finite && num > 0 ? num : fallback;
+    },
+
+    _syncScoreboardLayout: function () {
+      var columns   = this._asPositiveInt(this.config.scoreboardColumns, DEFAULT_SCOREBOARD_COLUMNS);
+      var perColumn = this._asPositiveInt(this.config.gamesPerColumn, DEFAULT_GAMES_PER_COLUMN);
+
+      var gamesPerPage = columns * perColumn;
+
+      if (this.config.gamesPerPage != null) {
+        var override = this._asPositiveInt(this.config.gamesPerPage, gamesPerPage);
+        gamesPerPage = override;
+        perColumn = Math.max(1, Math.ceil(gamesPerPage / columns));
+      }
+
+      this._scoreboardColumns = columns;
+      this._scoreboardRows    = perColumn;
+      this._gamesPerPage      = Math.max(1, gamesPerPage);
+    },
+
     _scheduleRotate: function () {
       var total = this.totalGamePages + this.totalStandPages;
       var delay = this.config.rotateIntervalScores;
@@ -152,7 +182,8 @@
         if (notification === "GAMES") {
           this.loadedGames    = true;
           this.games          = Array.isArray(payload) ? payload : [];
-          this.totalGamePages = Math.max(1, Math.ceil(this.games.length / GAMES_PER_PAGE));
+          this._syncScoreboardLayout();
+          this.totalGamePages = Math.max(1, Math.ceil(this.games.length / this._gamesPerPage));
           this.updateDom();
         }
         if (notification === "STANDINGS") {
@@ -204,22 +235,25 @@
 
     // ----------------- SCOREBOARD -----------------
     _buildGames: function () {
-      var start = this.currentScreen * GAMES_PER_PAGE;
-      var games = this.games.slice(start, start + GAMES_PER_PAGE);
+      this._syncScoreboardLayout();
+
+      var start = this.currentScreen * this._gamesPerPage;
+      var games = this.games.slice(start, start + this._gamesPerPage);
 
       var matrix = document.createElement("table");
       matrix.className = "games-matrix";
 
       var tbody = document.createElement("tbody");
 
-      for (var r = 0; r < SCOREBOARD_ROWS; r++) {
+      for (var r = 0; r < this._scoreboardRows; r++) {
         var row = document.createElement("tr");
 
-        for (var c = 0; c < SCOREBOARD_COLUMNS; c++) {
+        for (var c = 0; c < this._scoreboardColumns; c++) {
           var cell = document.createElement("td");
           cell.className = "games-matrix-cell";
+          cell.style.setProperty("--games-matrix-col-width", (100 / this._scoreboardColumns) + "%");
 
-          var index = r * SCOREBOARD_COLUMNS + c;
+          var index = r * this._scoreboardColumns + c;
           var game = games[index];
           if (game) {
             cell.appendChild(this.createGameBox(game));

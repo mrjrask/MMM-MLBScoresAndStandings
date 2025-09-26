@@ -82,8 +82,10 @@ Add to your `config/config.js`:
     updateIntervalScores: 60 * 1000,
     updateIntervalStandings: 15 * 60 * 1000,
 
-    // Scoreboard
-    gamesPerPage: 12,        // fixed 4 × 3 scoreboard (12 slots per page)
+    // Scoreboard layout
+    scoreboardColumns: 1,     // number of columns of game boxes per page
+    gamesPerColumn: 4,        // games stacked in each column
+    // (optional) gamesPerPage: 8, // override derived columns × gamesPerColumn
     logoType: "color",         // folder under ./logos/ e.g. logos/color/ATL.png
     rotateIntervalScores: 15 * 1000,
 
@@ -110,7 +112,10 @@ Add to your `config/config.js`:
 - **Header width** matches `maxWidth` and stays in the default MM font (Roboto Condensed).
 - **Highlighted teams** accept a single string `"CUBS"` or an array like `["CUBS","NYY"]`.
 - The rotation order is fixed as: *Scoreboard → (NL/AL East) → (NL/AL Central) → (NL/AL West) → NL WC → AL WC*.
-- The scoreboard always renders in a 4 × 3 grid (12 slots) per page; the config value is kept for clarity.
+- By default the scoreboard renders one column with four games. Adjust `scoreboardColumns`
+  and `gamesPerColumn` to fit your layout (e.g., `scoreboardColumns: 2` keeps four games per
+  column for eight total per page). You can still provide `gamesPerPage` to override the
+  derived total if needed.
 
 ---
 
