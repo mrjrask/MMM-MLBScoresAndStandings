@@ -33,6 +33,7 @@ It rotates between game scoreboards and standings (division pairs and wild cards
 - **“GB / WCGB / E#”**: `0` rendered as `--`; half-games show as `1/2` in smaller type.
 - **Team highlighting**: show your favorites in accent color.
 - **Width cap**: keep the module tidy in `middle_center`.
+- **layoutScale** option: shrink or enlarge the entire layout without touching CSS.
 - **Optional splits**: show/hide `Home`/`Away` with a single flag.
 - **Status text**: `Final` (or `Final/##`), `Warmup`, `Postponed`, `Suspended`, **live** innings with yellow R/H/E.
 - **No external deps** required in `node_helper` (uses Node’s global `fetch`).
@@ -87,6 +88,7 @@ Add to your `config/config.js`:
     gamesPerColumn: 4,        // games stacked in each column
     // (optional) gamesPerPage: 8, // override derived columns × gamesPerColumn
     logoType: "color",         // folder under ./logos/ e.g. logos/color/ATL.png
+    layoutScale: 0.9,          // shrink (<1) or grow (>1) everything at once (clamped 0.6 – 1.4)
     rotateIntervalScores: 15 * 1000,
 
     // Standings rotation
@@ -111,6 +113,7 @@ Add to your `config/config.js`:
 **Notes**
 - **Header width** matches `maxWidth` and stays in the default MM font (Roboto Condensed).
 - **Highlighted teams** accept a single string `"CUBS"` or an array like `["CUBS","NYY"]`.
+- **layoutScale** is the quickest way to fix oversize boxes—values below `1` compact the layout.
 - The rotation order is fixed as: *Scoreboard → (NL/AL East) → (NL/AL Central) → (NL/AL West) → NL WC → AL WC*.
 - By default the scoreboard renders one column with four games. Adjust `scoreboardColumns`
   and `gamesPerColumn` to fit your layout (e.g., `scoreboardColumns: 2` keeps four games per
@@ -143,82 +146,37 @@ MMM-MLBScoresAndStandings/
 
 ## Styling & CSS Variables
 
-Most sizing is controlled by CSS variables in `MMM-MLBScoresAndStandings.css`.  
-Here are the key variables you can tune:
+Most sizing is controlled by CSS variables in `MMM-MLBScoresAndStandings.css`.
+You now have two ways to rein in the layout when it feels oversized:
+
+1. **Quick fix** – use the `layoutScale` config option (or override `--box-scale`) to shrink or enlarge everything uniformly.
+2. **Fine tuning** – override the `*-base` variables to change specific parts; the stylesheet multiplies each base value by `--box-scale`.
+
+### Common variables to tweak
+
+| Variable | What it affects |
+| --- | --- |
+| `--box-square-base` | Size of the R/H/E squares and row height of each game card |
+| `--box-abbr-size-base` | Team abbreviation text size |
+| `--box-logo-size-base` | Team logo footprint in scoreboards |
+| `--matrix-gap-base` | Spacing between game cards |
+| `--font-size-standings-headers-base` | Header text in standings tables |
+| `--font-size-standings-values-base` | Standings numbers (W-L, GB, etc.) |
+| `--width-stand-team-base` | Width of the team column in standings |
+| `--pad-standings-inline-base` | Left/right padding in standings cells |
+
+Example override (drop into your `css/custom.css`):
 
 ```css
 :root {
-  /* Font sizes */
-  --font-size-abbr: 1.4em;
-  --font-size-status: 1.0em;
-  --font-size-rhe-values: 1.7em;
-  --font-size-rhe-headers: 1.2em;
-  --font-size-standings-headers: 1.0em;
-  --font-size-standings-values:  1.3em;
-  --font-size-fraction: 0.6em; /* “1/2” next to whole numbers */
-
-  /* Cell paddings */
-  --pad-abbr: 0 6px;
-  --pad-status: 0 6px;
-  --pad-rhe: 0 6px;
-  --pad-standings: 3px 5px;
-
-  /* Row heights & widths */
-  --height-row-game: 1.4em;
-  --height-row-stand: 1.4em;
-
-  --width-status: 3em;
-  --width-rhe: 1.2em;
-  --logo-size-game: 1.4em;
-  --logo-size-stand: 1.2em;
-
-  /* Standings column widths */
-  --width-team-col-stand: 3.8em;   /* fits logo + “CUBS” */
-  --width-record-col-stand: 3.2em; /* record/L10/Home/Away cells */
-  --width-gb-col: 3.0em;           /* ensure GB and WCGB same width */
-  --width-wcgb-col: 3.0em;
+  --box-square-base: 1.7em;
+  --box-abbr-size-base: 1.5em;
+  --matrix-gap-base: 10px;
+  --font-size-standings-values-base: 1.05em;
 }
 ```
 
-### Column width helpers (standings)
-We apply classes to specific columns so you can target widths precisely:
-
-```css
-/* Team column (logo+abbr) */
-.mlb-standings th.team-col,
-.mlb-standings td.team-col { width: var(--width-team-col-stand); }
-
-/* Record cells (W-L, L10, Home, Away) */
-.mlb-standings th.rec-col,
-.mlb-standings td.rec-col,
-.mlb-standings th.l10-col,
-.mlb-standings td.l10-col,
-.mlb-standings th.home-col,
-.mlb-standings td.home-col,
-.mlb-standings th.away-col,
-.mlb-standings td.away-col { width: var(--width-record-col-stand); }
-
-/* GB and WCGB same width */
-.mlb-standings th.gb-col,   .mlb-standings td.gb-col   { width: var(--width-gb-col); }
-.mlb-standings th.wcgb-col, .mlb-standings td.wcgb-col { width: var(--width-wcgb-col); }
-
-/* Thicker vertical separators (example) */
-.mlb-standings th.sep-right,
-.mlb-standings td.sep-right { border-right-width: 4px; }
-```
-
-The module also uses `.fraction` to shrink the “1/2” in GB/WCGB values:
-```css
-.mlb-standings .fraction { font-size: var(--font-size-fraction); vertical-align: baseline; }
-```
-
-> If you need the **module header** to use the default MM font:
-```css
-/* Keep the module title (header) in MagicMirror default font */
-.module.MMM-MLBScoresAndStandings .module-header {
-  font-family: var(--font-primary, "Roboto Condensed"), var(--font-secondary, "Roboto"), sans-serif !important;
-}
-```
+> The standings markup still exposes helper classes like `.team-col`, `.gb-col`, etc., so you can apply custom widths/borders when needed.
 
 ---
 
