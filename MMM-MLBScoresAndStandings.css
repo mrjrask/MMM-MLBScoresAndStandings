@@ -5,25 +5,25 @@
 --------------------------------------------------*/
 :root {
   /* ===== Box Score (static) ===== */
-  --box-header-height: 1.6em;   /* Status header text cell height */
-  --box-square:        1.35em;  /* TRUE square size for R/H/E (width == height) */
+  --box-header-height: 1.55em;  /* Status header text cell height */
+  --box-square:        1.5em;   /* TRUE square size for R/H/E (width == height) */
 
   /* First (non-square) column width — roomy for "Final/12" and logo+CUBS */
-  --box-col-first:     3.8em;
+  --box-col-first:     3.0em;
 
   /* Prevents last-col clipping on some GPUs */
   --box-width-buffer:  0.3em;
 
   /* Independent font sizes (do NOT affect square size) */
-  --box-abbr-size:        1.6em;
-  --box-status-size:      1.0em;
+  --box-abbr-size:        1.4em;
+  --box-status-size:      1.05em;
   --box-rhe-header-size:  1.2em;
-  --box-rhe-value-size:   1.6em;
+  --box-rhe-value-size:   1.4em;
 
   /* Box visuals */
-  --box-logo-size: 1.4em;
-  --box-pad-inline: 6px;  /* used only in the team/status cells */
-  --box-pad-block:  0px;
+  --box-logo-size: 1.25em;
+  --box-pad-inline: 5px;  /* used only in the team/status cells */
+  --box-pad-block:  1px;
   --box-border: 1px solid #444;
   --box-live:   #FFD242;
   --box-text:   #FFF;
@@ -88,8 +88,9 @@
   border-collapse: collapse;
   border: var(--box-border);
   margin-bottom: 8px;
+  width: 100%;
   /* first column + 3 * squares + small buffer */
-  width: calc(var(--box-col-first) + (3 * var(--box-square)) + var(--box-width-buffer));
+  max-width: calc(var(--box-col-first) + (3 * var(--box-square)) + var(--box-width-buffer));
 }
 
 .game-boxscore th,
@@ -143,7 +144,7 @@
 .game-boxscore thead .status-cell {
   height: var(--box-header-height);
   line-height: var(--box-header-height);
-  font-size: var(--box-status-size);
+  font-size: min(var(--box-status-size), calc(var(--box-col-first) * 0.34));
   padding: var(--box-pad-block) var(--box-pad-inline); /* header text breathing room */
   white-space: nowrap;
   overflow: hidden;
@@ -159,17 +160,23 @@
 .game-boxscore .team-cell {
   display: flex;
   align-items: center;              /* vertical centering */
-  justify-content: center;          /* horizontal centering */
+  justify-content: flex-start;      /* horizontal alignment keeps logo + abbr readable */
   gap: 4px;
   width: 100%;
   height: 100%;
   padding: var(--box-pad-block) var(--box-pad-inline);
 }
 .game-boxscore .logo-cell { width: var(--box-logo-size); height: var(--box-logo-size); object-fit: contain; }
-.game-boxscore .abbr { font-size: var(--box-abbr-size); line-height: 1; }
+.game-boxscore .abbr {
+  font-size: min(var(--box-abbr-size), calc(var(--box-col-first) * 0.9));
+  line-height: 1;
+}
 
 /* R/H/E value size is independent of square size */
-.game-boxscore .rhe-cell { font-size: var(--box-rhe-value-size); overflow: hidden; }
+.game-boxscore .rhe-cell {
+  font-size: min(var(--box-rhe-value-size), calc(var(--box-square) * 0.9));
+  overflow: hidden;
+}
 
 /* Live vs. non-live colors */
 .game-boxscore .status-cell.live,
