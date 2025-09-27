@@ -18,8 +18,8 @@
   };
 
   // Scoreboard layout defaults (can be overridden via config)
-  var DEFAULT_SCOREBOARD_COLUMNS    = 1;
-  var DEFAULT_GAMES_PER_COLUMN      = 4;
+  var DEFAULT_SCOREBOARD_COLUMNS    = 2;
+  var DEFAULT_GAMES_PER_COLUMN      = 2;
 
   // Division pairs (2 per page), then Wild Card pages (1 per page)
   var DIV_PAIRS = [
@@ -56,6 +56,8 @@
 
       // Standings options
       showHomeAwaySplits:               true,
+      showDivisionStandings:            true,
+      showWildCardStandings:            true,
 
       // Width cap so it behaves in middle_center
       maxWidth:                      "800px"
@@ -63,7 +65,8 @@
 
     getHeader: function () {
       if (!this.config.showTitle) return null;
-      return (this.currentScreen < this.totalGamePages) ? "MLB Scoreboard" : "MLB Standings";
+      var showingGames = (this.totalStandPages === 0) || (this.currentScreen < this.totalGamePages);
+      return showingGames ? "MLB Scoreboard" : "MLB Standings";
     },
 
     getScripts: function () {
@@ -87,12 +90,14 @@
 
       // pages: N game pages + 3 division pages (pair) + 2 wild card pages
       this.totalGamePages  = 1;
-      this.totalStandPages = DIV_PAIRS.length + WILD_CARD_ORDER.length;
+      this.totalStandPages = 0;
       this.currentScreen   = 0;
       this.rotateTimer     = null;
       this._headerStyleInjectedFor = null;
 
       this._syncScoreboardLayout();
+      this._standingsPages = [];
+      this._refreshStandingsPagination();
 
       this.sendSocketNotification("INIT", this.config);
       var self = this;
@@ -198,6 +203,7 @@
           this.games          = Array.isArray(payload) ? payload : [];
           this._syncScoreboardLayout();
           this.totalGamePages = Math.max(1, Math.ceil(this.games.length / this._gamesPerPage));
+          this._refreshStandingsPagination();
           this.updateDom();
         }
         if (notification === "STANDINGS") {
@@ -221,7 +227,7 @@
       this._injectHeaderWidthStyle();
 
       var wrapper = document.createElement("div");
-      var showingGames = this.currentScreen < this.totalGamePages;
+      var showingGames = (this.totalStandPages === 0) || (this.currentScreen < this.totalGamePages);
       wrapper.className = showingGames ? "scores-screen" : "standings-screen";
 
       var scale = (typeof this._layoutScale === "number") ? this._layoutScale : this._resolveLayoutScale();
@@ -378,7 +384,23 @@
         var abbr = ABBREVIATIONS[t.team.name] || t.team.abbreviation || "";
         var team = document.createElement("div");
         team.className = "scoreboard-team";
-        team.textContent = abbr;
+
+        var logo = document.createElement("img");
+        logo.className = "scoreboard-team-logo";
+        if (abbr) {
+          logo.src = this.getLogoUrl(abbr);
+        } else {
+          logo.style.display = "none";
+        }
+        logo.alt = abbr;
+        logo.onerror = (function (imgEl) { return function () { imgEl.style.display = "none"; }; })(logo);
+        team.appendChild(logo);
+
+        var abbrEl = document.createElement("span");
+        abbrEl.className = "scoreboard-team-abbr";
+        abbrEl.textContent = abbr;
+        team.appendChild(abbrEl);
+
         if (this._isHighlighted(abbr)) team.classList.add("team-highlight");
         row.appendChild(team);
 
@@ -410,21 +432,64 @@
 
     // ----------------- STANDINGS -----------------
     _buildStandings: function () {
-      var idx = this.currentScreen - this.totalGamePages;
       var wrapper = document.createElement("div");
+      if (!this._standingsPages || !this._standingsPages.length) {
+        wrapper.className = "standings-empty";
+        return wrapper;
+      }
 
-      if (idx < DIV_PAIRS.length) {
+      var idx = this.currentScreen - this.totalGamePages;
+      if (idx < 0 || idx >= this._standingsPages.length) idx = 0;
+
+      var page = this._standingsPages[idx];
+      if (!page) return wrapper;
+
+      if (page.type === "divisionPair") {
         wrapper.className = "standings-pair";
-        for (var i = 0; i < DIV_PAIRS[idx].length; i++) {
-          wrapper.appendChild(this._createDivisionBlock(DIV_PAIRS[idx][i]));
+        var divs = page.divisions || [];
+        for (var i = 0; i < divs.length; i++) {
+          wrapper.appendChild(this._createDivisionBlock(divs[i]));
         }
-      } else {
+      } else if (page.type === "wildCard") {
         wrapper.className = "standings-single";
-        var wcIdx = idx - DIV_PAIRS.length;
-        var league = WILD_CARD_ORDER[wcIdx]; // "NL" or "AL"
-        wrapper.appendChild(this._createWildCardBlock(league));
+        wrapper.appendChild(this._createWildCardBlock(page.league));
       }
       return wrapper;
+    },
+
+    _coerceBoolean: function (value, fallback) {
+      if (typeof value === "boolean") return value;
+      if (typeof value === "string") {
+        var lower = value.trim().toLowerCase();
+        if (lower === "true") return true;
+        if (lower === "false") return false;
+      }
+      if (typeof value === "number") return value !== 0;
+      return fallback;
+    },
+
+    _refreshStandingsPagination: function () {
+      var showDivisions = this._coerceBoolean(this.config.showDivisionStandings, true);
+      var showWildCards = this._coerceBoolean(this.config.showWildCardStandings, true);
+
+      var pages = [];
+      if (showDivisions) {
+        for (var i = 0; i < DIV_PAIRS.length; i++) {
+          pages.push({ type: "divisionPair", divisions: DIV_PAIRS[i] });
+        }
+      }
+      if (showWildCards) {
+        for (var j = 0; j < WILD_CARD_ORDER.length; j++) {
+          pages.push({ type: "wildCard", league: WILD_CARD_ORDER[j] });
+        }
+      }
+
+      this._standingsPages = pages;
+      this.totalStandPages = pages.length;
+
+      var totalScreens = this.totalGamePages + this.totalStandPages;
+      if (totalScreens === 0) totalScreens = 1;
+      if (this.currentScreen >= totalScreens) this.currentScreen = 0;
     },
 
     _createDivisionBlock: function (divId) {
