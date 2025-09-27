@@ -84,8 +84,8 @@ Add to your `config/config.js`:
     updateIntervalStandings: 15 * 60 * 1000,
 
     // Scoreboard layout
-    scoreboardColumns: 1,     // number of columns of game boxes per page
-    gamesPerColumn: 4,        // games stacked in each column
+    scoreboardColumns: 2,     // number of columns of game boxes per page
+    gamesPerColumn: 2,        // games stacked in each column
     // (optional) gamesPerPage: 8, // override derived columns × gamesPerColumn
     logoType: "color",         // folder under ./logos/ e.g. logos/color/ATL.png
     layoutScale: 0.9,          // shrink (<1) or grow (>1) everything at once (clamped 0.6 – 1.4)
@@ -103,6 +103,8 @@ Add to your `config/config.js`:
 
     // NEW: standings Home/Away splits
     showHomeAwaySplits: true,   // set false to hide "Home" & "Away" columns
+    showDivisionStandings: true,
+    showWildCardStandings: true,
 
     // Width cap to keep module tidy in middle_center
     maxWidth: "720px"
@@ -114,11 +116,12 @@ Add to your `config/config.js`:
 - **Header width** matches `maxWidth` and stays in the default MM font (Roboto Condensed).
 - **Highlighted teams** accept a single string `"CUBS"` or an array like `["CUBS","NYY"]`.
 - **layoutScale** is the quickest way to fix oversize boxes—values below `1` compact the layout.
-- The rotation order is fixed as: *Scoreboard → (NL/AL East) → (NL/AL Central) → (NL/AL West) → NL WC → AL WC*.
-- By default the scoreboard renders one column with four games. Adjust `scoreboardColumns`
-  and `gamesPerColumn` to fit your layout (e.g., `scoreboardColumns: 2` keeps four games per
-  column for eight total per page). You can still provide `gamesPerPage` to override the
-  derived total if needed.
+- When both standings views are enabled the rotation order is *Scoreboard → (NL/AL East) →
+  (NL/AL Central) → (NL/AL West) → NL WC → AL WC*. Pages you disable are skipped entirely.
+- The default scoreboard layout now shows **two columns and up to four games** at a time.
+  Adjust `scoreboardColumns`, `gamesPerColumn`, or `gamesPerPage` to taste.
+- Toggle `showDivisionStandings` or `showWildCardStandings` to hide those pages entirely if
+  you only care about one view.
 
 ---
 

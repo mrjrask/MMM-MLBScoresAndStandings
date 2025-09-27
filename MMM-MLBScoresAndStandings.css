@@ -34,8 +34,8 @@
   --scoreboard-border-live:  #c3941a;
   --scoreboard-card-radius:  12px;
   --scoreboard-card-shadow:  0 6px 12px rgba(0, 0, 0, 0.45);
-  --scoreboard-background:   rgba(10, 10, 10, 0.95);
-  --scoreboard-header-bg:    rgba(18, 18, 18, 0.95);
+  --scoreboard-background:   transparent;
+  --scoreboard-header-bg:    transparent;
   --scoreboard-text:         #ffffff;
   --scoreboard-muted:        #8c8c8c;
   --scoreboard-value-color:  #ffd242;
@@ -196,7 +196,7 @@
 }
 
 .scoreboard-card .scoreboard-body {
-  background: rgba(8, 8, 8, 0.95);
+  background: transparent;
   display: flex;
   flex-direction: column;
 }
@@ -211,6 +211,19 @@
 }
 
 .scoreboard-card .scoreboard-team {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--scoreboard-team-font) * 0.25);
+}
+
+.scoreboard-card .scoreboard-team-logo {
+  height: calc(var(--scoreboard-team-font) * 0.8);
+  max-height: calc(var(--scoreboard-team-font) * 0.9);
+  width: auto;
+  display: block;
+}
+
+.scoreboard-card .scoreboard-team-abbr {
   font-size: var(--scoreboard-team-font);
   letter-spacing: 0.12em;
   text-transform: uppercase;
